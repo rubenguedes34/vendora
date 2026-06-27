@@ -32,3 +32,10 @@ Vendora is a modern, intuitive financial ecosystem designed to help individuals 
 To get a local copy up and running, follow these simple steps.
 
 ### Prerequisites
+
+To run this project locally, ensure you have the following environments and tools installed on your system:
+
+*   **PHP:** Version 8.5 or higher (required for the Laravel 13 backend API)
+*   **Composer:** Dependency manager for PHP (to install Laravel packages)
+*   **Node.js & npm:** Node.js (LTS version recommended) and npm (required to manage and build the Angular frontend)
+*   **MySQL Server:** Version 8.0 or higher (to host the relational database for users, budgets, and transactions)
