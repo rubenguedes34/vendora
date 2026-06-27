@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\FinancialRecord;
 
 class AuthController extends Controller
 {
@@ -16,6 +17,8 @@ class AuthController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8|confirmed',
+                'monthly_income' => 'required|numeric|min:0',
+                'monthly_expenses' => 'required|numeric|min:0',
             ]);
 
             // Decode base64 encoded password
@@ -26,6 +29,20 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($decodedPassword),
+                'monthly_income' => $request->monthly_income,
+                'monthly_expenses' => $request->monthly_expenses,
+            ]);
+
+            // Create financial record for current month
+            $currentYear = date('Y');
+            $currentMonth = date('n');
+            
+            FinancialRecord::create([
+                'user_id' => $user->id,
+                'year' => $currentYear,
+                'month' => $currentMonth,
+                'monthly_income' => $request->monthly_income,
+                'monthly_expenses' => $request->monthly_expenses,
             ]);
 
             // Use simple token instead of Sanctum to avoid middleware issues
@@ -36,6 +53,10 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'monthly_income' => $user->monthly_income,
+                    'monthly_expenses' => $user->monthly_expenses,
+                    'current_year' => $currentYear,
+                    'current_month' => $currentMonth,
                 ],
                 'token' => $token,
             ], 201);
@@ -64,6 +85,27 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
+            
+            // Get or create financial record for current month
+            $currentYear = date('Y');
+            $currentMonth = date('n');
+            
+            $financialRecord = FinancialRecord::where('user_id', $user->id)
+                ->where('year', $currentYear)
+                ->where('month', $currentMonth)
+                ->first();
+            
+            if (!$financialRecord) {
+                // Create record for current month using user's default values
+                $financialRecord = FinancialRecord::create([
+                    'user_id' => $user->id,
+                    'year' => $currentYear,
+                    'month' => $currentMonth,
+                    'monthly_income' => $user->monthly_income ?? 0,
+                    'monthly_expenses' => $user->monthly_expenses ?? 0,
+                ]);
+            }
+            
             // Use simple token instead of Sanctum to avoid middleware issues
             $token = base64_encode($user->id . ':' . time() . ':' . $user->email);
 
@@ -72,6 +114,10 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'monthly_income' => $financialRecord->monthly_income,
+                    'monthly_expenses' => $financialRecord->monthly_expenses,
+                    'current_year' => $currentYear,
+                    'current_month' => $currentMonth,
                 ],
                 'token' => $token,
             ]);

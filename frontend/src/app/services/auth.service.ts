@@ -7,6 +7,10 @@ interface User {
   id: number;
   name: string;
   email: string;
+  monthly_income?: number;
+  monthly_expenses?: number;
+  current_year?: number;
+  current_month?: number;
 }
 
 interface AuthResponse {

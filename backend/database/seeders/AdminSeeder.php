@@ -20,6 +20,8 @@ class AdminSeeder extends Seeder
                 'name' => 'Admin',
                 'email' => 'admin@vendora.com',
                 'password' => Hash::make('Guedes13'),
+                'monthly_income' => 3500.00,
+                'monthly_expenses' => 1200.00,
             ]
         );
     }
