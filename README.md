@@ -1,4 +1,4 @@
-# Vendora 📊
+# Vendora <img src="./vendora_logo.png" valign="middle" width="32" height="32">
 
 Vendora is a modern, intuitive financial ecosystem designed to help individuals take absolute control over their monthly budgeting and long-term investments. By bridging the gap between daily cash flow and wealth building, Vendora gives you a clear, high-level vantage point over your net worth.
 
