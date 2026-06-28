@@ -11,6 +11,7 @@ interface User {
   monthly_expenses?: number;
   current_year?: number;
   current_month?: number;
+  needs_setup?: boolean;
 }
 
 interface AuthResponse {
@@ -38,29 +39,15 @@ export class AuthService {
   }
 
   register(data: { name: string; email: string; password: string; password_confirmation: string }): Observable<AuthResponse> {
-    // Encode password with base64 for basic obfuscation
-    const encodedData = {
-      name: data.name,
-      email: data.email,
-      password: btoa(data.password),
-      password_confirmation: btoa(data.password_confirmation)
-    };
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, encodedData).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       timeout(10000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   login(data: { email: string; password: string }): Observable<AuthResponse> {
-    // Encode password with base64 for basic obfuscation (not real security - HTTPS is needed for real security)
-    const encodedData = {
-      email: data.email,
-      password: btoa(data.password)
-    };
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, encodedData).pipe(
-      timeout(1000),
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
+      timeout(3000),
       catchError(error => {
         // Handle 401 errors specifically
         if (error.status === 401) {
@@ -119,8 +106,16 @@ export class AuthService {
     return this.tokenSubject.asObservable();
   }
 
+  getTokenValue(): string | null {
+    return this.tokenSubject.value;
+  }
+
   getUserObservable(): Observable<User | null> {
     return this.userSubject.asObservable();
+  }
+
+  getUserValue(): User | null {
+    return this.userSubject.value;
   }
 
   isLoggedIn(): boolean {
