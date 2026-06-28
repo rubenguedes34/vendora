@@ -35,7 +35,7 @@ To get a local copy up and running, follow these simple steps.
 
 To run this project locally, ensure you have the following environments and tools installed on your system:
 
-*   **PHP:** Version 8.5 or higher (required for the Laravel 13 backend API)
+*   **PHP:** Version 8.2
 *   **Composer:** Dependency manager for PHP (to install Laravel packages)
 *   **Node.js & npm:** Node.js (LTS version recommended) and npm (required to manage and build the Angular frontend)
 *   **MySQL Server:** Version 8.0 or higher (to host the relational database for users, budgets, and transactions)
