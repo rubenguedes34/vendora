@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Models\FinancialRecord;
@@ -47,6 +48,8 @@ class AuthController extends Controller
                 ],
                 'token' => $token,
             ], 201);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Registration failed', ['exception' => $e]);
             return response()->json([
@@ -101,14 +104,16 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'monthly_income' => $financialRecord->monthly_income ?? null,
-                    'monthly_expenses' => $financialRecord->monthly_expenses ?? null,
+                    'monthly_income' => $financialRecord?->monthly_income ?? null,
+                    'monthly_expenses' => $financialRecord?->monthly_expenses ?? null,
                     'current_year' => $currentYear,
                     'current_month' => $currentMonth,
                     'needs_setup' => $needsSetup,
                 ],
                 'token' => $token,
             ]);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Login failed', ['exception' => $e]);
             return response()->json([
@@ -192,8 +197,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'monthly_income' => $financialRecord->monthly_income ?? null,
-                'monthly_expenses' => $financialRecord->monthly_expenses ?? null,
+                'monthly_income' => $financialRecord?->monthly_income ?? null,
+                'monthly_expenses' => $financialRecord?->monthly_expenses ?? null,
                 'current_year' => $currentYear,
                 'current_month' => $currentMonth,
                 'needs_setup' => $needsSetup,
