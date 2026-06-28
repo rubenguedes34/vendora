@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->decimal('monthly_income', 10, 2)->default(0)->after('email');
-            $table->decimal('monthly_expenses', 10, 2)->default(0)->after('monthly_income');
+            $table->decimal('monthly_income', 10, 2)->nullable()->after('email');
+            $table->decimal('monthly_expenses', 10, 2)->nullable()->after('monthly_income');
         });
     }
 
