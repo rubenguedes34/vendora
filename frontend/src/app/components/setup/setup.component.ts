@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-setup',
@@ -97,7 +98,7 @@ export class SetupComponent implements OnInit {
     const token = this.authService.getTokenValue();
     const user = this.authService.getUserValue();
 
-    this.http.post('http://localhost:8000/api/setup', {
+    this.http.post(`${environment.apiUrl}/setup`, {
       token,
       ...this.setupForm.value,
     }).subscribe({

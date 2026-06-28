@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
@@ -47,8 +48,9 @@ class AuthController extends Controller
                 'token' => $token,
             ], 201);
         } catch (\Exception $e) {
+            Log::error('Registration failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Registration failed: ' . $e->getMessage(),
+                'message' => 'Registration failed. Please try again.',
             ], 500);
         }
     }
@@ -68,39 +70,39 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
-            
-            // Get or create financial record for current month
+
             $currentYear = date('Y');
             $currentMonth = date('n');
-            
+
+            $needsSetup = ($user->monthly_income === null || $user->monthly_expenses === null);
+
             $financialRecord = FinancialRecord::where('user_id', $user->id)
                 ->where('year', $currentYear)
                 ->where('month', $currentMonth)
                 ->first();
-            
-            if (!$financialRecord) {
-                // Create record for current month using user's default values
+
+            // Only create a record once the user has completed setup, so we
+            // never persist placeholder zero values for incomplete accounts.
+            if (!$financialRecord && !$needsSetup) {
                 $financialRecord = FinancialRecord::create([
                     'user_id' => $user->id,
                     'year' => $currentYear,
                     'month' => $currentMonth,
-                    'monthly_income' => $user->monthly_income ?? 0,
-                    'monthly_expenses' => $user->monthly_expenses ?? 0,
+                    'monthly_income' => $user->monthly_income,
+                    'monthly_expenses' => $user->monthly_expenses,
                 ]);
             }
-            
+
             // Use simple token instead of Sanctum to avoid middleware issues
             $token = base64_encode($user->id . ':' . time() . ':' . $user->email);
-
-            $needsSetup = ($user->monthly_income === null || $user->monthly_expenses === null);
 
             return response()->json([
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'monthly_income' => $financialRecord->monthly_income,
-                    'monthly_expenses' => $financialRecord->monthly_expenses,
+                    'monthly_income' => $financialRecord->monthly_income ?? null,
+                    'monthly_expenses' => $financialRecord->monthly_expenses ?? null,
                     'current_year' => $currentYear,
                     'current_month' => $currentMonth,
                     'needs_setup' => $needsSetup,
@@ -108,8 +110,9 @@ class AuthController extends Controller
                 'token' => $token,
             ]);
         } catch (\Exception $e) {
+            Log::error('Login failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Login failed: ' . $e->getMessage(),
+                'message' => 'Login failed. Please try again.',
             ], 500);
         }
     }
@@ -150,8 +153,9 @@ class AuthController extends Controller
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => Hash::make(Str::random(32)),
-                    'email_verified_at' => now(),
                 ]);
+                // email_verified_at is not mass assignable, so set it directly.
+                $user->forceFill(['email_verified_at' => now()])->save();
                 $isNewUser = true;
             } else {
                 if (empty($user->google_id)) {
@@ -159,22 +163,25 @@ class AuthController extends Controller
                 }
             }
 
-            // Create financial record for current month if missing
             $currentYear = date('Y');
             $currentMonth = date('n');
+
+            $needsSetup = $isNewUser || ($user->monthly_income === null || $user->monthly_expenses === null);
 
             $financialRecord = FinancialRecord::where('user_id', $user->id)
                 ->where('year', $currentYear)
                 ->where('month', $currentMonth)
                 ->first();
 
-            if (!$financialRecord) {
+            // Only create a record once the user has completed setup, so we
+            // never persist placeholder zero values for incomplete accounts.
+            if (!$financialRecord && !$needsSetup) {
                 $financialRecord = FinancialRecord::create([
                     'user_id' => $user->id,
                     'year' => $currentYear,
                     'month' => $currentMonth,
-                    'monthly_income' => $user->monthly_income ?? 0,
-                    'monthly_expenses' => $user->monthly_expenses ?? 0,
+                    'monthly_income' => $user->monthly_income,
+                    'monthly_expenses' => $user->monthly_expenses,
                 ]);
             }
 
@@ -185,19 +192,19 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'monthly_income' => $financialRecord->monthly_income,
-                'monthly_expenses' => $financialRecord->monthly_expenses,
+                'monthly_income' => $financialRecord->monthly_income ?? null,
+                'monthly_expenses' => $financialRecord->monthly_expenses ?? null,
                 'current_year' => $currentYear,
                 'current_month' => $currentMonth,
+                'needs_setup' => $needsSetup,
             ];
 
-            $userData['needs_setup'] = $isNewUser || ($user->monthly_income === null || $user->monthly_expenses === null);
-
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:4200');
+            $frontendUrl = config('app.frontend_url');
             return redirect($frontendUrl . '/auth/callback?token=' . urlencode($token) . '&user=' . urlencode(json_encode($userData)));
         } catch (\Exception $e) {
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:4200');
-            return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed: ' . $e->getMessage()));
+            Log::error('Google login failed', ['exception' => $e]);
+            $frontendUrl = config('app.frontend_url');
+            return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed. Please try again.'));
         }
     }
 }

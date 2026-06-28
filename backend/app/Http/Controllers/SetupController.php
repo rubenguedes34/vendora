@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use App\Models\FinancialRecord;
@@ -69,8 +70,9 @@ class SetupController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            Log::error('Setup failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Setup failed: ' . $e->getMessage(),
+                'message' => 'Setup failed. Please try again.',
             ], 500);
         }
     }
