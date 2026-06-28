@@ -2,14 +2,24 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('app:generate-ssl-certificate')]
-#[Description('Generate self-signed SSL certificate for local development')]
 class GenerateSslCertificate extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'app:generate-ssl-certificate';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Generate self-signed SSL certificate for local development';
+
     /**
      * Execute the console command.
      */
