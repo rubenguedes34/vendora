@@ -19,7 +19,7 @@ Vendora is a modern, intuitive financial ecosystem designed to help individuals 
 
 ## 🛠️ Technology Stack
 
-* **Backend Framework:** PHP 8.5+ with Laravel 13 (Robust MVC architecture handling authentication, budgeting endpoints, and portfolio math)
+* **Backend Framework:** PHP 8.2 with Laravel 10 (Robust MVC architecture handling authentication, budgeting endpoints, and portfolio math)
 * **Frontend Framework:** Angular (TypeScript-driven SPA handling the dynamic dashboard state, modular budget components, and strict data typing)
 * **Styling:** Tailwind CSS (For the modern, responsive clean dashboard UI)
 * **Data Visualization:** Chart.js
