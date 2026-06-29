@@ -42,6 +42,8 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'monthly_income' => null,
                     'monthly_expenses' => null,
+                    'savings_goal' => null,
+                    'savings_goal_type' => null,
                     'current_year' => $currentYear,
                     'current_month' => $currentMonth,
                     'needs_setup' => true,
@@ -83,10 +85,8 @@ class AuthController extends Controller
                 ->where('year', $currentYear)
                 ->where('month', $currentMonth)
                 ->first();
-
-            // Only create a record once the user has completed setup, so we
-            // never persist placeholder zero values for incomplete accounts.
-            if (!$financialRecord && !$needsSetup) {
+            if (!$financialRecord) {
+                // Create record for current month using user's default values
                 $financialRecord = FinancialRecord::create([
                     'user_id' => $user->id,
                     'year' => $currentYear,
@@ -138,7 +138,10 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')
+        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver
             ->with(['prompt' => 'select_account'])
             ->redirect();
     }

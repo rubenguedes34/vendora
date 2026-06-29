@@ -10,6 +10,9 @@ interface User {
   email: string;
   monthly_income?: number;
   monthly_expenses?: number;
+  savings_goal?: number;
+  savings_goal_type?: 'percentage' | 'fixed';
+  savings?: number;
   current_year?: number;
   current_month?: number;
   needs_setup?: boolean;
@@ -121,5 +124,13 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!this.tokenSubject.value;
+  }
+
+  getUserValue(): User | null {
+    return this.userSubject.value;
+  }
+
+  getTokenValue(): string | null {
+    return this.tokenSubject.value;
   }
 }
