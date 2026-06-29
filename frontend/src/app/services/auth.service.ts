@@ -118,19 +118,11 @@ export class AuthService {
     return this.userSubject.asObservable();
   }
 
-  getUserValue(): User | null {
-    return this.userSubject.value;
-  }
-
   isLoggedIn(): boolean {
     return !!this.tokenSubject.value;
   }
 
   getUserValue(): User | null {
     return this.userSubject.value;
-  }
-
-  getTokenValue(): string | null {
-    return this.tokenSubject.value;
   }
 }
