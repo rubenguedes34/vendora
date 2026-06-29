@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
 use App\Models\FinancialRecord;
+use App\Services\TokenService;
 
 class SetupController extends Controller
 {
@@ -19,18 +19,10 @@ class SetupController extends Controller
                 'monthly_expenses' => 'required|numeric|min:0',
             ]);
 
-            $token = base64_decode($request->token);
-            $parts = explode(':', $token);
-
-            if (count($parts) !== 3) {
-                return response()->json(['message' => 'Invalid token'], 401);
-            }
-
-            $userId = $parts[0];
-            $user = User::find($userId);
+            $user = TokenService::verify($request->token);
 
             if (!$user) {
-                return response()->json(['message' => 'User not found'], 404);
+                return response()->json(['message' => 'Invalid token'], 401);
             }
 
             $user->update([

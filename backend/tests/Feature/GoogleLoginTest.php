@@ -29,6 +29,7 @@ class GoogleLoginTest extends TestCase
         $abstractUser->id = '123456789';
         $abstractUser->email = 'google@example.com';
         $abstractUser->name = 'Google User';
+        $abstractUser->user = ['email_verified' => true];
 
         Socialite::shouldReceive('driver')->with('google')->andReturnSelf();
         Socialite::shouldReceive('user')->andReturn($abstractUser);
@@ -55,6 +56,7 @@ class GoogleLoginTest extends TestCase
         $abstractUser->id = '123456789';
         $abstractUser->email = 'google@example.com';
         $abstractUser->name = 'Google User';
+        $abstractUser->user = ['email_verified' => true];
 
         Socialite::shouldReceive('driver')->with('google')->andReturnSelf();
         Socialite::shouldReceive('user')->andReturn($abstractUser);
@@ -67,6 +69,27 @@ class GoogleLoginTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'google@example.com',
             'google_id' => '123456789',
+        ]);
+    }
+
+    public function test_google_callback_rejects_unverified_email(): void
+    {
+        $abstractUser = Mockery::mock('Laravel\Socialite\Contracts\User');
+        $abstractUser->id = '123456789';
+        $abstractUser->email = 'unverified@example.com';
+        $abstractUser->name = 'Unverified User';
+        $abstractUser->user = ['email_verified' => false];
+
+        Socialite::shouldReceive('driver')->with('google')->andReturnSelf();
+        Socialite::shouldReceive('user')->andReturn($abstractUser);
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertStatus(302);
+        $response->assertRedirectContains('/login?error=');
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'unverified@example.com',
         ]);
     }
 

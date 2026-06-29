@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Models\FinancialRecord;
+use App\Services\TokenService;
 
 class AuthController extends Controller
 {
@@ -29,8 +30,7 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            // Use simple token instead of Sanctum to avoid middleware issues
-            $token = base64_encode($user->id . ':' . time() . ':' . $user->email);
+            $token = TokenService::issue($user);
 
             $currentYear = date('Y');
             $currentMonth = date('n');
@@ -96,8 +96,7 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Use simple token instead of Sanctum to avoid middleware issues
-            $token = base64_encode($user->id . ':' . time() . ':' . $user->email);
+            $token = TokenService::issue($user);
 
             return response()->json([
                 'user' => [
@@ -149,6 +148,14 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
 
+            // Only trust a Google identity whose email Google has verified, so a
+            // user cannot be linked to (or created from) an unverified address.
+            $emailVerified = $googleUser->user['email_verified'] ?? false;
+            if (!$emailVerified) {
+                $frontendUrl = config('app.frontend_url');
+                return redirect($frontendUrl . '/login?error=' . urlencode('Your Google email address is not verified.'));
+            }
+
             $user = User::where('email', $googleUser->email)->first();
             $isNewUser = false;
 
@@ -190,8 +197,7 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Generate simple token
-            $token = base64_encode($user->id . ':' . time() . ':' . $user->email);
+            $token = TokenService::issue($user);
 
             $userData = [
                 'id' => $user->id,
