@@ -17,10 +17,16 @@ permissions:
 jobs:
   psalm-analysis:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: . 
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -30,9 +36,9 @@ jobs:
           tools: psalm
 
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress
 
-      - name: Initialize Psalm Config (Only runs if psalm.xml is missing)
+      - name: Initialize Psalm Config
         run: |
           if [ ! -f psalm.xml ]; then
             psalm --init . 3
