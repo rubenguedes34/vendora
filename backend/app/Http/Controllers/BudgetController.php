@@ -75,4 +75,27 @@ class BudgetController extends Controller
 
         return response()->json(['message' => 'Budget deleted']);
     }
+
+    public function summary(Request $request, $month = null)
+    {
+        $month = $month ?? date('Y-m');
+
+        $budgets = $request->user()
+            ->budgets()
+            ->where('month', $month)
+            ->with('category')
+            ->get();
+
+        $income = $budgets->where('category.type', 'income')->sum('amount');
+        $expenses = $budgets->where('category.type', 'expense')->sum('amount');
+        $savings = $budgets->where('category.type', 'savings')->sum('amount');
+
+        return response()->json([
+            'month' => $month,
+            'income' => $income,
+            'expenses' => $expenses,
+            'savings' => $savings,
+            'balance' => $income - $expenses - $savings,
+        ]);
+    }
 }
