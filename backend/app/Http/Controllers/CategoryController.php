@@ -23,7 +23,7 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',
-            'type' => 'required|in:income,expense',
+            'type' => 'required|in:income,expense,savings',
         ]);
 
         $category = $request->user()->categories()->create($request->all());
@@ -45,7 +45,7 @@ class CategoryController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',
-            'type' => 'sometimes|required|in:income,expense',
+            'type' => 'sometimes|required|in:income,expense,savings',
         ]);
 
         $category->update($request->all());
@@ -59,5 +59,25 @@ class CategoryController extends Controller
         $category->delete();
 
         return response()->json(['message' => 'Category deleted']);
+    }
+
+    public function byType(Request $request, $type)
+    {
+        $validTypes = ['income', 'expense', 'savings'];
+
+        if (!in_array($type, $validTypes)) {
+            return response()->json(['message' => 'Invalid category type'], 400);
+        }
+
+        $categories = $request->user()
+            ->categories()
+            ->where('type', $type)
+            ->with(['budgets' => function ($query) {
+                $query->where('month', date('Y-m'));
+            }])
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($categories);
     }
 }

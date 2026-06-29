@@ -83,6 +83,24 @@ class CategorySeeder extends Seeder
                 'color' => '#F59E0B',
                 'type' => 'income',
             ],
+            [
+                'name' => 'Emergency Fund',
+                'icon' => '🛡️',
+                'color' => '#10B981',
+                'type' => 'savings',
+            ],
+            [
+                'name' => 'Vacation',
+                'icon' => '✈️',
+                'color' => '#3B82F6',
+                'type' => 'savings',
+            ],
+            [
+                'name' => 'General Savings',
+                'icon' => '🏦',
+                'color' => '#8B5CF6',
+                'type' => 'savings',
+            ],
         ];
 
         foreach ($defaultCategories as $category) {
