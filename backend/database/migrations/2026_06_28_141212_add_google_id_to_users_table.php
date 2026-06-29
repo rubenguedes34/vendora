@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->decimal('monthly_income', 10, 2)->nullable()->after('email');
-            $table->decimal('monthly_expenses', 10, 2)->nullable()->after('monthly_income');
+            $table->string('google_id')->nullable()->unique()->after('email');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['monthly_income', 'monthly_expenses']);
+            $table->dropColumn('google_id');
         });
     }
 };

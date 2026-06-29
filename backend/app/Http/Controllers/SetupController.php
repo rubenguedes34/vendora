@@ -3,37 +3,36 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use App\Models\FinancialRecord;
-use App\Models\BudgetRange;
+use App\Services\TokenService;
 
 class SetupController extends Controller
 {
-    public function completeSetup(Request $request)
+    public function store(Request $request)
     {
         try {
-            $user = Auth::user();
-            
-            if (!$user) {
-                return response()->json(['message' => 'Unauthorized'], 401);
-            }
-
             $request->validate([
+                'token' => 'required|string',
                 'monthly_income' => 'required|numeric|min:0',
                 'monthly_expenses' => 'required|numeric|min:0',
-                'budget_range_id' => 'nullable|exists:budget_ranges,id',
             ]);
 
-            // Update user with financial data
-            $user->monthly_income = $request->monthly_income;
-            $user->monthly_expenses = $request->monthly_expenses;
-            $user->save();
+            $user = TokenService::verify($request->token);
 
-            // Create financial record for current month
+            if (!$user) {
+                return response()->json(['message' => 'Invalid token'], 401);
+            }
+
+            $user->update([
+                'monthly_income' => $request->monthly_income,
+                'monthly_expenses' => $request->monthly_expenses,
+            ]);
+
             $currentYear = date('Y');
             $currentMonth = date('n');
-            
+
             FinancialRecord::updateOrCreate(
                 [
                     'user_id' => $user->id,
@@ -46,33 +45,26 @@ class SetupController extends Controller
                 ]
             );
 
+            $userData = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'monthly_income' => $request->monthly_income,
+                'monthly_expenses' => $request->monthly_expenses,
+                'current_year' => $currentYear,
+                'current_month' => $currentMonth,
+            ];
+
             return response()->json([
                 'message' => 'Setup completed successfully',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'monthly_income' => $user->monthly_income,
-                    'monthly_expenses' => $user->monthly_expenses,
-                    'current_year' => $currentYear,
-                    'current_month' => $currentMonth,
-                ],
-            ], 200);
+                'user' => $userData,
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
+            Log::error('Setup failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Setup failed: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function getBudgetRanges()
-    {
-        try {
-            $ranges = BudgetRange::all();
-            return response()->json($ranges, 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to fetch budget ranges: ' . $e->getMessage(),
+                'message' => 'Setup failed. Please try again.',
             ], 500);
         }
     }

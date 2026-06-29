@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'auth/callback', component: AuthCallbackComponent },
+  { path: 'setup', loadComponent: () => import('./components/setup/setup.component').then(m => m.SetupComponent) },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'dashboard', loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent) },
   { path: 'transactions', loadComponent: () => import('./components/transactions/transactions.component').then(m => m.TransactionsComponent) },
