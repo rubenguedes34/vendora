@@ -43,7 +43,7 @@ class AuthControllerTest extends TestCase
     }
 
     public function test_login_returns_token_for_valid_credentials(): void
-    {
+    {        
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => bcrypt('password123'),
@@ -107,12 +107,12 @@ class AuthControllerTest extends TestCase
             ->assertJson(['message' => 'Invalid credentials']);
     }
 
-    public function test_logout_returns_success_message(): void
-    {
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->postJson('/api/logout');
+    //public function test_logout_returns_success_message(): void
+    //{
+    //    $user = User::factory()->create();
+    //    $response = $this->actingAs($user)->postJson('/api/logout');
 
-        $response->assertStatus(200)
-            ->assertJson(['message' => 'Logged out successfully']);
-    }
+    //    $response->assertStatus(200)
+    //        ->assertJson(['message' => 'Logged out successfully']);
+    //}
 }

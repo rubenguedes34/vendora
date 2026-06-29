@@ -85,7 +85,8 @@ class AuthController extends Controller
                 ->where('year', $currentYear)
                 ->where('month', $currentMonth)
                 ->first();
-            if (!$financialRecord) {
+
+            if (!$financialRecord && !$needsSetup) {
                 // Create record for current month using user's default values
                 $financialRecord = FinancialRecord::create([
                     'user_id' => $user->id,
