@@ -17,7 +17,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
       <main class="flex-1 overflow-auto">
         <!-- Header -->
         <header class="bg-teal-700 text-white shadow-md">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
             <div class="flex justify-between h-16 items-center">
               <div>
                 <h2 class="text-xl font-semibold">Dashboard</h2>

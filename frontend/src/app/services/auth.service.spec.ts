@@ -77,6 +77,13 @@ describe('AuthService', () => {
     req.flush({});
   });
 
+  it('clearAuth() emits on loggedOut$', () => {
+    let emitted = false;
+    service.loggedOut$.subscribe(() => emitted = true);
+    service.clearAuth();
+    expect(emitted).toBeTrue();
+  });
+
   it('restores token from localStorage on init', () => {
     localStorage.setItem('token', 'persisted-token');
     TestBed.resetTestingModule();
