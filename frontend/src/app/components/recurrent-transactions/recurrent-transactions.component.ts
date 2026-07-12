@@ -30,7 +30,7 @@ interface RecurrentTransaction {
 
       <main class="flex-1">
         <header class="bg-teal-700 text-white shadow-md">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
             </div>

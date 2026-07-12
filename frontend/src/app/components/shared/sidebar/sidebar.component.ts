@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -8,16 +8,44 @@ import { AuthService } from '../../../services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <aside class="w-64 bg-teal-500 text-white shadow-lg flex-shrink-0 flex flex-col min-h-screen">
+    <!-- Mobile hamburger button (fixed top-left) -->
+    <button
+      data-testid="sidebar-hamburger"
+      (click)="mobileOpen = true"
+      class="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-teal-600 text-white shadow-lg">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Backdrop -->
+    <div *ngIf="mobileOpen"
+      data-testid="sidebar-backdrop"
+      (click)="mobileOpen = false"
+      class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity">
+    </div>
+
+    <!-- Sidebar -->
+    <aside
+      class="fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-teal-500 text-white shadow-lg flex-shrink-0 flex flex-col min-h-screen transition-transform duration-300 lg:translate-x-0"
+      [ngClass]="mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+
       <div class="p-6">
-        <a routerLink="/dashboard" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+        <!-- Close button (mobile only) -->
+        <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-teal-200 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <a routerLink="/dashboard" (click)="mobileOpen = false" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
           <h1 class="text-2xl font-bold">Vendora</h1>
         </a>
-        <a routerLink="/account" class="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity group">
+        <a routerLink="/account" (click)="mobileOpen = false" class="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity group">
           <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
             {{ initials }}
           </div>
@@ -26,7 +54,7 @@ import { AuthService } from '../../../services/auth.service';
       </div>
 
       <nav class="mt-2 flex-1">
-        <a routerLink="/dashboard"
+        <a routerLink="/dashboard" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/dashboard')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +64,7 @@ import { AuthService } from '../../../services/auth.service';
           <span class="font-semibold">Dashboard</span>
         </a>
 
-        <a routerLink="/budgets"
+        <a routerLink="/budgets" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/budgets')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +74,7 @@ import { AuthService } from '../../../services/auth.service';
           <span class="font-semibold">Budgets</span>
         </a>
 
-        <a routerLink="/transactions"
+        <a routerLink="/transactions" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/transactions')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +84,7 @@ import { AuthService } from '../../../services/auth.service';
           <span class="font-semibold">Transactions</span>
         </a>
 
-        <a routerLink="/recurrent-transactions"
+        <a routerLink="/recurrent-transactions" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/recurrent-transactions')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +94,7 @@ import { AuthService } from '../../../services/auth.service';
           <span class="font-semibold">Recurrent</span>
         </a>
 
-        <a routerLink="/investments"
+        <a routerLink="/investments" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/investments')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +104,7 @@ import { AuthService } from '../../../services/auth.service';
           <span class="font-semibold">Investments</span>
         </a>
 
-        <a routerLink="/account"
+        <a routerLink="/account" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
           [class.bg-teal-700]="isActive('/account')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,6 +131,7 @@ import { AuthService } from '../../../services/auth.service';
 export class SidebarComponent implements OnInit {
   user: any = null;
   initials = '';
+  mobileOpen = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -116,6 +145,11 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.mobileOpen = false;
   }
 
   logout(): void {

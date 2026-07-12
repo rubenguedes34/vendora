@@ -20,7 +20,7 @@ import { environment } from '../../../environments/environment';
       <main class="flex-1 overflow-auto">
         <!-- Header -->
         <header class="bg-teal-700 text-white shadow-md">
-          <div class="max-w-4xl mx-auto px-6">
+          <div class="max-w-4xl mx-auto px-6 pl-14 lg:pl-6">
             <div class="flex items-center justify-between h-16">
               <div>
                 <h2 class="text-xl font-semibold">Account Settings</h2>
