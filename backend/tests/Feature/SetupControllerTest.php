@@ -13,6 +13,7 @@ class SetupControllerTest extends TestCase
 
     public function test_setup_saves_financial_data_for_user(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 
@@ -54,6 +55,7 @@ class SetupControllerTest extends TestCase
 
     public function test_setup_rejects_forged_unsigned_token(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         // A token in the old unsigned base64 format must no longer be accepted.
         $forged = base64_encode($user->id . ':' . time() . ':' . $user->email);
@@ -75,6 +77,7 @@ class SetupControllerTest extends TestCase
 
     public function test_setup_validates_required_fields(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 

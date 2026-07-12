@@ -13,15 +13,16 @@ class TokenServiceTest extends TestCase
 
     public function test_issue_returns_non_empty_string(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 
-        $this->assertIsString($token);
         $this->assertNotEmpty($token);
     }
 
     public function test_verify_returns_user_for_valid_token(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 
@@ -41,6 +42,7 @@ class TokenServiceTest extends TestCase
 
     public function test_verify_returns_null_for_tampered_payload(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 
@@ -53,6 +55,7 @@ class TokenServiceTest extends TestCase
 
     public function test_verify_returns_null_for_forged_unsigned_token(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $forged = base64_encode($user->id . ':' . time() . ':' . $user->email);
 
@@ -61,7 +64,9 @@ class TokenServiceTest extends TestCase
 
     public function test_different_users_get_different_tokens(): void
     {
+        /** @var User $userA */
         $userA = User::factory()->create();
+        /** @var User $userB */
         $userB = User::factory()->create();
 
         $tokenA = TokenService::issue($userA);

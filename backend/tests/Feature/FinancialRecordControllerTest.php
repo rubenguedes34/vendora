@@ -17,10 +17,12 @@ class FinancialRecordControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create([
+        /** @var User $user */
+        $user = User::factory()->create([
             'monthly_income' => 5000,
             'monthly_expenses' => 3000,
         ]);
+        $this->user = $user;
         $this->token = TokenService::issue($this->user);
     }
 

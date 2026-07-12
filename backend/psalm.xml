@@ -34,6 +34,13 @@
         <!-- Middleware/seeders/commands registered via config, not called directly -->
         <UnusedClass errorLevel="suppress" />
 
+        <!-- Auth facade ->login() resolved via __call; interface doesn't declare it -->
+        <UndefinedInterfaceMethod errorLevel="suppress" />
+
+        <!-- Mockery fluent chains and Socialite facade in test doubles -->
+        <UndefinedMagicMethod errorLevel="suppress" />
+        <TooManyArguments errorLevel="suppress" />
+
         <!-- routes/console.php uses $this bound to the application closure -->
         <InvalidScope errorLevel="suppress" />
 

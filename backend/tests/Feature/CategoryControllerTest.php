@@ -17,7 +17,9 @@ class CategoryControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        /** @var User $user */
+        $user = User::factory()->create();
+        $this->user = $user;
         $this->token = TokenService::issue($this->user);
     }
 
