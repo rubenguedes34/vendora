@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, timeout } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 export interface FinancialRecord {
@@ -51,11 +51,31 @@ export interface Budget {
 })
 export class FinancialService {
   private apiUrl = 'http://localhost:8000/api';
+  private categoryCache = new Map<string, Observable<Category[]>>();
+  private allCategoriesCache: Observable<Category[]> | null = null;
 
   constructor(
     private http: HttpClient,
     private authService: AuthService
   ) {}
+
+  clearCategoryCache(): void {
+    this.categoryCache.clear();
+    this.allCategoriesCache = null;
+  }
+
+  getAllCategories(): Observable<Category[]> {
+    if (!this.allCategoriesCache) {
+      this.allCategoriesCache = this.http.get<Category[]>(`${this.apiUrl}/categories`, {
+        headers: this.getHeaders()
+      }).pipe(
+        timeout(5000),
+        catchError(error => throwError(() => this.handleError(error))),
+        shareReplay(1)
+      );
+    }
+    return this.allCategoriesCache;
+  }
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getTokenValue();
@@ -129,6 +149,7 @@ export class FinancialService {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),
+      tap(() => this.clearCategoryCache()),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
@@ -138,17 +159,23 @@ export class FinancialService {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),
+      tap(() => this.clearCategoryCache()),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   getCategoriesByType(type: 'income' | 'expense' | 'savings'): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.apiUrl}/categories-by-type/${type}`, {
-      headers: this.getHeaders()
-    }).pipe(
-      timeout(5000),
-      catchError(error => throwError(() => this.handleError(error)))
-    );
+    if (!this.categoryCache.has(type)) {
+      const req = this.http.get<Category[]>(`${this.apiUrl}/categories-by-type/${type}`, {
+        headers: this.getHeaders()
+      }).pipe(
+        timeout(5000),
+        catchError(error => throwError(() => this.handleError(error))),
+        shareReplay(1)
+      );
+      this.categoryCache.set(type, req);
+    }
+    return this.categoryCache.get(type)!;
   }
 
   saveBudget(categoryId: number, amount: number, month: string): Observable<Budget> {

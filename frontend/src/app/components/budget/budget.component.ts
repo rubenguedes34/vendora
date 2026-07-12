@@ -62,7 +62,11 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <div *ngIf="incomeCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No income categories yet.</div>
               <div *ngFor="let category of incomeCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg leading-none">{{ category.icon || '💰' }}</span>
+                    <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#10B981'"></span>
+                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  </div>
                   <div class="flex items-center space-x-2">
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -85,7 +89,11 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <div *ngIf="expenseCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No expense categories yet.</div>
               <div *ngFor="let category of expenseCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg leading-none">{{ category.icon || '📦' }}</span>
+                    <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#EF4444'"></span>
+                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  </div>
                   <div class="flex items-center space-x-2">
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -122,7 +130,11 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <div *ngIf="savingsCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No savings categories yet.</div>
               <div *ngFor="let category of savingsCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg leading-none">{{ category.icon || '🏦' }}</span>
+                    <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#10B981'"></span>
+                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                  </div>
                   <div class="flex items-center space-x-2">
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -217,28 +229,14 @@ export class BudgetComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.financialService.getCategoriesByType('income').subscribe({
+    this.financialService.getAllCategories().subscribe({
       next: (categories) => {
-        this.incomeCategories = categories;
-        this.incomeCategories.forEach(c => this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0);
+        this.incomeCategories  = categories.filter(c => c.type === 'income');
+        this.expenseCategories = categories.filter(c => c.type === 'expense');
+        this.savingsCategories = categories.filter(c => c.type === 'savings');
+        categories.forEach(c => this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0);
       },
-      error: (error) => this.errorMessage = error.message || 'Failed to load income categories',
-    });
-
-    this.financialService.getCategoriesByType('expense').subscribe({
-      next: (categories) => {
-        this.expenseCategories = categories;
-        this.expenseCategories.forEach(c => this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0);
-      },
-      error: (error) => this.errorMessage = error.message || 'Failed to load expense categories',
-    });
-
-    this.financialService.getCategoriesByType('savings').subscribe({
-      next: (categories) => {
-        this.savingsCategories = categories;
-        this.savingsCategories.forEach(c => this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0);
-      },
-      error: (error) => this.errorMessage = error.message || 'Failed to load savings categories',
+      error: (error) => this.errorMessage = error.message || 'Failed to load categories',
     });
   }
 

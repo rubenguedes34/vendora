@@ -244,13 +244,28 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <!-- Bar list -->
               <div class="space-y-3">
                 <div *ngFor="let item of expensesByCategory" class="flex items-center gap-3">
-                  <div class="w-28 text-xs text-gray-600 truncate shrink-0">{{ item.category }}</div>
+                  <div class="w-24 text-xs text-gray-600 truncate shrink-0">{{ item.category }}</div>
                   <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
                     <div class="h-2.5 rounded-full transition-all duration-500"
                       [style.width]="getExpensePct(item.total) + '%'"
                       [style.background]="item.color"></div>
                   </div>
-                  <div class="text-xs font-semibold text-gray-700 w-16 text-right shrink-0">€{{ item.total.toFixed(2) }}</div>
+                  <div class="text-xs font-semibold text-gray-700 w-14 text-right shrink-0">€{{ item.total.toFixed(2) }}</div>
+                  <!-- Percentage circle -->
+                  <div class="relative w-9 h-9 shrink-0">
+                    <svg class="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="#f3f4f6" stroke-width="3"/>
+                      <circle cx="18" cy="18" r="15" fill="none"
+                        [attr.stroke]="item.color"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        [attr.stroke-dasharray]="getCategoryPctCircle(item.total) + ' 94.25'"
+                        stroke-dashoffset="0"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <span class="text-gray-700 font-bold" style="font-size:7px">{{ getCategoryPct(item.total) }}%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <!-- Doughnut -->
@@ -418,6 +433,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   getExpensePct(total: number): number {
     return this.maxExpense > 0 ? Math.round((total / this.maxExpense) * 100) : 0;
+  }
+
+  getTotalExpenses(): number {
+    return this.expensesByCategory.reduce((s, e) => s + e.total, 0);
+  }
+
+  getCategoryPct(total: number): number {
+    const t = this.getTotalExpenses();
+    return t > 0 ? Math.round((total / t) * 100) : 0;
+  }
+
+  getCategoryPctCircle(total: number): number {
+    return (this.getCategoryPct(total) / 100) * 94.25;
   }
 
   prevMonth(): void {

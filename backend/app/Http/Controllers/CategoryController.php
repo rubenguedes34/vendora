@@ -11,6 +11,9 @@ class CategoryController extends Controller
     {
         $categories = $request->user()
             ->categories()
+            ->with(['budgets' => function ($query) {
+                $query->where('month', date('Y-m'));
+            }])
             ->orderBy('name')
             ->get();
 
