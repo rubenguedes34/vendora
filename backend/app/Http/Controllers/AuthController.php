@@ -187,6 +187,48 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name'             => 'required|string|max:255',
+            'email'            => 'required|email|max:255|unique:users,email,' . $user->id,
+            'monthly_income'   => 'nullable|numeric|min:0',
+            'monthly_expenses' => 'nullable|numeric|min:0',
+        ]);
+
+        $user->update([
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'monthly_income'   => $request->monthly_income,
+            'monthly_expenses' => $request->monthly_expenses,
+        ]);
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user'    => $user->fresh(),
+        ]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password'  => 'required|string',
+            'password'          => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Password updated successfully.']);
+    }
+
     public function redirectToGoogle()
     {
         /** @var \Laravel\Socialite\Two\GoogleProvider $driver */

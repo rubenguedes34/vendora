@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
@@ -21,7 +21,7 @@ interface RecurrentTransaction {
 @Component({
   selector: 'app-recurrent-transactions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>

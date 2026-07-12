@@ -29,4 +29,5 @@ export const routes: Routes = [
   { path: 'budgets', canActivate: [authGuard], loadComponent: () => import('./components/budget/budget.component').then(m => m.BudgetComponent) },
   { path: 'investments', canActivate: [authGuard], loadComponent: () => import('./components/investments/investments.component').then(m => m.InvestmentsComponent) },
   { path: 'recurrent-transactions', canActivate: [authGuard], loadComponent: () => import('./components/recurrent-transactions/recurrent-transactions.component').then(m => m.RecurrentTransactionsComponent) },
+  { path: 'account', canActivate: [authGuard], loadComponent: () => import('./components/account/account.component').then(m => m.AccountComponent) },
 ];

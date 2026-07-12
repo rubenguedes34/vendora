@@ -17,7 +17,12 @@ import { AuthService } from '../../../services/auth.service';
           </svg>
           <h1 class="text-2xl font-bold">Vendora</h1>
         </a>
-        <p class="text-teal-100 text-sm mt-1">{{ user?.name }}</p>
+        <a routerLink="/account" class="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity group">
+          <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
+            {{ initials }}
+          </div>
+          <span class="text-teal-100 text-sm group-hover:text-white transition-colors">{{ user?.name }}</span>
+        </a>
       </div>
 
       <nav class="mt-2 flex-1">
@@ -70,6 +75,16 @@ import { AuthService } from '../../../services/auth.service';
           </svg>
           <span class="font-semibold">Investments</span>
         </a>
+
+        <a routerLink="/account"
+          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
+          [class.bg-teal-700]="isActive('/account')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 20a9 9 0 10-18 0" />
+          </svg>
+          <span class="font-semibold">Account</span>
+        </a>
       </nav>
 
       <div class="p-4 border-t border-teal-600">
@@ -87,11 +102,16 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class SidebarComponent implements OnInit {
   user: any = null;
+  initials = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
-    this.authService.getUserObservable().subscribe(u => this.user = u);
+    this.authService.getUserObservable().subscribe(u => {
+      this.user = u;
+      const name: string = u?.name || '';
+      this.initials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+    });
   }
 
   isActive(path: string): boolean {

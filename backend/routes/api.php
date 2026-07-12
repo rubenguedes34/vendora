@@ -20,6 +20,8 @@ Route::post('/setup', [SetupController::class, 'store']);
 Route::middleware('auth.custom')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/user/password', [AuthController::class, 'updatePassword']);
 
     // Categories
     Route::apiResource('categories', CategoryController::class);

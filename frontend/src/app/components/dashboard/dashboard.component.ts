@@ -23,7 +23,15 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 <h2 class="text-xl font-semibold">Dashboard</h2>
                 <p class="text-teal-200 text-xs">Welcome back, {{ user?.name }}!</p>
               </div>
-              <span class="text-sm text-teal-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-teal-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+                <a routerLink="/account" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 transition-colors px-3 py-1.5 rounded-lg">
+                  <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
+                    {{ userInitials }}
+                  </div>
+                  <span class="text-sm text-white font-medium hidden sm:block">{{ user?.name }}</span>
+                </a>
+              </div>
             </div>
           </div>
         </header>
@@ -156,6 +164,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   overviewExpenses = 0;
   overviewSavings = 0;
 
+  userInitials = '';
+
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
   @ViewChild('categoryChart') categoryChart!: ElementRef;
 
@@ -173,6 +183,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.user = user;
       if (user?.current_year) this.currentYear = user.current_year;
       if (user?.current_month) this.currentMonth = user.current_month;
+      const name: string = user?.name || '';
+      this.userInitials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
     });
 
     if (!this.authService.isLoggedIn()) {
