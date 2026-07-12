@@ -57,7 +57,9 @@ export class FinancialService {
   constructor(
     private http: HttpClient,
     private authService: AuthService
-  ) {}
+  ) {
+    this.authService.loggedOut$.subscribe(() => this.clearCategoryCache());
+  }
 
   clearCategoryCache(): void {
     this.categoryCache.clear();
@@ -149,8 +151,8 @@ export class FinancialService {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),
-      tap(() => this.clearCategoryCache()),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError(error => throwError(() => this.handleError(error))),
+      tap(() => this.clearCategoryCache())
     );
   }
 
@@ -159,8 +161,8 @@ export class FinancialService {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),
-      tap(() => this.clearCategoryCache()),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError(error => throwError(() => this.handleError(error))),
+      tap(() => this.clearCategoryCache())
     );
   }
 

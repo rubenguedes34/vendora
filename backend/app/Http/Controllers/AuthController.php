@@ -267,6 +267,7 @@ class AuthController extends Controller
                 ]);
                 // email_verified_at is not mass assignable, so set it directly.
                 $user->forceFill(['email_verified_at' => now()])->save();
+                $this->seedDefaultCategories($user);
                 $isNewUser = true;
             } else {
                 if (empty($user->google_id)) {

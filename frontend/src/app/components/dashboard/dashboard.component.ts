@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -27,7 +27,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 <span class="text-sm text-teal-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
 
                 <!-- Notification Bell -->
-                <div class="relative">
+                <div class="relative alerts-panel-wrapper">
                   <button (click)="toggleAlerts()" class="relative p-2 rounded-lg hover:bg-teal-600 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -385,7 +385,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const savings = this.monthlySavings;
 
     this.dailyAvgSpend = dayOfMonth > 0 ? expenses / dayOfMonth : 0;
-    this.projectedBalance = income - (this.dailyAvgSpend * daysInMonth);
+    this.projectedBalance = income - expenses - (this.dailyAvgSpend * this.daysRemaining);
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
@@ -417,6 +417,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   toggleAlerts(): void {
     this.showAlerts = !this.showAlerts;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.showAlerts) return;
+    const target = event.target as HTMLElement;
+    if (!target.closest('.alerts-panel-wrapper')) {
+      this.showAlerts = false;
+    }
   }
 
   loadExpensesByCategory(): void {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError, timeout } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, throwError, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -30,6 +30,7 @@ export class AuthService {
   private apiUrl = environment.apiUrl;
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private userSubject = new BehaviorSubject<User | null>(null);
+  readonly loggedOut$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
     const token = localStorage.getItem('token');
@@ -104,6 +105,7 @@ export class AuthService {
     localStorage.removeItem('user');
     this.tokenSubject.next(null);
     this.userSubject.next(null);
+    this.loggedOut$.next();
   }
 
   getToken(): Observable<string | null> {

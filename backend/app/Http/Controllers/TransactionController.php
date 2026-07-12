@@ -114,6 +114,8 @@ class TransactionController extends Controller
 
     public function expensesByCategory(Request $request)
     {
+        $request->validate(['month' => ['nullable', 'regex:/^\d{4}-\d{2}$/']]);
+
         $month = $request->query('month', date('Y-m'));
 
         [$year, $mon] = explode('-', $month);
