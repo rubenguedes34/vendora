@@ -7,6 +7,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $password
+ * @property float|null $monthly_income
+ * @property float|null $monthly_expenses
+ * @property string|null $google_id
+ * @property float $savings
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -28,7 +38,7 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var array<array-key, string>
      */
     protected $hidden = [
         'password',
@@ -40,6 +50,26 @@ class User extends Authenticatable
     public function getSavingsAttribute(): float
     {
         return (float) $this->monthly_income - (float) $this->monthly_expenses;
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function budgets()
+    {
+        return $this->hasMany(Budget::class);
+    }
+
+    public function investments()
+    {
+        return $this->hasMany(Investment::class);
     }
 
     public function financialRecords()
@@ -55,7 +85,7 @@ class User extends Authenticatable
     /**
      * The attributes that should be cast.
      *
-     * @var array<string, string>
+     * @var array<array-key, mixed>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',

@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $category_id
+ * @property string $description
+ * @property string $amount
+ * @property string $type
+ * @property \Carbon\Carbon $transaction_date
+ */
 class Transaction extends Model
 {
     use HasFactory;
@@ -19,6 +28,7 @@ class Transaction extends Model
         'transaction_date',
     ];
 
+    /** @var array<array-key, mixed> */
     protected $casts = [
         'amount' => 'decimal:2',
         'transaction_date' => 'date',

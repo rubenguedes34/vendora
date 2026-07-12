@@ -4,6 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $description
+ * @property float $amount
+ * @property string $type
+ * @property int $category_id
+ * @property int $day_of_month
+ */
 class RecurrentTransaction extends Model
 {
     protected $fillable = [

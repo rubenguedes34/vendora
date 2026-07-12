@@ -142,7 +142,7 @@ class RecurrentTransactionController extends Controller
 
             $existing = $request->user()->transactions()
                 ->where('description', $recurrent->description)
-                ->where('transaction_date', $date)
+                ->whereDate('transaction_date', $date)
                 ->first();
 
             if (!$existing) {

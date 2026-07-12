@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $category_id
+ * @property string $amount
+ * @property string $month
+ */
 class Budget extends Model
 {
     use HasFactory;
@@ -17,6 +24,7 @@ class Budget extends Model
         'month',
     ];
 
+    /** @var array<array-key, mixed> */
     protected $casts = [
         'amount' => 'decimal:2',
     ];

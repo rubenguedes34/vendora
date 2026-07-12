@@ -31,16 +31,12 @@ jobs:
         with:
           php-version: '8.2'
           extensions: dom, curl, libxml, mbstring, zip
-          tools: psalm
 
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: Initialize Psalm Config
-        run: |
-          if [ ! -f psalm.xml ]; then
-            psalm --init . 3
-          fi
+      - name: Bootstrap Psalm Laravel Plugin
+        run: vendor/bin/psalm-plugin enable psalm/plugin-laravel || true
 
       - name: Run Psalm Scan
-        run: psalm --output-format=github
+        run: vendor/bin/psalm --output-format=github

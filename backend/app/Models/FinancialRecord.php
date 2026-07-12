@@ -4,6 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $year
+ * @property int $month
+ * @property float $monthly_income
+ * @property float $monthly_expenses
+ * @property float|null $savings_goal
+ * @property string|null $savings_goal_type
+ * @property float $savings
+ */
 class FinancialRecord extends Model
 {
     protected $fillable = [
