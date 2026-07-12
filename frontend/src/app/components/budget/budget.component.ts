@@ -56,57 +56,50 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
           </div>
 
           <div class="p-6">
+
             <!-- Income Section -->
             <div *ngIf="activeSection === 'income'">
-              <div *ngIf="incomeCategories.length === 0" class="text-gray-500 text-center py-8">
-                No income categories. Add one to get started.
-              </div>
-              <div *ngFor="let category of incomeCategories" class="mb-4">
+              <div *ngIf="incomeCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No income categories yet.</div>
+              <div *ngFor="let category of incomeCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <span class="text-2xl">{{ category.icon || '💰' }}</span>
-                    <span class="font-semibold text-gray-800">{{ category.name }}</span>
-                  </div>
+                  <span class="font-medium text-gray-800">{{ category.name }}</span>
                   <div class="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      [(ngModel)]="categoryBudgets[category.id]"
-                      (change)="saveBudget(category)"
-                      class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                    <span class="text-gray-600">€</span>
+                    <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
+                      class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      placeholder="0.00" min="0" step="0.01" />
+                    <span class="text-gray-500 text-sm">€</span>
+                    <button (click)="deleteCategory(category, 'income')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
+              </div>
+              <div class="mt-4 flex items-center gap-2">
+                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                <button (click)="addCategory('income')" [disabled]="!newCategoryName.trim()"
+                  class="bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
               </div>
             </div>
 
             <!-- Expenses Section -->
             <div *ngIf="activeSection === 'expenses'">
-              <div *ngIf="expenseCategories.length === 0" class="text-gray-500 text-center py-8">
-                No expense categories. Add one to get started.
-              </div>
-              <div *ngFor="let category of expenseCategories" class="mb-4">
+              <div *ngIf="expenseCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No expense categories yet.</div>
+              <div *ngFor="let category of expenseCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <span class="text-2xl">{{ category.icon || '📦' }}</span>
-                    <span class="font-semibold text-gray-800">{{ category.name }}</span>
-                  </div>
+                  <span class="font-medium text-gray-800">{{ category.name }}</span>
                   <div class="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      [(ngModel)]="categoryBudgets[category.id]"
-                      (change)="saveBudget(category)"
-                      class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                    <span class="text-gray-600">€</span>
+                    <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
+                      class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      placeholder="0.00" min="0" step="0.01" />
+                    <span class="text-gray-500 text-sm">€</span>
+                    <button (click)="deleteCategory(category, 'expenses')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
+              </div>
+              <div class="mt-4 flex items-center gap-2">
+                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                <button (click)="addCategory('expense')" [disabled]="!newCategoryName.trim()"
+                  class="bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
               </div>
             </div>
 
@@ -115,53 +108,38 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <div class="mb-6 p-4 bg-blue-50 rounded-lg">
                 <h4 class="font-semibold text-gray-800 mb-2">Savings Goal</h4>
                 <div class="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    [(ngModel)]="savingsGoalValue"
-                    (change)="updateSavingsGoal()"
+                  <input type="number" [(ngModel)]="savingsGoalValue" (change)="updateSavingsGoal()"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., 500 or 10"
-                    min="0"
-                    step="0.01"
-                  />
-                  <select
-                    [(ngModel)]="savingsGoalType"
-                    (change)="updateSavingsGoal()"
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
+                    placeholder="e.g., 500 or 10" min="0" step="0.01" />
+                  <select [(ngModel)]="savingsGoalType" (change)="updateSavingsGoal()"
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="fixed">€</option>
                     <option value="percentage">%</option>
                   </select>
                 </div>
-                <p class="text-gray-600 text-sm mt-2">
-                  Target savings: €{{ formatCurrency(calculateSavingsGoalAmount()) }}
-                </p>
+                <p class="text-gray-600 text-sm mt-2">Target savings: €{{ formatCurrency(calculateSavingsGoalAmount()) }}</p>
               </div>
-
-              <div *ngIf="savingsCategories.length === 0" class="text-gray-500 text-center py-8">
-                No savings categories. Add one to get started.
-              </div>
-              <div *ngFor="let category of savingsCategories" class="mb-4">
+              <div *ngIf="savingsCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No savings categories yet.</div>
+              <div *ngFor="let category of savingsCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <span class="text-2xl">{{ category.icon || '🏦' }}</span>
-                    <span class="font-semibold text-gray-800">{{ category.name }}</span>
-                  </div>
+                  <span class="font-medium text-gray-800">{{ category.name }}</span>
                   <div class="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      [(ngModel)]="categoryBudgets[category.id]"
-                      (change)="saveBudget(category)"
-                      class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                    <span class="text-gray-600">€</span>
+                    <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
+                      class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      placeholder="0.00" min="0" step="0.01" />
+                    <span class="text-gray-500 text-sm">€</span>
+                    <button (click)="deleteCategory(category, 'savings')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
               </div>
+              <div class="mt-4 flex items-center gap-2">
+                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                <button (click)="addCategory('savings')" [disabled]="!newCategoryName.trim()"
+                  class="bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
+              </div>
             </div>
+
           </div>
         </div>
 
@@ -218,6 +196,7 @@ export class BudgetComponent implements OnInit {
 
   isSaving = false;
   errorMessage = '';
+  newCategoryName = '';
 
   constructor(
     private authService: AuthService,
@@ -340,6 +319,33 @@ export class BudgetComponent implements OnInit {
         this.isSaving = false;
         this.goBack();
       }
+    });
+  }
+
+  addCategory(type: 'income' | 'expense' | 'savings'): void {
+    const name = this.newCategoryName.trim();
+    if (!name) return;
+    this.financialService.createCategory({ name, type }).subscribe({
+      next: (cat) => {
+        this.newCategoryName = '';
+        if (type === 'income') { this.incomeCategories = [...this.incomeCategories, cat]; }
+        else if (type === 'expense') { this.expenseCategories = [...this.expenseCategories, cat]; }
+        else { this.savingsCategories = [...this.savingsCategories, cat]; }
+        this.categoryBudgets[cat.id] = 0;
+      },
+      error: (err) => this.errorMessage = err.message || 'Failed to add category',
+    });
+  }
+
+  deleteCategory(category: Category, section: 'income' | 'expenses' | 'savings'): void {
+    if (!confirm(`Delete category "${category.name}"?`)) return;
+    this.financialService.deleteCategory(category.id).subscribe({
+      next: () => {
+        if (section === 'income') { this.incomeCategories = this.incomeCategories.filter(c => c.id !== category.id); }
+        else if (section === 'expenses') { this.expenseCategories = this.expenseCategories.filter(c => c.id !== category.id); }
+        else { this.savingsCategories = this.savingsCategories.filter(c => c.id !== category.id); }
+      },
+      error: (err) => this.errorMessage = err.message || 'Failed to delete category',
     });
   }
 

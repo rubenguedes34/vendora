@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { timeout, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { environment } from '../../../environments/environment';
@@ -279,6 +281,7 @@ export class AccountComponent implements OnInit {
     this.profileError = '';
 
     this.http.put(`${this.apiUrl}/user/profile`, this.profileForm.value, { headers: this.getHeaders() })
+      .pipe(timeout(8000), catchError(err => throwError(() => err)))
       .subscribe({
         next: (res: any) => {
           this.savingProfile = false;
@@ -299,6 +302,7 @@ export class AccountComponent implements OnInit {
     this.passwordError = '';
 
     this.http.put(`${this.apiUrl}/user/password`, this.passwordForm.value, { headers: this.getHeaders() })
+      .pipe(timeout(8000), catchError(err => throwError(() => err)))
       .subscribe({
         next: () => {
           this.savingPassword = false;

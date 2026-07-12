@@ -114,6 +114,34 @@ export class FinancialService {
     );
   }
 
+  getExpensesByCategory(month: string): Observable<{ category: string; color: string; total: number }[]> {
+    return this.http.get<{ category: string; color: string; total: number }[]>(
+      `${this.apiUrl}/transactions/expenses-by-category?month=${month}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  createCategory(data: { name: string; type: 'income' | 'expense' | 'savings'; icon?: string }): Observable<Category> {
+    return this.http.post<Category>(`${this.apiUrl}/categories`, data, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  deleteCategory(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/categories/${id}`, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
   getCategoriesByType(type: 'income' | 'expense' | 'savings'): Observable<Category[]> {
     return this.http.get<Category[]>(`${this.apiUrl}/categories-by-type/${type}`, {
       headers: this.getHeaders()

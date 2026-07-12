@@ -28,6 +28,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/categories-by-type/{type}', [CategoryController::class, 'byType']);
 
     // Transactions
+    Route::get('/transactions/expenses-by-category', [TransactionController::class, 'expensesByCategory']);
     Route::apiResource('transactions', TransactionController::class);
 
     // Budgets - custom routes first

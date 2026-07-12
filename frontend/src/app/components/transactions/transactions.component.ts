@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TransactionService } from '../../services/transaction.service';
 import { FinancialService, Category } from '../../services/financial.service';
 import { AuthService } from '../../services/auth.service';
@@ -160,14 +162,12 @@ export class TransactionsComponent implements OnInit {
   }
 
   loadCategories(): void {
-    const all: Category[] = [];
-    let done = 0;
-    const types: Array<'income' | 'expense' | 'savings'> = ['income', 'expense', 'savings'];
-    types.forEach(t => {
-      this.financialService.getCategoriesByType(t).subscribe({
-        next: cats => { all.push(...cats); done++; if (done === 3) this.categories = all; },
-        error: () => { done++; if (done === 3) this.categories = all; }
-      });
+    forkJoin([
+      this.financialService.getCategoriesByType('income').pipe(catchError(() => of([]))),
+      this.financialService.getCategoriesByType('expense').pipe(catchError(() => of([]))),
+      this.financialService.getCategoriesByType('savings').pipe(catchError(() => of([]))),
+    ]).subscribe(([income, expense, savings]) => {
+      this.categories = [...income, ...expense, ...savings];
     });
   }
 

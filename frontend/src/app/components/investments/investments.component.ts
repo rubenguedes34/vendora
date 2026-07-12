@@ -1,32 +1,37 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent],
   template: `
-    <div class="min-h-screen bg-gray-100">
-      <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <button routerLink="/dashboard" class="text-gray-700 hover:text-gray-900 mr-4">← Back</button>
-              <h1 class="text-2xl font-bold text-gray-800">Investments</h1>
+    <div class="min-h-screen bg-gray-100 flex">
+      <app-sidebar></app-sidebar>
+
+      <main class="flex-1 overflow-auto">
+        <header class="bg-teal-700 text-white shadow-md">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+              <h2 class="text-xl font-semibold">Investments</h2>
             </div>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">Investment Portfolio</h2>
-          <p class="text-gray-600">Track your investments and monitor their performance over time.</p>
-          <p class="text-gray-500 mt-2">Investment tracking interface coming soon...</p>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div class="bg-white p-8 rounded-xl shadow-md text-center">
+            <svg class="w-16 h-16 mx-auto text-teal-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">Investment Portfolio</h2>
+            <p class="text-gray-500">Track your investments and monitor their performance over time.</p>
+            <p class="text-gray-400 mt-1 text-sm">Investment tracking interface coming soon...</p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   `
 })

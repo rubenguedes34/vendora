@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Category;
+use App\Models\User;
 
 class TransactionController extends Controller
 {
@@ -109,5 +110,33 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return response()->json(['message' => 'Transaction deleted']);
+    }
+
+    public function expensesByCategory(Request $request)
+    {
+        $month = $request->query('month', date('Y-m'));
+
+        [$year, $mon] = explode('-', $month);
+
+        /** @var User $user */
+        $user = $request->user();
+        $results = $user
+            ->transactions()
+            ->with('category')
+            ->where('type', 'expense')
+            ->whereYear('transaction_date', (int) $year)
+            ->whereMonth('transaction_date', (int) $mon)
+            ->get()
+            ->groupBy(fn ($t) => $t->category?->name ?? 'Uncategorised')
+            ->map(fn ($group, $name) => [
+                'category' => $name,
+                'color'    => $group->first()->category?->color ?? '#94a3b8',
+                'total'    => round($group->sum('amount'), 2),
+            ])
+            ->values()
+            ->sortByDesc('total')
+            ->values();
+
+        return response()->json($results);
     }
 }

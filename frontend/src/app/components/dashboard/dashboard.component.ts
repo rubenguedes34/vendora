@@ -25,6 +25,89 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               </div>
               <div class="flex items-center gap-3">
                 <span class="text-sm text-teal-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+
+                <!-- Notification Bell -->
+                <div class="relative">
+                  <button (click)="toggleAlerts()" class="relative p-2 rounded-lg hover:bg-teal-600 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span *ngIf="alertCount > 0"
+                      class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                      {{ alertCount }}
+                    </span>
+                  </button>
+
+                  <!-- Alerts Panel -->
+                  <div *ngIf="showAlerts"
+                    class="absolute right-0 top-12 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                      <h3 class="font-semibold text-gray-800 text-base">Alerts</h3>
+                      <button (click)="showAlerts = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto">
+                      <!-- Status badge -->
+                      <div class="px-5 py-4 border-b border-gray-50">
+                        <div class="flex items-center gap-2">
+                          <span [class]="alerts.length === 0 ? 'text-green-500' : (hasCritical ? 'text-red-500' : 'text-yellow-500')">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path *ngIf="alerts.length === 0" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                              <path *ngIf="alerts.length > 0" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                          </span>
+                          <span class="font-semibold text-gray-800 text-sm">{{ alerts.length === 0 ? 'All good!' : (hasCritical ? 'Attention needed' : 'Some warnings') }}</span>
+                        </div>
+                        <p *ngIf="alerts.length === 0" class="text-xs text-green-600 mt-1 ml-7">Your finances look healthy this month.</p>
+                      </div>
+
+                      <!-- Alert items -->
+                      <div *ngFor="let alert of alerts" class="px-5 py-3 border-b border-gray-50 last:border-0">
+                        <div class="flex items-start gap-3">
+                          <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-400 mt-0.5' : 'text-teal-400 mt-0.5'">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path *ngIf="alert.type === 'danger'" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                              <path *ngIf="alert.type === 'warning'" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                              <path *ngIf="alert.type === 'info'" fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                          </span>
+                          <div>
+                            <p class="text-sm font-medium text-gray-800">{{ alert.title }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ alert.message }}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Monthly projection -->
+                      <div class="px-5 py-4 bg-gray-50">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Monthly Projection</p>
+                        <div class="space-y-2">
+                          <div class="flex justify-between text-xs">
+                            <span class="text-gray-500">Projected balance</span>
+                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-teal-600' : 'font-semibold text-red-500'">€{{ formatCurrency(projectedBalance) }}</span>
+                          </div>
+                          <div class="flex justify-between text-xs">
+                            <span class="text-gray-500">Daily avg spend</span>
+                            <span class="font-semibold text-gray-700">€{{ formatCurrency(dailyAvgSpend) }}</span>
+                          </div>
+                          <div class="flex justify-between text-xs">
+                            <span class="text-gray-500">Days remaining</span>
+                            <span class="font-semibold text-gray-700">{{ daysRemaining }} days</span>
+                          </div>
+                          <div class="flex justify-between text-xs">
+                            <span class="text-gray-500">Savings rate</span>
+                            <span [class]="savingsRate >= 20 ? 'font-semibold text-teal-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
+                              {{ savingsRate.toFixed(1) }}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <a routerLink="/account" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 transition-colors px-3 py-1.5 rounded-lg">
                   <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
                     {{ userInitials }}
@@ -90,56 +173,90 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
             </div>
           </div>
 
-          <!-- Charts -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Income vs Expenses vs Savings - yearly bar chart -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">Income vs Expenses vs Savings</h3>
-              <p class="text-xs text-gray-400 mb-4">Full year {{ currentYear }}</p>
-              <div *ngIf="yearlyRecords.length === 0" class="text-gray-400 text-center py-12 text-sm">
-                No yearly data yet
+          <!-- Charts row -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+
+            <!-- Area chart: Income vs Expenses (spans 3 cols) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-800">Income vs Expenses</h3>
+                  <p class="text-xs text-gray-400">{{ currentYear }} overview</p>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-gray-500">
+                  <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-teal-400"></span>Income</span>
+                  <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span>Expenses</span>
+                  <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span>Savings</span>
+                </div>
               </div>
-              <canvas #incomeExpenseChart></canvas>
+              <div *ngIf="yearlyRecords.length === 0" class="text-gray-300 text-center py-14 text-sm">No data yet</div>
+              <canvas #incomeExpenseChart style="max-height:220px"></canvas>
             </div>
 
-            <!-- Monthly Overview doughnut with navigation -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Monthly Overview</h3>
-                <div class="flex items-center space-x-2">
-                  <button (click)="prevMonth()"
-                    class="p-1 rounded hover:bg-gray-100 text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
+            <!-- Doughnut: monthly overview (spans 2 cols) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-base font-semibold text-gray-800">Monthly Snapshot</h3>
+                <div class="flex items-center gap-1">
+                  <button (click)="prevMonth()" class="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                   </button>
-                  <span class="text-sm font-medium text-gray-700 w-28 text-center">
-                    {{ monthNames[overviewMonth - 1] }} {{ overviewYear }}
-                  </span>
-                  <button (click)="nextMonth()"
-                    class="p-1 rounded hover:bg-gray-100 text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
+                  <span class="text-xs font-medium text-gray-600 w-24 text-center">{{ monthNames[overviewMonth-1].slice(0,3) }} {{ overviewYear }}</span>
+                  <button (click)="nextMonth()" class="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                   </button>
                 </div>
               </div>
-              <!-- Mini stats for the overview month -->
-              <div class="grid grid-cols-3 gap-2 mb-4 text-center text-xs">
-                <div class="bg-blue-50 rounded p-2">
-                  <p class="text-gray-500">Income</p>
-                  <p class="font-bold text-blue-600">€{{ formatCurrency(overviewIncome) }}</p>
-                </div>
-                <div class="bg-red-50 rounded p-2">
-                  <p class="text-gray-500">Expenses</p>
-                  <p class="font-bold text-red-600">€{{ formatCurrency(overviewExpenses) }}</p>
-                </div>
-                <div class="bg-green-50 rounded p-2">
-                  <p class="text-gray-500">Savings</p>
-                  <p class="font-bold text-green-600">€{{ formatCurrency(overviewSavings) }}</p>
+              <div class="relative flex items-center justify-center" style="height:170px">
+                <canvas #categoryChart></canvas>
+                <div class="absolute text-center pointer-events-none">
+                  <p class="text-xs text-gray-400">Total</p>
+                  <p class="text-lg font-bold text-gray-700">€{{ formatCurrency(overviewIncome) }}</p>
                 </div>
               </div>
-              <canvas #categoryChart></canvas>
+              <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
+                <div class="bg-teal-50 rounded-lg p-2">
+                  <p class="text-gray-400">Income</p>
+                  <p class="font-bold text-teal-600">€{{ formatCurrency(overviewIncome) }}</p>
+                </div>
+                <div class="bg-red-50 rounded-lg p-2">
+                  <p class="text-gray-400">Expenses</p>
+                  <p class="font-bold text-red-500">€{{ formatCurrency(overviewExpenses) }}</p>
+                </div>
+                <div class="bg-indigo-50 rounded-lg p-2">
+                  <p class="text-gray-400">Saved</p>
+                  <p class="font-bold text-indigo-500">€{{ formatCurrency(overviewSavings) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expenses by Category -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-semibold text-gray-800">Expenses by Category</h3>
+                <p class="text-xs text-gray-400">{{ monthNames[overviewMonth-1] }} {{ overviewYear }}</p>
+              </div>
+            </div>
+            <div *ngIf="expensesByCategory.length === 0" class="text-gray-300 text-center py-8 text-sm">No expense transactions this month</div>
+            <div *ngIf="expensesByCategory.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+              <!-- Bar list -->
+              <div class="space-y-3">
+                <div *ngFor="let item of expensesByCategory" class="flex items-center gap-3">
+                  <div class="w-28 text-xs text-gray-600 truncate shrink-0">{{ item.category }}</div>
+                  <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="h-2.5 rounded-full transition-all duration-500"
+                      [style.width]="getExpensePct(item.total) + '%'"
+                      [style.background]="item.color"></div>
+                  </div>
+                  <div class="text-xs font-semibold text-gray-700 w-16 text-right shrink-0">€{{ item.total.toFixed(2) }}</div>
+                </div>
+              </div>
+              <!-- Doughnut -->
+              <div class="flex justify-center" style="max-height:220px">
+                <canvas #categoryBreakdownChart></canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -168,9 +285,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
   @ViewChild('categoryChart') categoryChart!: ElementRef;
+  @ViewChild('categoryBreakdownChart') categoryBreakdownChart!: ElementRef;
 
   private incomeExpenseChartInstance: any;
   private categoryChartInstance: any;
+  private categoryBreakdownChartInstance: any;
+
+  expensesByCategory: { category: string; color: string; total: number }[] = [];
+  private maxExpense = 0;
+
+  showAlerts = false;
+  alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
+  hasCritical = false;
+  alertCount = 0;
+  projectedBalance = 0;
+  dailyAvgSpend = 0;
+  daysRemaining = 0;
+  savingsRate = 0;
 
   constructor(
     private authService: AuthService,
@@ -204,9 +335,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.totalBalance = this.monthlyIncome - this.monthlyExpenses;
         this.updateOverviewFromRecord(record);
         this.updateChartsWithRealData();
+        this.computeAlerts();
       },
       error: () => this.updateChartsWithRealData()
     });
+
+    this.loadExpensesByCategory();
 
     this.financialService.getYearRecords(this.currentYear).subscribe({
       next: (records) => {
@@ -224,16 +358,80 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.updateOverviewChart();
   }
 
+  computeAlerts(): void {
+    const alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+    this.daysRemaining = daysInMonth - dayOfMonth;
+
+    const income = this.monthlyIncome;
+    const expenses = this.monthlyExpenses;
+    const savings = this.monthlySavings;
+
+    this.dailyAvgSpend = dayOfMonth > 0 ? expenses / dayOfMonth : 0;
+    this.projectedBalance = income - (this.dailyAvgSpend * daysInMonth);
+    this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
+
+    if (expenses > income) {
+      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent €${this.formatCurrency(expenses - income)} more than you earned this month.` });
+    } else if (expenses > income * 0.9) {
+      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only €${this.formatCurrency(income - expenses)} left from your income.` });
+    }
+
+    if (this.savingsRate < 10 && income > 0) {
+      alerts.push({ type: 'warning', title: 'Low savings rate', message: `You're saving ${this.savingsRate.toFixed(1)}% of income. Target is at least 20%.` });
+    }
+
+    if (this.projectedBalance < 0) {
+      alerts.push({ type: 'danger', title: 'Negative month projected', message: `At current daily spend (€${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end the month €${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
+    } else if (this.projectedBalance < income * 0.1) {
+      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end-of-month balance is only €${this.formatCurrency(this.projectedBalance)}.` });
+    } else {
+      alerts.push({ type: 'info', title: 'On track this month', message: `Projected to save €${this.formatCurrency(this.projectedBalance)} by end of month.` });
+    }
+
+    if (this.daysRemaining <= 7 && expenses > income * 0.8) {
+      alerts.push({ type: 'warning', title: 'Month ending soon', message: `${this.daysRemaining} days left. Watch your spending to stay positive.` });
+    }
+
+    this.alerts = alerts;
+    this.hasCritical = alerts.some(a => a.type === 'danger');
+    this.alertCount = alerts.filter(a => a.type !== 'info').length;
+  }
+
+  toggleAlerts(): void {
+    this.showAlerts = !this.showAlerts;
+  }
+
+  loadExpensesByCategory(): void {
+    const month = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
+    this.financialService.getExpensesByCategory(month).subscribe({
+      next: data => {
+        this.expensesByCategory = data;
+        this.maxExpense = data.length ? Math.max(...data.map(d => d.total)) : 1;
+        this.updateCategoryBreakdownChart();
+      },
+      error: () => { this.expensesByCategory = []; }
+    });
+  }
+
+  getExpensePct(total: number): number {
+    return this.maxExpense > 0 ? Math.round((total / this.maxExpense) * 100) : 0;
+  }
+
   prevMonth(): void {
     if (this.overviewMonth === 1) { this.overviewMonth = 12; this.overviewYear--; }
     else { this.overviewMonth--; }
     this.loadOverviewMonth();
+    this.loadExpensesByCategory();
   }
 
   nextMonth(): void {
     if (this.overviewMonth === 12) { this.overviewMonth = 1; this.overviewYear++; }
     else { this.overviewMonth++; }
     this.loadOverviewMonth();
+    this.loadExpensesByCategory();
   }
 
   loadOverviewMonth(): void {
@@ -281,36 +479,69 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.initIncomeExpenseChart();
       this.initCategoryChart();
+      this.initCategoryBreakdownChart();
     }, 200);
   }
 
   initIncomeExpenseChart(): void {
     if (!this.incomeExpenseChart?.nativeElement) return;
-    const ctx = this.incomeExpenseChart.nativeElement.getContext('2d');
+    const canvas = this.incomeExpenseChart.nativeElement;
+    const ctx = canvas.getContext('2d');
+
+    const mkGradient = (r: number, g: number, b: number) => {
+      const grad = ctx.createLinearGradient(0, 0, 0, 220);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.35)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0.01)`);
+      return grad;
+    };
+
     this.incomeExpenseChartInstance = new (window as any).Chart(ctx, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: this.yearlyRecords.map(r => this.monthNames[r.month - 1].slice(0, 3)),
         datasets: [
-          { label: 'Income', data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_income)) || 0), backgroundColor: 'rgba(59,130,246,0.75)', borderColor: 'rgba(59,130,246,1)', borderWidth: 1, borderRadius: 4 },
-          { label: 'Expenses', data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_expenses)) || 0), backgroundColor: 'rgba(239,68,68,0.75)', borderColor: 'rgba(239,68,68,1)', borderWidth: 1, borderRadius: 4 },
-          { label: 'Savings', data: this.yearlyRecords.map(r => parseFloat(String(r.savings)) || 0), backgroundColor: 'rgba(16,185,129,0.75)', borderColor: 'rgba(16,185,129,1)', borderWidth: 1, borderRadius: 4 }
+          {
+            label: 'Income',
+            data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_income)) || 0),
+            borderColor: '#2dd4bf', backgroundColor: mkGradient(45,212,191),
+            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#2dd4bf',
+            tension: 0.4, fill: true
+          },
+          {
+            label: 'Expenses',
+            data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_expenses)) || 0),
+            borderColor: '#f87171', backgroundColor: mkGradient(248,113,113),
+            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#f87171',
+            tension: 0.4, fill: true
+          },
+          {
+            label: 'Savings',
+            data: this.yearlyRecords.map(r => parseFloat(String(r.savings)) || 0),
+            borderColor: '#818cf8', backgroundColor: mkGradient(129,140,248),
+            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#818cf8',
+            tension: 0.4, fill: true
+          }
         ]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { position: 'top' },
+          legend: { display: false },
           tooltip: {
-            callbacks: {
-              label: (ctx: any) => ` ${ctx.dataset.label}: €${ctx.parsed.y.toFixed(2)}`
-            }
+            backgroundColor: 'rgba(17,24,39,0.85)',
+            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
+            padding: 10, cornerRadius: 8,
+            callbacks: { label: (c: any) => ` ${c.dataset.label}: €${c.parsed.y.toFixed(2)}` }
           }
         },
         scales: {
-          y: { beginAtZero: true, ticks: { callback: (v: any) => '€' + v } }
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+          y: {
+            beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' },
+            ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: any) => '€' + v }
+          }
         }
       }
     });
@@ -325,24 +556,71 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         labels: ['Income', 'Expenses', 'Savings'],
         datasets: [{
           data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
-          backgroundColor: ['rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)', 'rgba(16,185,129,0.8)'],
-          borderColor: ['rgba(59,130,246,1)', 'rgba(239,68,68,1)', 'rgba(16,185,129,1)'],
+          backgroundColor: ['#2dd4bf', '#f87171', '#818cf8'],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          hoverOffset: 6,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(17,24,39,0.85)',
+            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
+            padding: 10, cornerRadius: 8,
+            callbacks: { label: (c: any) => ` ${c.label}: €${c.parsed.toFixed(2)}` }
+          }
+        }
+      }
+    });
+  }
+
+  initCategoryBreakdownChart(): void {
+    if (!this.categoryBreakdownChart?.nativeElement) return;
+    const ctx = this.categoryBreakdownChart.nativeElement.getContext('2d');
+    this.categoryBreakdownChartInstance = new (window as any).Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: this.expensesByCategory.map(e => e.category),
+        datasets: [{
+          data: this.expensesByCategory.map(e => e.total),
+          backgroundColor: this.expensesByCategory.map(e => e.color),
+          borderColor: '#ffffff',
           borderWidth: 2,
-          hoverOffset: 8
+          hoverOffset: 6,
+          borderRadius: 3
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        cutout: '60%',
         plugins: {
-          legend: { position: 'right' },
+          legend: { position: 'right', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: '#6b7280' } },
           tooltip: {
-            callbacks: {
-              label: (ctx: any) => ` ${ctx.label}: €${ctx.parsed.toFixed(2)}`
-            }
+            backgroundColor: 'rgba(17,24,39,0.85)',
+            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
+            padding: 10, cornerRadius: 8,
+            callbacks: { label: (c: any) => ` ${c.label}: €${c.parsed.toFixed(2)}` }
           }
         }
       }
     });
+  }
+
+  updateCategoryBreakdownChart(): void {
+    if (!this.categoryBreakdownChartInstance) {
+      this.initCategoryBreakdownChart();
+      return;
+    }
+    this.categoryBreakdownChartInstance.data.labels = this.expensesByCategory.map(e => e.category);
+    this.categoryBreakdownChartInstance.data.datasets[0].data = this.expensesByCategory.map(e => e.total);
+    this.categoryBreakdownChartInstance.data.datasets[0].backgroundColor = this.expensesByCategory.map(e => e.color);
+    this.categoryBreakdownChartInstance.update();
   }
 }

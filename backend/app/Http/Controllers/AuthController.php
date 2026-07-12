@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use App\Models\Category;
 use App\Models\FinancialRecord;
 use App\Services\TokenService;
 
@@ -46,6 +47,8 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+
+            $this->seedDefaultCategories($user);
 
             $token = TokenService::issue($user);
 
@@ -312,6 +315,32 @@ class AuthController extends Controller
             Log::error('Google login failed', ['exception' => $e]);
             $frontendUrl = config('app.frontend_url');
             return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed. Please try again.'));
+        }
+    }
+
+    private function seedDefaultCategories(User $user): void
+    {
+        $defaults = [
+            ['name' => 'Salary',         'type' => 'income',  'icon' => '💰', 'color' => '#10B981'],
+            ['name' => 'Freelance',      'type' => 'income',  'icon' => '💼', 'color' => '#3B82F6'],
+            ['name' => 'Side Income',    'type' => 'income',  'icon' => '📈', 'color' => '#F59E0B'],
+            ['name' => 'Food',           'type' => 'expense', 'icon' => '🍔', 'color' => '#EF4444'],
+            ['name' => 'Transport',      'type' => 'expense', 'icon' => '🚗', 'color' => '#3B82F6'],
+            ['name' => 'Rent',           'type' => 'expense', 'icon' => '🏠', 'color' => '#8B5CF6'],
+            ['name' => 'Entertainment',  'type' => 'expense', 'icon' => '🎬', 'color' => '#EC4899'],
+            ['name' => 'Shopping',       'type' => 'expense', 'icon' => '🛍️', 'color' => '#F59E0B'],
+            ['name' => 'Bills',          'type' => 'expense', 'icon' => '📄', 'color' => '#6366F1'],
+            ['name' => 'Health',         'type' => 'expense', 'icon' => '🏥', 'color' => '#14B8A6'],
+            ['name' => 'Emergency Fund', 'type' => 'savings', 'icon' => '🛡️', 'color' => '#10B981'],
+            ['name' => 'Vacation',       'type' => 'savings', 'icon' => '✈️', 'color' => '#3B82F6'],
+            ['name' => 'General Savings','type' => 'savings', 'icon' => '🏦', 'color' => '#8B5CF6'],
+        ];
+
+        foreach ($defaults as $cat) {
+            $user->categories()->firstOrCreate(
+                ['name' => $cat['name'], 'type' => $cat['type']],
+                ['icon' => $cat['icon'], 'color' => $cat['color']]
+            );
         }
     }
 }
