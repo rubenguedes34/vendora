@@ -4,36 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, Category, BudgetSummary } from '../../services/financial.service';
+import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SidebarComponent],
   template: `
-    <div class="min-h-screen bg-gray-100">
-      <!-- Header -->
-      <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16 items-center">
-            <div class="flex items-center space-x-4">
-              <button (click)="goBack()" class="text-gray-600 hover:text-gray-900">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-              </button>
-              <h1 class="text-2xl font-bold text-gray-800">Define Budgets</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-gray-700">{{ user?.name }}</span>
-              <button (click)="logout()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
-                Logout
-              </button>
+    <div class="min-h-screen bg-gray-100 flex">
+      <app-sidebar></app-sidebar>
+
+      <main class="flex-1">
+        <header class="bg-teal-700 text-white shadow-md">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+              <h2 class="text-xl font-semibold">Define Budgets</h2>
             </div>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <p class="text-gray-600 mb-6">Set your monthly budget for each category</p>
 
         <!-- Summary Cards -->
@@ -196,6 +186,7 @@ import { FinancialService, Category, BudgetSummary } from '../../services/financ
           {{ errorMessage }}
         </div>
       </div>
+      </main>
     </div>
   `
 })

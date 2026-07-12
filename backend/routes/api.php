@@ -9,6 +9,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\FinancialRecordController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\RecurrentTransactionController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -38,4 +39,8 @@ Route::middleware('auth.custom')->group(function () {
 
     // Investments
     Route::apiResource('investments', InvestmentController::class);
+
+    // Recurrent transactions
+    Route::post('/recurrent-transactions/copy', [RecurrentTransactionController::class, 'copyToMonth']);
+    Route::apiResource('recurrent-transactions', RecurrentTransactionController::class);
 });

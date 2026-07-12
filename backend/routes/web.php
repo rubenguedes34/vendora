@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/api/documentation');
 });
 
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);

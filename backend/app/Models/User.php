@@ -47,6 +47,11 @@ class User extends Authenticatable
         return $this->hasMany(FinancialRecord::class);
     }
 
+    public function recurrentTransactions()
+    {
+        return $this->hasMany(RecurrentTransaction::class);
+    }
+
     /**
      * The attributes that should be cast.
      *

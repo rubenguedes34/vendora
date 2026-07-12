@@ -15,6 +15,23 @@ use App\Services\TokenService;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/register",
+     *     tags={"Auth"},
+     *     summary="Register a new user",
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"name","email","password","password_confirmation"},
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="password", type="string", minLength=8),
+     *             @OA\Property(property="password_confirmation", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="User registered"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function register(Request $request)
     {
         try {
@@ -60,6 +77,21 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     tags={"Auth"},
+     *     summary="Login",
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="password", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Login successful, returns token"),
+     *     @OA\Response(response=401, description="Invalid credentials")
+     * )
+     */
     public function login(Request $request)
     {
         try {
@@ -122,6 +154,15 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     tags={"Auth"},
+     *     summary="Logout",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Logged out")
+     * )
+     */
     public function logout(Request $request)
     {
         // Simple logout - just return success
@@ -131,6 +172,15 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/user",
+     *     tags={"Auth"},
+     *     summary="Get authenticated user",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="User object")
+     * )
+     */
     public function user(Request $request)
     {
         // Return authenticated user

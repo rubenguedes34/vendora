@@ -8,6 +8,15 @@ use App\Models\FinancialRecord;
 
 class FinancialRecordController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records",
+     *     tags={"Financial Records"},
+     *     summary="List all financial records",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Array of financial records")
+     * )
+     */
     public function index(Request $request)
     {
         $records = $request->user()
@@ -19,6 +28,15 @@ class FinancialRecordController extends Controller
         return response()->json($records);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/current",
+     *     tags={"Financial Records"},
+     *     summary="Get current month financial record",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Current month record")
+     * )
+     */
     public function current(Request $request)
     {
         $record = $request->user()
@@ -42,6 +60,16 @@ class FinancialRecordController extends Controller
         return response()->json($record);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/year/{year}",
+     *     tags={"Financial Records"},
+     *     summary="Get financial records for a year",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="year", in="path", required=true, @OA\Schema(type="integer", example=2025)),
+     *     @OA\Response(response=200, description="Array of monthly records for the year")
+     * )
+     */
     public function byYear(Request $request, $year)
     {
         $records = $request->user()

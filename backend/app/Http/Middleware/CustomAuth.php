@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Services\TokenService;
 
 class CustomAuth
 {
@@ -19,17 +19,10 @@ class CustomAuth
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $decoded = base64_decode($token);
-        $parts = explode(':', $decoded);
+        $user = TokenService::verify($token);
 
-        if (count($parts) !== 3) {
-            return response()->json(['message' => 'Invalid token'], 401);
-        }
-
-        $user = User::find($parts[0]);
-
-        if (!$user || $user->email !== $parts[2]) {
-            return response()->json(['message' => 'Invalid token'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'Invalid or expired token'], 401);
         }
 
         auth()->login($user);

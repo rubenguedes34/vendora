@@ -1,0 +1,537 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Vendora API",
+        "description": "Vendora personal finance API. Use Bearer token authentication on protected endpoints.",
+        "contact": {
+            "email": "admin@vendora.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a new user",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful, returns token"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Logged out"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get authenticated user",
+                "operationId": "7c1cf647d76fad4b3eb1549fa4fe2f4c",
+                "responses": {
+                    "200": {
+                        "description": "User object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/budgets": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "List budgets for a month",
+                "operationId": "f617599901f7b4ceb6c47f30f60869e7",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-07"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of budgets"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Create or update a budget entry",
+                "operationId": "e21c305aadbf84c6b8bb4d3b5129ae13",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "amount",
+                                    "month"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "month": {
+                                        "type": "string",
+                                        "example": "2025-07"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Budget created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/budgets/summary/{month}": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Get budget summary for a month",
+                "operationId": "0ea416957a1e9a6d9a225e1609186ccb",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "path",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-07"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget summary with income/expenses/savings/balance"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "List all financial records",
+                "operationId": "13b7f87c9ae697d72044de14453475a4",
+                "responses": {
+                    "200": {
+                        "description": "Array of financial records"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/current": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get current month financial record",
+                "operationId": "2de95b78080fbf9782bc8742a0648d6c",
+                "responses": {
+                    "200": {
+                        "description": "Current month record"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/year/{year}": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get financial records for a year",
+                "operationId": "770cd6d61ddc4182089518fbdead5236",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2025
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of monthly records for the year"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/recurrent-transactions": {
+            "get": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "List recurrent transactions",
+                "operationId": "9fc14ac15a195c1185dc100372243690",
+                "responses": {
+                    "200": {
+                        "description": "Array of recurrent transactions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Create a recurrent transaction",
+                "operationId": "3b5512c6b4b6e19a8c43acf7fa1f6a2b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "description",
+                                    "amount",
+                                    "type",
+                                    "category_id",
+                                    "day_of_month"
+                                ],
+                                "properties": {
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ]
+                                    },
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "day_of_month": {
+                                        "type": "integer",
+                                        "maximum": 28,
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/recurrent-transactions/copy": {
+            "post": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Copy all recurrent transactions to a specific month",
+                "operationId": "eadf88cc33233d900a52abd8cd6a1227",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "month"
+                                ],
+                                "properties": {
+                                    "month": {
+                                        "type": "string",
+                                        "example": "2025-07"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Number of transactions created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "List all transactions",
+                "operationId": "6581469356772e7a74a0d79897544f1a",
+                "responses": {
+                    "200": {
+                        "description": "Array of transactions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Create a transaction",
+                "operationId": "ab765dced58cfe2f620929db31452145",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "description",
+                                    "amount",
+                                    "type",
+                                    "transaction_date"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ]
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transaction created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Transactions",
+            "description": "Transaction management"
+        },
+        {
+            "name": "Budgets",
+            "description": "Budget management"
+        },
+        {
+            "name": "Financial Records",
+            "description": "Monthly financial records"
+        },
+        {
+            "name": "Recurrent Transactions",
+            "description": "Monthly recurrent transactions"
+        }
+    ]
+}

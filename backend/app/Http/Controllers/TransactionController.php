@@ -8,6 +8,15 @@ use App\Models\Category;
 
 class TransactionController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/transactions",
+     *     tags={"Transactions"},
+     *     summary="List all transactions",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Array of transactions")
+     * )
+     */
     public function index(Request $request)
     {
         $transactions = $request->user()
@@ -19,6 +28,24 @@ class TransactionController extends Controller
         return response()->json($transactions);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/transactions",
+     *     tags={"Transactions"},
+     *     summary="Create a transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"category_id","description","amount","type","transaction_date"},
+     *             @OA\Property(property="category_id", type="integer"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="amount", type="number"),
+     *             @OA\Property(property="type", type="string", enum={"income","expense"}),
+     *             @OA\Property(property="transaction_date", type="string", format="date")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Transaction created")
+     * )
+     */
     public function store(Request $request)
     {
         $request->validate([
