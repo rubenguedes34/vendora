@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FinancialService, Category } from '../../../services/financial.service';
 import { AuthService } from '../../../services/auth.service';
+import { CurrencyService } from '../../../services/currency.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -53,7 +54,7 @@ import { environment } from '../../../../environments/environment';
 
         <!-- Amount — big and prominent -->
         <div class="relative">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-lg">€</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-lg">{{ currencyService.symbol }}</span>
           <input formControlName="amount" type="number" step="0.01" min="0.01" placeholder="0.00"
             class="w-full pl-8 pr-3 py-3 text-2xl font-bold border-2 rounded-xl focus:outline-none transition-colors"
             [class.border-red-300]="form.get('type')?.value === 'expense'"
@@ -123,7 +124,8 @@ export class QuickAddComponent implements OnInit {
     private fb: FormBuilder,
     private financialService: FinancialService,
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    public currencyService: CurrencyService
   ) {
     this.form = this.fb.group({
       type: ['expense'],

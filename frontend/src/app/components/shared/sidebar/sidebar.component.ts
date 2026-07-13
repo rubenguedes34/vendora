@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
+import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
 import { QuickAddComponent } from '../quick-add/quick-add.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, ThemePickerComponent, QuickAddComponent],
+  imports: [CommonModule, RouterLink, ThemePickerComponent, CurrencyPickerComponent, QuickAddComponent],
   template: `
     <app-quick-add></app-quick-add>
 
@@ -114,8 +115,9 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
         </a>
       </nav>
 
-      <div class="p-4 border-t border-primary-600">
+      <div class="p-4 border-t border-primary-600 space-y-2">
         <app-theme-picker></app-theme-picker>
+        <app-currency-picker></app-currency-picker>
       </div>
 
       <div class="p-4 border-t border-primary-600">

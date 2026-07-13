@@ -6,14 +6,17 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { timeout, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
+import { CurrencyPickerComponent } from '../shared/currency-picker/currency-picker.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, ThemePickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, ThemePickerComponent, CurrencyPickerComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -86,13 +89,13 @@ import { environment } from '../../../environments/environment';
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Income (€)</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Income ({{ currencyService.symbol }})</label>
                   <input formControlName="monthly_income" type="number" min="0"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="0.00" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Expenses (€)</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Expenses ({{ currencyService.symbol }})</label>
                   <input formControlName="monthly_expenses" type="number" min="0"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="0.00" />
@@ -169,15 +172,15 @@ import { environment } from '../../../environments/environment';
             <div class="grid grid-cols-3 gap-4 text-center">
               <div class="p-4 bg-blue-50 rounded-lg">
                 <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Monthly Income</p>
-                <p class="text-xl font-bold text-blue-600 mt-1">€{{ user?.monthly_income ?? 0 | number:'1.0-0' }}</p>
+                <p class="text-xl font-bold text-blue-600 mt-1">{{ (user?.monthly_income ?? 0) | currencySymbol:0 }}</p>
               </div>
               <div class="p-4 bg-red-50 rounded-lg">
                 <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Monthly Expenses</p>
-                <p class="text-xl font-bold text-red-600 mt-1">€{{ user?.monthly_expenses ?? 0 | number:'1.0-0' }}</p>
+                <p class="text-xl font-bold text-red-600 mt-1">{{ (user?.monthly_expenses ?? 0) | currencySymbol:0 }}</p>
               </div>
               <div class="p-4 bg-green-50 rounded-lg">
                 <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Net Savings</p>
-                <p class="text-xl font-bold text-green-600 mt-1">€{{ ((user?.monthly_income ?? 0) - (user?.monthly_expenses ?? 0)) | number:'1.0-0' }}</p>
+                <p class="text-xl font-bold text-green-600 mt-1">{{ ((user?.monthly_income ?? 0) - (user?.monthly_expenses ?? 0)) | currencySymbol:0 }}</p>
               </div>
             </div>
           </div>
@@ -234,7 +237,8 @@ export class AccountComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {

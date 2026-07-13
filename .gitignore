@@ -32,4 +32,3 @@ auth.json
 # IDE / tool-specific config (keep local only)
 .devin/
 .windsurf/
-.github/

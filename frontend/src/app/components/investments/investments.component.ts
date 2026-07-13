@@ -4,8 +4,10 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FinancialService } from '../../services/financial.service';
+import { CurrencyService } from '../../services/currency.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
 
 const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
@@ -17,7 +19,7 @@ const TYPE_COLORS: Record<string, string> = {
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -47,17 +49,17 @@ const TYPE_COLORS: Record<string, string> = {
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-purple-400 flex items-center justify-between">
               <p class="text-xs text-gray-400 uppercase tracking-wide">Invested</p>
-              <p class="text-base font-bold text-purple-600">€{{ totalInitial.toFixed(2) }}</p>
+              <p class="text-base font-bold text-purple-600">{{ totalInitial | currencySymbol }}</p>
             </div>
             <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-400 flex items-center justify-between">
               <p class="text-xs text-gray-400 uppercase tracking-wide">Current</p>
-              <p class="text-base font-bold text-blue-600">€{{ totalCurrent.toFixed(2) }}</p>
+              <p class="text-base font-bold text-blue-600">{{ totalCurrent | currencySymbol }}</p>
             </div>
             <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between"
               [class.border-l-green-400]="totalGain >= 0" [class.border-l-red-400]="totalGain < 0">
               <p class="text-xs text-gray-400 uppercase tracking-wide">Gain/Loss</p>
               <p class="text-base font-bold" [class]="totalGain >= 0 ? 'text-green-600' : 'text-red-600'">
-                {{ totalGain >= 0 ? '+' : '' }}€{{ totalGain.toFixed(2) }}
+                {{ totalGain >= 0 ? '+' : '' }}{{ totalGain | currencySymbol }}
               </p>
             </div>
             <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between"
@@ -99,7 +101,7 @@ const TYPE_COLORS: Record<string, string> = {
                         transform="rotate(-90 70 70)"/>
                     </ng-container>
                     <text x="70" y="66" text-anchor="middle" class="text-xs" font-size="10" fill="#6b7280">Portfolio</text>
-                    <text x="70" y="80" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">€{{ totalCurrent.toFixed(0) }}</text>
+                    <text x="70" y="80" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">{{ totalCurrent | currencySymbol:0 }}</text>
                   </svg>
                 </div>
                 <!-- Legend -->
@@ -168,12 +170,12 @@ const TYPE_COLORS: Record<string, string> = {
                       </select>
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested (€)</label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }})</label>
                       <input formControlName="initial_amount" type="number" step="0.01" min="0" placeholder="0.00"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Current Value (€)</label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">Current Value ({{ currencyService.symbol }})</label>
                       <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                     </div>
@@ -278,16 +280,16 @@ const TYPE_COLORS: Record<string, string> = {
                   <div class="flex items-center gap-4 mt-2 flex-wrap">
                     <div class="hidden sm:block">
                       <p class="text-xs text-gray-400">Invested</p>
-                      <p class="text-sm font-medium text-gray-700">€{{ (+inv.initial_amount).toFixed(2) }}</p>
+                      <p class="text-sm font-medium text-gray-700">{{ +inv.initial_amount | currencySymbol }}</p>
                     </div>
                     <div>
                       <p class="text-xs text-gray-400">Current</p>
-                      <p class="text-sm font-semibold text-blue-600">€{{ (+inv.current_amount).toFixed(2) }}</p>
+                      <p class="text-sm font-semibold text-blue-600">{{ +inv.current_amount | currencySymbol }}</p>
                     </div>
                     <div>
                       <p class="text-xs text-gray-400">Gain/Loss</p>
                       <p class="text-sm font-semibold" [class]="gain(inv) >= 0 ? 'text-green-600' : 'text-red-600'">
-                        {{ gain(inv) >= 0 ? '+' : '' }}€{{ gain(inv).toFixed(2) }}
+                        {{ gain(inv) >= 0 ? '+' : '' }}{{ gain(inv) | currencySymbol }}
                       </p>
                     </div>
                     <!-- Progress bar -->
@@ -555,7 +557,8 @@ export class InvestmentsComponent implements OnInit {
     private financialService: FinancialService,
     private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {
     this.investmentForm = this.fb.group({
       name: ['', Validators.required],

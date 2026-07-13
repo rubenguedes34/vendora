@@ -7,7 +7,9 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, Category } from '../../services/financial.service';
+import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
 
 interface RecurrentTransaction {
@@ -23,7 +25,7 @@ interface RecurrentTransaction {
 @Component({
   selector: 'app-recurrent-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -55,7 +57,7 @@ interface RecurrentTransaction {
                 </div>
 
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">Amount (€)</label>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Amount ({{ currencyService.symbol }})</label>
                   <input type="number" step="0.01" formControlName="amount"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="0.00" min="0" />
@@ -135,7 +137,7 @@ interface RecurrentTransaction {
                 </div>
                 <div class="flex items-center space-x-4">
                   <p [class]="item.type === 'income' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
-                    {{ item.type === 'income' ? '+' : '-' }}€{{ item.amount | number:'1.2-2' }}
+                    {{ item.type === 'income' ? '+' : '-' }}{{ item.amount | currencySymbol }}
                   </p>
                   <button (click)="editItem(item)" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
                   <button (click)="deleteItem(item.id!)" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
@@ -168,7 +170,8 @@ export class RecurrentTransactionsComponent implements OnInit {
     private authService: AuthService,
     private financialService: FinancialService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {
     this.form = this.fb.group({
       description: ['', Validators.required],

@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, FinancialRecord, NetWorth } from '../../services/financial.service';
+import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, RouterLink, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -92,11 +94,11 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                         <div class="space-y-2">
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Projected balance</span>
-                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">€{{ formatCurrency(projectedBalance) }}</span>
+                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">{{ projectedBalance | currencySymbol }}</span>
                           </div>
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Daily avg spend</span>
-                            <span class="font-semibold text-gray-700">€{{ formatCurrency(dailyAvgSpend) }}</span>
+                            <span class="font-semibold text-gray-700">{{ dailyAvgSpend | currencySymbol }}</span>
                           </div>
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Days remaining</span>
@@ -163,19 +165,19 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Income</h3>
-              <p class="text-2xl font-bold text-blue-600">€{{ formatCurrency(monthlyIncome) }}</p>
+              <p class="text-2xl font-bold text-blue-600">{{ monthlyIncome | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-red-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Expenses</h3>
-              <p class="text-2xl font-bold text-red-600">€{{ formatCurrency(monthlyExpenses) }}</p>
+              <p class="text-2xl font-bold text-red-600">{{ monthlyExpenses | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-green-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Savings</h3>
-              <p class="text-2xl font-bold text-green-600">€{{ formatCurrency(monthlySavings) }}</p>
+              <p class="text-2xl font-bold text-green-600">{{ monthlySavings | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-primary-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Balance</h3>
-              <p class="text-2xl font-bold text-primary-600">€{{ formatCurrency(totalBalance) }}</p>
+              <p class="text-2xl font-bold text-primary-600">{{ totalBalance | currencySymbol }}</p>
             </div>
           </div>
 
@@ -192,21 +194,21 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <div class="px-6 py-4">
                 <p class="text-xs text-gray-400 mb-1">Net Worth</p>
                 <p class="text-2xl font-bold" [class]="netWorth.net_worth >= 0 ? 'text-primary-600' : 'text-red-600'">
-                  €{{ formatCurrency(netWorth.net_worth) }}
+                  {{ netWorth.net_worth | currencySymbol }}
                 </p>
               </div>
               <div class="px-6 py-4">
                 <p class="text-xs text-gray-400 mb-1">Cash Balance</p>
                 <p class="text-xl font-semibold" [class]="netWorth.cash_balance >= 0 ? 'text-blue-600' : 'text-red-600'">
-                  €{{ formatCurrency(netWorth.cash_balance) }}
+                  {{ netWorth.cash_balance | currencySymbol }}
                 </p>
                 <p class="text-xs text-gray-400 mt-0.5">income − expenses</p>
               </div>
               <div class="px-6 py-4">
                 <p class="text-xs text-gray-400 mb-1">Investments</p>
-                <p class="text-xl font-semibold text-purple-600">€{{ formatCurrency(netWorth.investment_value) }}</p>
+                <p class="text-xl font-semibold text-purple-600">{{ netWorth.investment_value | currencySymbol }}</p>
                 <p class="text-xs mt-0.5" [class]="netWorth.investment_gain >= 0 ? 'text-green-500' : 'text-red-500'">
-                  {{ netWorth.investment_gain >= 0 ? '+' : '' }}€{{ formatCurrency(netWorth.investment_gain) }} gain
+                  {{ netWorth.investment_gain >= 0 ? '+' : '' }}{{ netWorth.investment_gain | currencySymbol }} gain
                 </p>
               </div>
               <div class="px-6 py-4">
@@ -256,21 +258,21 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 <canvas #categoryChart></canvas>
                 <div class="absolute text-center pointer-events-none">
                   <p class="text-xs text-gray-400">Total</p>
-                  <p class="text-lg font-bold text-gray-700">€{{ formatCurrency(overviewIncome) }}</p>
+                  <p class="text-lg font-bold text-gray-700">{{ overviewIncome | currencySymbol }}</p>
                 </div>
               </div>
               <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
                 <div class="bg-primary-50 rounded-lg p-2">
                   <p class="text-gray-400">Income</p>
-                  <p class="font-bold text-primary-600">€{{ formatCurrency(overviewIncome) }}</p>
+                  <p class="font-bold text-primary-600">{{ overviewIncome | currencySymbol }}</p>
                 </div>
                 <div class="bg-red-50 rounded-lg p-2">
                   <p class="text-gray-400">Expenses</p>
-                  <p class="font-bold text-red-500">€{{ formatCurrency(overviewExpenses) }}</p>
+                  <p class="font-bold text-red-500">{{ overviewExpenses | currencySymbol }}</p>
                 </div>
                 <div class="bg-indigo-50 rounded-lg p-2">
                   <p class="text-gray-400">Saved</p>
-                  <p class="font-bold text-indigo-500">€{{ formatCurrency(overviewSavings) }}</p>
+                  <p class="font-bold text-indigo-500">{{ overviewSavings | currencySymbol }}</p>
                 </div>
               </div>
             </div>
@@ -295,7 +297,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                       [style.width]="getExpensePct(item.total) + '%'"
                       [style.background]="item.color"></div>
                   </div>
-                  <div class="text-xs font-semibold text-gray-700 w-14 text-right shrink-0">€{{ item.total.toFixed(2) }}</div>
+                  <div class="text-xs font-semibold text-gray-700 w-14 text-right shrink-0">{{ item.total | currencySymbol }}</div>
                   <!-- Percentage circle -->
                   <div class="relative w-9 h-9 shrink-0">
                     <svg class="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
@@ -374,7 +376,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(
     private authService: AuthService,
     private financialService: FinancialService,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -443,9 +446,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
-      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent €${this.formatCurrency(expenses - income)} more than you earned this month.` });
+      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned this month.` });
     } else if (expenses > income * 0.9) {
-      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only €${this.formatCurrency(income - expenses)} left from your income.` });
+      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income.` });
     }
 
     if (this.savingsRate < 10 && income > 0) {
@@ -453,11 +456,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
 
     if (this.projectedBalance < 0) {
-      alerts.push({ type: 'danger', title: 'Negative month projected', message: `At current daily spend (€${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end the month €${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
+      alerts.push({ type: 'danger', title: 'Negative month projected', message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end the month ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
     } else if (this.projectedBalance < income * 0.1) {
-      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end-of-month balance is only €${this.formatCurrency(this.projectedBalance)}.` });
+      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end-of-month balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.` });
     } else {
-      alerts.push({ type: 'info', title: 'On track this month', message: `Projected to save €${this.formatCurrency(this.projectedBalance)} by end of month.` });
+      alerts.push({ type: 'info', title: 'On track this month', message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of month.` });
     }
 
     if (this.daysRemaining <= 7 && expenses > income * 0.8) {

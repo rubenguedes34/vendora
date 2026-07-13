@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, Category, BudgetSummary, BudgetComparison } from '../../services/financial.service';
+import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -30,15 +32,15 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Income</h3>
-            <p class="text-3xl font-bold text-blue-600">€{{ formatCurrency(summary.income) }}</p>
+            <p class="text-3xl font-bold text-blue-600">{{ summary.income | currencySymbol }}</p>
           </div>
           <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Expenses</h3>
-            <p class="text-3xl font-bold text-red-600">€{{ formatCurrency(summary.expenses) }}</p>
+            <p class="text-3xl font-bold text-red-600">{{ summary.expenses | currencySymbol }}</p>
           </div>
           <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Savings</h3>
-            <p class="text-3xl font-bold text-green-600">€{{ formatCurrency(summary.savings) }}</p>
+            <p class="text-3xl font-bold text-green-600">{{ summary.savings | currencySymbol }}</p>
           </div>
         </div>
 
@@ -71,7 +73,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
-                    <span class="text-gray-500 text-sm">€</span>
+                    <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
                     <button (click)="deleteCategory(category, 'income')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
@@ -98,7 +100,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
-                    <span class="text-gray-500 text-sm">€</span>
+                    <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
                     <button (click)="deleteCategory(category, 'expenses')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
@@ -121,11 +123,11 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                     placeholder="e.g., 500 or 10" min="0" step="0.01" />
                   <select [(ngModel)]="savingsGoalType" (change)="updateSavingsGoal()"
                     class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="fixed">€</option>
+                    <option value="fixed">{{ currencyService.symbol }}</option>
                     <option value="percentage">%</option>
                   </select>
                 </div>
-                <p class="text-gray-600 text-sm mt-2">Target savings: €{{ formatCurrency(calculateSavingsGoalAmount()) }}</p>
+                <p class="text-gray-600 text-sm mt-2">Target savings: {{ calculateSavingsGoalAmount() | currencySymbol }}</p>
               </div>
               <div *ngIf="savingsCategories.length === 0" class="text-gray-400 text-center py-6 text-sm">No savings categories yet.</div>
               <div *ngFor="let category of savingsCategories" class="mb-3">
@@ -139,7 +141,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                     <input type="number" [(ngModel)]="categoryBudgets[category.id]" (change)="saveBudget(category)"
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
-                    <span class="text-gray-500 text-sm">€</span>
+                    <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
                     <button (click)="deleteCategory(category, 'savings')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
@@ -191,9 +193,9 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                   </span>
                 </div>
                 <div class="flex items-center gap-4 shrink-0 text-sm">
-                  <span class="text-gray-400">Budget: <span class="font-medium text-gray-700">€{{ item.budgeted.toFixed(2) }}</span></span>
+                  <span class="text-gray-400">Budget: <span class="font-medium text-gray-700">{{ item.budgeted | currencySymbol }}</span></span>
                   <span [class]="item.pct !== null && item.pct > 100 ? 'text-red-600 font-semibold' : item.pct !== null && item.pct >= 80 ? 'text-yellow-600 font-semibold' : 'text-green-600 font-semibold'">
-                    €{{ item.actual.toFixed(2) }}
+                    {{ item.actual | currencySymbol }}
                   </span>
                   <span class="w-10 text-right text-xs font-bold"
                     [class]="item.pct !== null && item.pct > 100 ? 'text-red-500' : item.pct !== null && item.pct >= 80 ? 'text-yellow-500' : 'text-green-500'">
@@ -208,7 +210,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 </div>
               </div>
               <div class="mt-1 text-xs" [class]="item.remaining >= 0 ? 'text-gray-400' : 'text-red-500'">
-                {{ item.remaining >= 0 ? '€' + item.remaining.toFixed(2) + ' remaining' : '€' + Math.abs(item.remaining).toFixed(2) + ' over budget' }}
+                {{ item.remaining >= 0 ? (item.remaining | currencySymbol) + ' remaining' : (item.remaining | currencySymbol:2) + ' over budget' }}
               </div>
             </div>
           </div>
@@ -277,7 +279,8 @@ export class BudgetComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private financialService: FinancialService,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {

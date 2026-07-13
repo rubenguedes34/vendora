@@ -7,12 +7,14 @@ import { catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransactionService } from '../../services/transaction.service';
 import { FinancialService, Category } from '../../services/financial.service';
 import { AuthService } from '../../services/auth.service';
+import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -55,7 +57,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                     placeholder="Enter description" />
                 </div>
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">Amount (€)</label>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Amount ({{ currencyService.symbol }})</label>
                   <input type="number" step="0.01" formControlName="amount"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="0.00" />
@@ -172,7 +174,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 </div>
                 <div class="flex items-center gap-3 ml-4 shrink-0">
                   <span [class]="transaction.type === 'income' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
-                    {{ transaction.type === 'income' ? '+' : '-' }}€{{ transaction.amount | number:'1.2-2' }}
+                    {{ transaction.type === 'income' ? '+' : '-' }}{{ transaction.amount | currencySymbol }}
                   </span>
                   <button (click)="editTransaction(transaction)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,7 +218,8 @@ export class TransactionsComponent implements OnInit {
     private transactionService: TransactionService,
     private financialService: FinancialService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {
     this.transactionForm = this.fb.group({
       description: ['', Validators.required],
