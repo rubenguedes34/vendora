@@ -170,19 +170,36 @@ const TYPE_COLORS: Record<string, string> = {
                       </select>
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }})</label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }}) <span class="text-gray-400 font-normal">— what you paid</span></label>
                       <input formControlName="initial_amount" type="number" step="0.01" min="0" placeholder="0.00"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Current Value ({{ currencyService.symbol }})</label>
-                      <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                    </div>
-                    <div class="sm:col-span-2">
                       <label class="block text-xs font-medium text-gray-600 mb-1">Purchase Date</label>
                       <input formControlName="purchase_date" type="date"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                    </div>
+                    <!-- Units × Price = Current Value row -->
+                    <div class="sm:col-span-2">
+                      <p class="text-xs font-semibold text-gray-500 mb-2 mt-1">Current Value <span class="font-normal text-gray-400">— enter units + price, or type value directly</span></p>
+                      <div class="grid grid-cols-3 gap-2 items-end">
+                        <div>
+                          <label class="block text-xs text-gray-500 mb-1">Units held</label>
+                          <input formControlName="units" type="number" step="any" min="0" placeholder="e.g. 0.5"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                        </div>
+                        <div>
+                          <label class="block text-xs text-gray-500 mb-1">Price / unit <span *ngIf="quoteResult" class="text-blue-500 font-semibold">(live)</span></label>
+                          <input formControlName="price_per_unit" type="number" step="any" min="0" placeholder="e.g. 63929"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div>
+                          <label class="block text-xs text-gray-500 mb-1">Current Value ({{ currencyService.symbol }})</label>
+                          <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
+                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-purple-50 font-semibold" />
+                        </div>
+                      </div>
+                      <p class="text-xs text-gray-400 mt-1">💡 Use "Get Price" above to auto-fill today's price, then enter your units — current value updates automatically.</p>
                     </div>
                   </div>
                   <p *ngIf="errorMessage" class="mt-2 text-red-500 text-xs">{{ errorMessage }}</p>
@@ -564,9 +581,14 @@ export class InvestmentsComponent implements OnInit {
       name: ['', Validators.required],
       type: ['', Validators.required],
       initial_amount: ['', [Validators.required, Validators.min(0)]],
+      units: [null],
+      price_per_unit: [null],
       current_amount: ['', [Validators.required, Validators.min(0)]],
       purchase_date: ['', Validators.required]
     });
+
+    this.investmentForm.get('units')!.valueChanges.subscribe(() => this.recalcCurrentAmount());
+    this.investmentForm.get('price_per_unit')!.valueChanges.subscribe(() => this.recalcCurrentAmount());
   }
 
   ngOnInit(): void {
@@ -625,16 +647,22 @@ export class InvestmentsComponent implements OnInit {
     });
   }
 
+  recalcCurrentAmount(): void {
+    const units = parseFloat(this.investmentForm.get('units')?.value) || 0;
+    const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
+    if (units > 0 && price > 0) {
+      this.investmentForm.patchValue({ current_amount: (units * price).toFixed(2) }, { emitEvent: false });
+    }
+  }
+
   applyQuote(): void {
     if (!this.quoteResult) return;
-    this.investmentForm.patchValue({
-      name: this.quoteResult.name,
-    });
+    const patch: any = { name: this.quoteResult.name, price_per_unit: this.quoteResult.price };
     if (!this.investmentForm.get('type')?.value) {
       const sym = this.tickerSymbol.toUpperCase();
-      const type = sym.includes('-USD') || sym.includes('-EUR') ? 'Crypto' : 'Stocks';
-      this.investmentForm.patchValue({ type });
+      patch.type = sym.includes('-USD') || sym.includes('-EUR') ? 'Crypto' : 'Stocks';
     }
+    this.investmentForm.patchValue(patch);
   }
 
   get filteredInvestments(): any[] {
@@ -715,6 +743,8 @@ export class InvestmentsComponent implements OnInit {
     this.investmentForm.patchValue({
       name: inv.name, type: inv.type,
       initial_amount: inv.initial_amount,
+      units: inv.units ?? null,
+      price_per_unit: inv.price_per_unit ?? null,
       current_amount: inv.current_amount,
       purchase_date: inv.purchase_date,
     });
@@ -803,6 +833,7 @@ export class InvestmentsComponent implements OnInit {
     this.investmentForm.patchValue({
       name: coin.name,
       type: 'Crypto',
+      price_per_unit: coin.current_price,
       purchase_date: new Date().toISOString().slice(0, 10),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -835,6 +866,7 @@ export class InvestmentsComponent implements OnInit {
     this.investmentForm.patchValue({
       name: this.stockQuote.name,
       type: sym.includes('ETF') || ['VOO','SPY','QQQ','VWCE.DE','IWDA.AS'].includes(sym) ? 'ETF' : 'Stocks',
+      price_per_unit: this.stockQuote.price,
       purchase_date: new Date().toISOString().slice(0, 10),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
