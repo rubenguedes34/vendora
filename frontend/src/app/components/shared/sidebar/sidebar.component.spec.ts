@@ -8,6 +8,10 @@ import { SidebarComponent } from './sidebar.component';
 import { AuthService } from '../../../services/auth.service';
 import { BehaviorSubject, of } from 'rxjs';
 
+const routes = [
+  { path: 'login', component: class {} },
+];
+
 describe('SidebarComponent', () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let component: SidebarComponent;
@@ -28,7 +32,7 @@ describe('SidebarComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SidebarComponent],
       providers: [
-        provideRouter([]),
+        provideRouter(routes),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: AuthService, useValue: authService },
@@ -82,15 +86,18 @@ describe('SidebarComponent', () => {
   });
 
   it('backdrop click sets mobileOpen to false', () => {
-    component.mobileOpen = true;
+    const hamburger = fixture.debugElement.query(By.css('[data-testid="sidebar-hamburger"]'));
+    hamburger.nativeElement.click();
     fixture.detectChanges();
     const backdrop = fixture.debugElement.query(By.css('[data-testid="sidebar-backdrop"]'));
+    expect(backdrop).toBeTruthy();
     backdrop.nativeElement.click();
     expect(component.mobileOpen).toBeFalsy();
   });
 
   it('close button inside sidebar sets mobileOpen to false', () => {
-    component.mobileOpen = true;
+    const hamburger = fixture.debugElement.query(By.css('[data-testid="sidebar-hamburger"]'));
+    hamburger.nativeElement.click();
     fixture.detectChanges();
     const closeBtn = fixture.debugElement.query(By.css('[data-testid="sidebar-close"]'));
     closeBtn.nativeElement.click();
@@ -133,7 +140,7 @@ describe('SidebarComponent', () => {
   // ── Template rendering ────────────────────────────────────────────────────
 
   it('renders user name in sidebar', () => {
-    const nameEl = fixture.debugElement.query(By.css('span.text-teal-100'));
+    const nameEl = fixture.debugElement.query(By.css('span.text-primary-100'));
     expect(nameEl.nativeElement.textContent.trim()).toBe('John Doe');
   });
 
@@ -144,7 +151,8 @@ describe('SidebarComponent', () => {
   });
 
   it('aside has translate-x-0 class when open', () => {
-    component.mobileOpen = true;
+    const hamburger = fixture.debugElement.query(By.css('[data-testid="sidebar-hamburger"]'));
+    hamburger.nativeElement.click();
     fixture.detectChanges();
     const aside = fixture.debugElement.query(By.css('aside'));
     expect(aside.classes['translate-x-0']).toBeTruthy();
@@ -152,7 +160,8 @@ describe('SidebarComponent', () => {
 
   it('backdrop is only rendered when mobileOpen is true', () => {
     expect(fixture.debugElement.query(By.css('[data-testid="sidebar-backdrop"]'))).toBeNull();
-    component.mobileOpen = true;
+    const hamburger = fixture.debugElement.query(By.css('[data-testid="sidebar-hamburger"]'));
+    hamburger.nativeElement.click();
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[data-testid="sidebar-backdrop"]'))).toBeTruthy();
   });

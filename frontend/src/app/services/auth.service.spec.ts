@@ -81,7 +81,7 @@ describe('AuthService', () => {
     let emitted = false;
     service.loggedOut$.subscribe(() => emitted = true);
     service.clearAuth();
-    expect(emitted).toBeTrue();
+    expect(emitted).toBe(true);
   });
 
   it('restores token from localStorage on init', () => {

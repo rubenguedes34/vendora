@@ -16,19 +16,19 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
       <!-- Main Content -->
       <main class="flex-1 overflow-auto">
         <!-- Header -->
-        <header class="bg-teal-700 text-white shadow-md">
+        <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
             <div class="flex justify-between h-16 items-center">
               <div>
                 <h2 class="text-xl font-semibold">Dashboard</h2>
-                <p class="text-teal-200 text-xs">Welcome back, {{ user?.name }}!</p>
+                <p class="text-primary-200 text-xs">Welcome back, {{ user?.name }}!</p>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-sm text-teal-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+                <span class="text-sm text-primary-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
 
                 <!-- Notification Bell -->
                 <div class="relative alerts-panel-wrapper">
-                  <button (click)="toggleAlerts()" class="relative p-2 rounded-lg hover:bg-teal-600 transition-colors">
+                  <button (click)="toggleAlerts()" class="relative p-2 rounded-lg hover:bg-primary-600 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
@@ -66,7 +66,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                       <!-- Alert items -->
                       <div *ngFor="let alert of alerts" class="px-5 py-3 border-b border-gray-50 last:border-0">
                         <div class="flex items-start gap-3">
-                          <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-400 mt-0.5' : 'text-teal-400 mt-0.5'">
+                          <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-400 mt-0.5' : 'text-primary-400 mt-0.5'">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path *ngIf="alert.type === 'danger'" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                               <path *ngIf="alert.type === 'warning'" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -86,7 +86,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                         <div class="space-y-2">
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Projected balance</span>
-                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-teal-600' : 'font-semibold text-red-500'">€{{ formatCurrency(projectedBalance) }}</span>
+                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">€{{ formatCurrency(projectedBalance) }}</span>
                           </div>
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Daily avg spend</span>
@@ -98,7 +98,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                           </div>
                           <div class="flex justify-between text-xs">
                             <span class="text-gray-500">Savings rate</span>
-                            <span [class]="savingsRate >= 20 ? 'font-semibold text-teal-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
+                            <span [class]="savingsRate >= 20 ? 'font-semibold text-primary-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
                               {{ savingsRate.toFixed(1) }}%
                             </span>
                           </div>
@@ -108,8 +108,8 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                   </div>
                 </div>
 
-                <a routerLink="/account" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 transition-colors px-3 py-1.5 rounded-lg">
-                  <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
+                <a routerLink="/account" class="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 transition-colors px-3 py-1.5 rounded-lg">
+                  <div class="w-7 h-7 rounded-full bg-primary-300 flex items-center justify-center text-primary-800 text-xs font-bold">
                     {{ userInitials }}
                   </div>
                   <span class="text-sm text-white font-medium hidden sm:block">{{ user?.name }}</span>
@@ -124,7 +124,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
           <!-- Quick Actions (top) -->
           <div class="flex flex-wrap gap-3 mb-6">
             <a routerLink="/budgets"
-              class="flex items-center gap-2 bg-teal-500 text-white py-2 px-4 rounded-md hover:bg-teal-600 transition-colors text-sm font-semibold shadow">
+              class="flex items-center gap-2 bg-primary-500 text-white py-2 px-4 rounded-md hover:bg-primary-600 transition-colors text-sm font-semibold shadow">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
               </svg>
@@ -167,9 +167,9 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Savings</h3>
               <p class="text-2xl font-bold text-green-600">€{{ formatCurrency(monthlySavings) }}</p>
             </div>
-            <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-teal-500">
+            <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-primary-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Balance</h3>
-              <p class="text-2xl font-bold text-teal-600">€{{ formatCurrency(totalBalance) }}</p>
+              <p class="text-2xl font-bold text-primary-600">€{{ formatCurrency(totalBalance) }}</p>
             </div>
           </div>
 
@@ -184,7 +184,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                   <p class="text-xs text-gray-400">{{ currentYear }} overview</p>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-gray-500">
-                  <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-teal-400"></span>Income</span>
+                  <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span>Income</span>
                   <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span>Expenses</span>
                   <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span>Savings</span>
                 </div>
@@ -215,9 +215,9 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                 </div>
               </div>
               <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
-                <div class="bg-teal-50 rounded-lg p-2">
+                <div class="bg-primary-50 rounded-lg p-2">
                   <p class="text-gray-400">Income</p>
-                  <p class="font-bold text-teal-600">€{{ formatCurrency(overviewIncome) }}</p>
+                  <p class="font-bold text-primary-600">€{{ formatCurrency(overviewIncome) }}</p>
                 </div>
                 <div class="bg-red-50 rounded-lg p-2">
                   <p class="text-gray-400">Expenses</p>

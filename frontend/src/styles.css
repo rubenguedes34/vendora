@@ -3,3 +3,53 @@
 @tailwind utilities;
 
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --primary-500: #14b8a6;
+}
+
+:root,
+[data-theme] {
+  --primary-50: color-mix(in oklch, var(--primary-500) 5%, white);
+  --primary-100: color-mix(in oklch, var(--primary-500) 15%, white);
+  --primary-200: color-mix(in oklch, var(--primary-500) 30%, white);
+  --primary-300: color-mix(in oklch, var(--primary-500) 50%, white);
+  --primary-400: color-mix(in oklch, var(--primary-500) 70%, white);
+  --primary-600: color-mix(in oklch, var(--primary-500) 80%, black);
+  --primary-700: color-mix(in oklch, var(--primary-500) 60%, black);
+  --primary-800: color-mix(in oklch, var(--primary-500) 45%, black);
+  --primary-900: color-mix(in oklch, var(--primary-500) 30%, black);
+  --primary-950: color-mix(in oklch, var(--primary-500) 18%, black);
+}
+
+[data-theme='teal'] {
+  --primary-500: #14b8a6;
+}
+
+[data-theme='blue'] {
+  --primary-500: #3b82f6;
+}
+
+[data-theme='indigo'] {
+  --primary-500: #6366f1;
+}
+
+[data-theme='violet'] {
+  --primary-500: #8b5cf6;
+}
+
+[data-theme='rose'] {
+  --primary-500: #f43f5e;
+}
+
+[data-theme='emerald'] {
+  --primary-500: #10b981;
+}
+
+[data-theme='amber'] {
+  --primary-500: #f59e0b;
+}
+
+[data-theme='slate'] {
+  --primary-500: #64748b;
+}

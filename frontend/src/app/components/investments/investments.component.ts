@@ -13,7 +13,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
       <app-sidebar></app-sidebar>
 
       <main class="flex-1 overflow-auto">
-        <header class="bg-teal-700 text-white shadow-md">
+        <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Investments</h2>
@@ -23,7 +23,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div class="bg-white p-8 rounded-xl shadow-md text-center">
-            <svg class="w-16 h-16 mx-auto text-teal-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-16 h-16 mx-auto text-primary-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
             <h2 class="text-xl font-semibold text-gray-800 mb-2">Investment Portfolio</h2>

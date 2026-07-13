@@ -2,17 +2,18 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ThemePickerComponent],
   template: `
     <!-- Mobile hamburger button (fixed top-left) -->
     <button
       data-testid="sidebar-hamburger"
       (click)="mobileOpen = true"
-      class="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-teal-600 text-white shadow-lg">
+      class="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-primary-600 text-white shadow-lg">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
@@ -27,12 +28,13 @@ import { AuthService } from '../../../services/auth.service';
 
     <!-- Sidebar -->
     <aside
-      class="fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-teal-500 text-white shadow-lg flex-shrink-0 flex flex-col min-h-screen transition-transform duration-300 lg:translate-x-0"
-      [ngClass]="mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+      class="fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col min-h-screen transition-transform duration-300 lg:translate-x-0"
+      [class.translate-x-0]="mobileOpen"
+      [class.-translate-x-full]="!mobileOpen">
 
       <div class="p-6">
         <!-- Close button (mobile only) -->
-        <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-teal-200 hover:text-white">
+        <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-primary-200 hover:text-white">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -46,17 +48,17 @@ import { AuthService } from '../../../services/auth.service';
           <h1 class="text-2xl font-bold">Vendora</h1>
         </a>
         <a routerLink="/account" (click)="mobileOpen = false" class="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity group">
-          <div class="w-7 h-7 rounded-full bg-teal-300 flex items-center justify-center text-teal-800 text-xs font-bold">
+          <div class="w-7 h-7 rounded-full bg-primary-300 flex items-center justify-center text-primary-800 text-xs font-bold">
             {{ initials }}
           </div>
-          <span class="text-teal-100 text-sm group-hover:text-white transition-colors">{{ user?.name }}</span>
+          <span class="text-primary-100 text-sm group-hover:text-white transition-colors">{{ user?.name }}</span>
         </a>
       </div>
 
       <nav class="mt-2 flex-1">
         <a routerLink="/dashboard" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/dashboard')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/dashboard')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -65,8 +67,8 @@ import { AuthService } from '../../../services/auth.service';
         </a>
 
         <a routerLink="/budgets" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/budgets')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/budgets')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -75,8 +77,8 @@ import { AuthService } from '../../../services/auth.service';
         </a>
 
         <a routerLink="/transactions" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/transactions')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/transactions')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -85,8 +87,8 @@ import { AuthService } from '../../../services/auth.service';
         </a>
 
         <a routerLink="/recurrent-transactions" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/recurrent-transactions')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/recurrent-transactions')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -95,8 +97,8 @@ import { AuthService } from '../../../services/auth.service';
         </a>
 
         <a routerLink="/investments" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/investments')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/investments')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -105,8 +107,8 @@ import { AuthService } from '../../../services/auth.service';
         </a>
 
         <a routerLink="/account" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-teal-600 transition-colors"
-          [class.bg-teal-700]="isActive('/account')">
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/account')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 20a9 9 0 10-18 0" />
@@ -115,9 +117,13 @@ import { AuthService } from '../../../services/auth.service';
         </a>
       </nav>
 
-      <div class="p-4 border-t border-teal-600">
+      <div class="p-4 border-t border-primary-600">
+        <app-theme-picker></app-theme-picker>
+      </div>
+
+      <div class="p-4 border-t border-primary-600">
         <button (click)="logout()"
-          class="w-full flex items-center px-3 py-2 text-red-200 hover:bg-teal-600 hover:text-white rounded-md transition-colors">
+          class="w-full flex items-center px-3 py-2 text-red-200 hover:bg-primary-600 hover:text-white rounded-md transition-colors">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

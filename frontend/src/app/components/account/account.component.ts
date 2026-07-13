@@ -7,26 +7,27 @@ import { timeout, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, ThemePickerComponent],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
       <main class="flex-1 overflow-auto">
         <!-- Header -->
-        <header class="bg-teal-700 text-white shadow-md">
+        <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-4xl mx-auto px-6 pl-14 lg:pl-6">
             <div class="flex items-center justify-between h-16">
               <div>
                 <h2 class="text-xl font-semibold">Account Settings</h2>
-                <p class="text-teal-200 text-xs">Manage your profile and preferences</p>
+                <p class="text-primary-200 text-xs">Manage your profile and preferences</p>
               </div>
-              <a routerLink="/dashboard" class="text-teal-200 hover:text-white text-sm transition-colors">
+              <a routerLink="/dashboard" class="text-primary-200 hover:text-white text-sm transition-colors">
                 ← Back to Dashboard
               </a>
             </div>
@@ -37,20 +38,20 @@ import { environment } from '../../../environments/environment';
 
           <!-- Avatar + name banner -->
           <div class="bg-white rounded-xl shadow-md p-6 flex items-center gap-5">
-            <div class="w-20 h-20 rounded-full bg-teal-500 flex items-center justify-center text-white text-3xl font-bold select-none">
+            <div class="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center text-white text-3xl font-bold select-none">
               {{ initials }}
             </div>
             <div>
               <p class="text-xl font-bold text-gray-800">{{ user?.name }}</p>
               <p class="text-gray-500 text-sm">{{ user?.email }}</p>
-              <span class="inline-block mt-1 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs rounded-full font-medium">Active account</span>
+              <span class="inline-block mt-1 px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full font-medium">Active account</span>
             </div>
           </div>
 
           <!-- Profile info -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
               Profile Information
@@ -68,7 +69,7 @@ import { environment } from '../../../environments/environment';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                   <input formControlName="name" type="text"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="Your name" />
                   <p *ngIf="profileForm.get('name')?.touched && profileForm.get('name')?.invalid"
                     class="text-red-500 text-xs mt-1">Name is required.</p>
@@ -76,7 +77,7 @@ import { environment } from '../../../environments/environment';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                   <input formControlName="email" type="email"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="you@example.com" />
                   <p *ngIf="profileForm.get('email')?.touched && profileForm.get('email')?.invalid"
                     class="text-red-500 text-xs mt-1">Valid email is required.</p>
@@ -87,20 +88,20 @@ import { environment } from '../../../environments/environment';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Income (€)</label>
                   <input formControlName="monthly_income" type="number" min="0"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="0.00" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Expenses (€)</label>
                   <input formControlName="monthly_expenses" type="number" min="0"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="0.00" />
                 </div>
               </div>
 
               <div class="flex justify-end">
                 <button type="submit" [disabled]="profileForm.invalid || savingProfile"
-                  class="bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
+                  class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
                   {{ savingProfile ? 'Saving...' : 'Save Changes' }}
                 </button>
               </div>
@@ -110,7 +111,7 @@ import { environment } from '../../../environments/environment';
           <!-- Change Password -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
               Change Password
@@ -127,14 +128,14 @@ import { environment } from '../../../environments/environment';
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
                 <input formControlName="current_password" type="password"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                   placeholder="••••••••" />
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                   <input formControlName="password" type="password"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="••••••••" />
                   <p *ngIf="passwordForm.get('password')?.touched && passwordForm.get('password')?.hasError('minlength')"
                     class="text-red-500 text-xs mt-1">Min 8 characters.</p>
@@ -142,7 +143,7 @@ import { environment } from '../../../environments/environment';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                   <input formControlName="password_confirmation" type="password"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition"
                     placeholder="••••••••" />
                   <p *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('password_confirmation')?.touched"
                     class="text-red-500 text-xs mt-1">Passwords do not match.</p>
@@ -150,7 +151,7 @@ import { environment } from '../../../environments/environment';
               </div>
               <div class="flex justify-end">
                 <button type="submit" [disabled]="passwordForm.invalid || savingPassword"
-                  class="bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
+                  class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
                   {{ savingPassword ? 'Updating...' : 'Update Password' }}
                 </button>
               </div>
@@ -160,7 +161,7 @@ import { environment } from '../../../environments/environment';
           <!-- Account Stats -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
               </svg>
               Financial Overview
@@ -179,6 +180,17 @@ import { environment } from '../../../environments/environment';
                 <p class="text-xl font-bold text-green-600 mt-1">€{{ ((user?.monthly_income ?? 0) - (user?.monthly_expenses ?? 0)) | number:'1.0-0' }}</p>
               </div>
             </div>
+          </div>
+
+          <!-- Theme Preferences -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+              </svg>
+              Appearance
+            </h3>
+            <app-theme-picker></app-theme-picker>
           </div>
 
           <!-- Danger Zone -->

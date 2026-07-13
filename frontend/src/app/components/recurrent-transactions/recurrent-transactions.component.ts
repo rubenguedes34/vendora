@@ -29,7 +29,7 @@ interface RecurrentTransaction {
       <app-sidebar></app-sidebar>
 
       <main class="flex-1">
-        <header class="bg-teal-700 text-white shadow-md">
+        <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
@@ -50,21 +50,21 @@ interface RecurrentTransaction {
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
                   <input type="text" formControlName="description"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="e.g., Netflix subscription" />
                 </div>
 
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Amount (€)</label>
                   <input type="number" step="0.01" formControlName="amount"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="0.00" min="0" />
                 </div>
 
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Type</label>
                   <select formControlName="type"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                   </select>
@@ -73,7 +73,7 @@ interface RecurrentTransaction {
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Day of Month</label>
                   <input type="number" formControlName="day_of_month"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="e.g., 1" min="1" max="28" />
                   <p class="text-xs text-gray-500 mt-1">Day 1–28 to ensure all months are covered</p>
                 </div>
@@ -81,7 +81,7 @@ interface RecurrentTransaction {
                 <div class="md:col-span-2">
                   <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
                   <select formControlName="category_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="">Select a category</option>
                     <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
                   </select>
@@ -90,7 +90,7 @@ interface RecurrentTransaction {
 
               <div class="mt-4 flex space-x-3">
                 <button type="submit" [disabled]="form.invalid"
-                  class="bg-teal-500 text-white px-6 py-2 rounded-md hover:bg-teal-600 disabled:bg-gray-400 transition-colors">
+                  class="bg-primary-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 disabled:bg-gray-400 transition-colors">
                   {{ editing ? 'Update' : 'Add' }}
                 </button>
                 <button *ngIf="editing" type="button" (click)="cancelEdit()"
@@ -107,7 +107,7 @@ interface RecurrentTransaction {
             <p class="text-gray-600 text-sm mb-4">Copy all recurrent transactions to a specific month as real transactions.</p>
             <div class="flex items-center space-x-3">
               <input type="month" [(ngModel)]="copyTargetMonth" [ngModelOptions]="{standalone: true}"
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <button (click)="copyToMonth()"
                 [disabled]="!copyTargetMonth || isCopying"
                 class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
