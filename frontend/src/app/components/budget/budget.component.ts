@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FinancialService, Category, BudgetSummary } from '../../services/financial.service';
+import { FinancialService, Category, BudgetSummary, BudgetComparison } from '../../services/financial.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
 @Component({
@@ -14,16 +14,16 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1">
+      <main class="flex-1 pt-14 lg:pt-0">
         <header class="bg-primary-700 text-white shadow-md">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Define Budgets</h2>
             </div>
           </div>
         </header>
 
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <p class="text-gray-600 mb-6">Set your monthly budget for each category</p>
 
         <!-- Summary Cards -->
@@ -155,6 +155,65 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
           </div>
         </div>
 
+        <!-- Budget vs Actual Comparison -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+              <h3 class="text-base font-semibold text-gray-800">Budget vs Actual</h3>
+              <p class="text-xs text-gray-400">How your spending compares to planned budgets this month</p>
+            </div>
+            <button (click)="loadComparison()" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">Refresh</button>
+          </div>
+
+          <div *ngIf="comparisonLoading" class="text-center py-8">
+            <div class="inline-block w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-2"></div>
+            <p class="text-gray-400 text-sm">Loading comparison...</p>
+          </div>
+
+          <div *ngIf="!comparisonLoading && comparisonError" class="text-center py-8">
+            <p class="text-red-500 text-sm mb-2">{{ comparisonError }}</p>
+            <button (click)="loadComparison()" class="text-xs bg-primary-500 text-white px-3 py-1.5 rounded hover:bg-primary-600 transition-colors">Retry</button>
+          </div>
+
+          <div *ngIf="!comparisonLoading && !comparisonError && comparison.length === 0" class="text-center py-8 text-gray-400 text-sm">
+            No budgets set for this month yet.
+          </div>
+
+          <div *ngIf="!comparisonLoading && comparison.length > 0" class="divide-y divide-gray-50">
+            <div *ngFor="let item of comparison" class="px-6 py-4">
+              <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background]="item.category_color"></span>
+                  <span class="font-medium text-gray-800 text-sm truncate">{{ item.category_name }}</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                    [class]="item.category_type === 'income' ? 'bg-blue-50 text-blue-600' : item.category_type === 'savings' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
+                    {{ item.category_type }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 shrink-0 text-sm">
+                  <span class="text-gray-400">Budget: <span class="font-medium text-gray-700">€{{ item.budgeted.toFixed(2) }}</span></span>
+                  <span [class]="item.pct !== null && item.pct > 100 ? 'text-red-600 font-semibold' : item.pct !== null && item.pct >= 80 ? 'text-yellow-600 font-semibold' : 'text-green-600 font-semibold'">
+                    €{{ item.actual.toFixed(2) }}
+                  </span>
+                  <span class="w-10 text-right text-xs font-bold"
+                    [class]="item.pct !== null && item.pct > 100 ? 'text-red-500' : item.pct !== null && item.pct >= 80 ? 'text-yellow-500' : 'text-green-500'">
+                    {{ item.pct !== null ? item.pct + '%' : '—' }}
+                  </span>
+                </div>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-500"
+                  [style.width]="clampPct(item.pct) + '%'"
+                  [style.background]="item.pct !== null && item.pct > 100 ? '#ef4444' : item.pct !== null && item.pct >= 80 ? '#f59e0b' : item.category_color">
+                </div>
+              </div>
+              <div class="mt-1 text-xs" [class]="item.remaining >= 0 ? 'text-gray-400' : 'text-red-500'">
+                {{ item.remaining >= 0 ? '€' + item.remaining.toFixed(2) + ' remaining' : '€' + Math.abs(item.remaining).toFixed(2) + ' over budget' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Save Button -->
         <div class="flex justify-end space-x-4">
           <button
@@ -181,6 +240,7 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
   `
 })
 export class BudgetComponent implements OnInit {
+  Math = Math;
   user: any = null;
   activeSection: 'income' | 'expenses' | 'savings' = 'income';
 
@@ -210,6 +270,10 @@ export class BudgetComponent implements OnInit {
   errorMessage = '';
   newCategoryName = '';
 
+  comparison: BudgetComparison[] = [];
+  comparisonLoading = false;
+  comparisonError = '';
+
   constructor(
     private authService: AuthService,
     private financialService: FinancialService,
@@ -226,6 +290,7 @@ export class BudgetComponent implements OnInit {
     this.loadCategories();
     this.loadSummary();
     this.loadSavingsGoal();
+    this.loadComparison();
   }
 
   loadCategories(): void {
@@ -345,6 +410,24 @@ export class BudgetComponent implements OnInit {
       },
       error: (err) => this.errorMessage = err.message || 'Failed to delete category',
     });
+  }
+
+  loadComparison(): void {
+    this.comparisonLoading = true;
+    this.comparisonError = '';
+    this.financialService.getBudgetComparison().subscribe({
+      next: (data) => { this.comparison = data; this.comparisonLoading = false; },
+      error: (err: any) => {
+        this.comparison = [];
+        this.comparisonLoading = false;
+        this.comparisonError = err?.message || 'Failed to load. Is the backend running?';
+      },
+    });
+  }
+
+  clampPct(pct: number | null): number {
+    if (pct === null) return 0;
+    return Math.min(pct, 100);
   }
 
   getCurrentMonth(): string {

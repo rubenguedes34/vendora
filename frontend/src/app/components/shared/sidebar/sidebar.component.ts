@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
+import { QuickAddComponent } from '../quick-add/quick-add.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, ThemePickerComponent],
+  imports: [CommonModule, RouterLink, ThemePickerComponent, QuickAddComponent],
   template: `
+    <app-quick-add></app-quick-add>
+
     <!-- Mobile hamburger button (fixed top-left) -->
     <button
       data-testid="sidebar-hamburger"
@@ -46,12 +49,6 @@ import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
           <h1 class="text-2xl font-bold">Vendora</h1>
-        </a>
-        <a routerLink="/account" (click)="mobileOpen = false" class="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity group">
-          <div class="w-7 h-7 rounded-full bg-primary-300 flex items-center justify-center text-primary-800 text-xs font-bold">
-            {{ initials }}
-          </div>
-          <span class="text-primary-100 text-sm group-hover:text-white transition-colors">{{ user?.name }}</span>
         </a>
       </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\Transaction;
 
 class BudgetController extends Controller
 {
@@ -100,6 +101,53 @@ class BudgetController extends Controller
         $budget->delete();
 
         return response()->json(['message' => 'Budget deleted']);
+    }
+
+    public function comparison(Request $request, $month = null)
+    {
+        $month = $month ?? date('Y-m');
+        [$year, $mon] = explode('-', $month);
+
+        $budgets = $request->user()
+            ->budgets()
+            ->with('category')
+            ->where('month', $month)
+            ->get();
+
+        if ($budgets->isEmpty()) {
+            return response()->json([]);
+        }
+
+        // Single query: sum transactions grouped by category for the month
+        $from = "{$year}-{$mon}-01";
+        $to   = date('Y-m-t', strtotime($from));
+
+        $actuals = $request->user()
+            ->transactions()
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->whereBetween('transaction_date', [$from, $to])
+            ->whereIn('category_id', $budgets->pluck('category_id'))
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        $result = $budgets->map(function ($budget) use ($actuals) {
+            $budgeted = (float) $budget->amount;
+            $spent    = round((float) ($actuals[$budget->category_id] ?? 0), 2);
+            $pct      = $budgeted > 0 ? round(($spent / $budgeted) * 100, 1) : null;
+
+            return [
+                'category_id'    => $budget->category_id,
+                'category_name'  => $budget->category?->name ?? 'Unknown',
+                'category_color' => $budget->category?->color ?? '#94a3b8',
+                'category_type'  => $budget->category?->type ?? 'expense',
+                'budgeted'       => $budgeted,
+                'actual'         => $spent,
+                'remaining'      => round($budgeted - $spent, 2),
+                'pct'            => $pct,
+            ];
+        })->sortByDesc('actual')->values();
+
+        return response()->json($result);
     }
 
     /**

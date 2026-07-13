@@ -28,9 +28,9 @@ interface RecurrentTransaction {
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1">
+      <main class="flex-1 pt-14 lg:pt-0">
         <header class="bg-primary-700 text-white shadow-md">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
             </div>
@@ -105,12 +105,12 @@ interface RecurrentTransaction {
           <div class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Copy to Month</h3>
             <p class="text-gray-600 text-sm mb-4">Copy all recurrent transactions to a specific month as real transactions.</p>
-            <div class="flex items-center space-x-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <input type="month" [(ngModel)]="copyTargetMonth" [ngModelOptions]="{standalone: true}"
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto" />
               <button (click)="copyToMonth()"
                 [disabled]="!copyTargetMonth || isCopying"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
+                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors w-full sm:w-auto">
                 {{ isCopying ? 'Copying...' : 'Copy Now' }}
               </button>
             </div>

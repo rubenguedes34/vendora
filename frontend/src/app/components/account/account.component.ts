@@ -18,10 +18,10 @@ import { environment } from '../../../environments/environment';
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
         <!-- Header -->
         <header class="bg-primary-700 text-white shadow-md">
-          <div class="max-w-4xl mx-auto px-6 pl-14 lg:pl-6">
+          <div class="max-w-4xl mx-auto px-6">
             <div class="flex items-center justify-between h-16">
               <div>
                 <h2 class="text-xl font-semibold">Account Settings</h2>
@@ -292,17 +292,22 @@ export class AccountComponent implements OnInit {
     this.profileSuccess = '';
     this.profileError = '';
 
+    const updated = { ...this.user, ...this.profileForm.value };
+    this.authService.setUser(updated);
+
     this.http.put(`${this.apiUrl}/user/profile`, this.profileForm.value, { headers: this.getHeaders() })
-      .pipe(timeout(8000), catchError(err => throwError(() => err)))
+      .pipe(timeout(10000), catchError(err => throwError(() => err)))
       .subscribe({
-        next: (res: any) => {
+        next: () => {
           this.savingProfile = false;
           this.profileSuccess = 'Profile updated successfully.';
-          this.authService.setUser({ ...this.user, ...this.profileForm.value });
+          setTimeout(() => this.profileSuccess = '', 4000);
         },
         error: (err: any) => {
           this.savingProfile = false;
+          this.authService.setUser(this.user);
           this.profileError = err?.error?.message || 'Failed to update profile. Please try again.';
+          setTimeout(() => this.profileError = '', 5000);
         }
       });
   }
@@ -320,10 +325,12 @@ export class AccountComponent implements OnInit {
           this.savingPassword = false;
           this.passwordSuccess = 'Password updated successfully.';
           this.passwordForm.reset();
+          setTimeout(() => this.passwordSuccess = '', 4000);
         },
         error: (err: any) => {
           this.savingPassword = false;
           this.passwordError = err?.error?.message || 'Failed to update password. Check your current password.';
+          setTimeout(() => this.passwordError = '', 5000);
         }
       });
   }

@@ -20,13 +20,36 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = $request->user()
+        $request->validate([
+            'search'      => 'nullable|string|max:100',
+            'type'        => 'nullable|in:income,expense',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'date_from'   => 'nullable|date',
+            'date_to'     => 'nullable|date|after_or_equal:date_from',
+        ]);
+
+        $query = $request->user()
             ->transactions()
             ->with('category')
-            ->orderBy('transaction_date', 'desc')
-            ->get();
+            ->orderBy('transaction_date', 'desc');
 
-        return response()->json($transactions);
+        if ($request->filled('search')) {
+            $query->where('description', 'like', '%' . $request->search . '%');
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('transaction_date', '<=', $request->date_to);
+        }
+
+        return response()->json($query->get());
     }
 
     /**
@@ -110,6 +133,49 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return response()->json(['message' => 'Transaction deleted']);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'search'      => 'nullable|string|max:100',
+            'type'        => 'nullable|in:income,expense',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'date_from'   => 'nullable|date',
+            'date_to'     => 'nullable|date|after_or_equal:date_from',
+        ]);
+
+        $query = $request->user()
+            ->transactions()
+            ->with('category')
+            ->orderBy('transaction_date', 'desc');
+
+        if ($request->filled('search'))      $query->where('description', 'like', '%' . $request->search . '%');
+        if ($request->filled('type'))        $query->where('type', $request->type);
+        if ($request->filled('category_id')) $query->where('category_id', $request->category_id);
+        if ($request->filled('date_from'))   $query->whereDate('transaction_date', '>=', $request->date_from);
+        if ($request->filled('date_to'))     $query->whereDate('transaction_date', '<=', $request->date_to);
+
+        $transactions = $query->get();
+
+        $lines = ["Date,Description,Category,Type,Amount"];
+        foreach ($transactions as $t) {
+            $lines[] = implode(',', [
+                $t->transaction_date,
+                '"' . str_replace('"', '""', $t->description) . '"',
+                '"' . str_replace('"', '""', $t->category?->name ?? '') . '"',
+                $t->type,
+                $t->amount,
+            ]);
+        }
+
+        $csv = implode("\n", $lines);
+        $filename = 'transactions-' . date('Y-m-d') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     public function expensesByCategory(Request $request)

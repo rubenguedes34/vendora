@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, timeout } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
 
 export interface FinancialRecord {
   id?: number;
@@ -25,6 +26,28 @@ export interface BudgetSummary {
   expenses: number;
   savings: number;
   balance: number;
+}
+
+export interface NetWorth {
+  net_worth: number;
+  cash_balance: number;
+  investment_value: number;
+  investment_cost: number;
+  investment_gain: number;
+  investment_roi: number;
+  total_income: number;
+  total_expenses: number;
+}
+
+export interface BudgetComparison {
+  category_id: number;
+  category_name: string;
+  category_color: string;
+  category_type: 'income' | 'expense' | 'savings';
+  budgeted: number;
+  actual: number;
+  remaining: number;
+  pct: number | null;
 }
 
 export interface Category {
@@ -53,17 +76,26 @@ export class FinancialService {
   private apiUrl = 'http://localhost:8000/api';
   private categoryCache = new Map<string, Observable<Category[]>>();
   private allCategoriesCache: Observable<Category[]> | null = null;
+  private investmentsCache: Observable<any[]> | null = null;
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
-    this.authService.loggedOut$.subscribe(() => this.clearCategoryCache());
+    this.authService.loggedOut$.subscribe(() => {
+      this.clearCategoryCache();
+      this.clearInvestmentsCache();
+    });
   }
 
   clearCategoryCache(): void {
     this.categoryCache.clear();
     this.allCategoriesCache = null;
+  }
+
+  clearInvestmentsCache(): void {
+    this.investmentsCache = null;
   }
 
   getAllCategories(): Observable<Category[]> {
@@ -95,6 +127,8 @@ export class FinancialService {
       return { message: 'Unable to connect to server. Please check if the backend is running.' };
     }
     if (error.status === 401) {
+      this.authService.clearAuth();
+      this.router.navigate(['/login']);
       return { message: 'Session expired. Please log in again.' };
     }
     return error.error || { message: 'An error occurred. Please try again.' };
@@ -199,6 +233,72 @@ export class FinancialService {
       : `${this.apiUrl}/budgets/summary`;
 
     return this.http.get<BudgetSummary>(url, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  getBudgetComparison(month?: string): Observable<BudgetComparison[]> {
+    const url = month
+      ? `${this.apiUrl}/budgets/comparison/${month}`
+      : `${this.apiUrl}/budgets/comparison`;
+
+    return this.http.get<BudgetComparison[]>(url, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  getNetWorth(): Observable<NetWorth> {
+    return this.http.get<NetWorth>(`${this.apiUrl}/financial-records/net-worth`, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  getInvestments(forceRefresh = false): Observable<any[]> {
+    if (!forceRefresh && this.investmentsCache) {
+      return this.investmentsCache;
+    }
+    this.investmentsCache = this.http.get<any[]>(`${this.apiUrl}/investments`, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(8000),
+      catchError(error => {
+        this.investmentsCache = null;
+        return throwError(() => this.handleError(error));
+      }),
+      shareReplay(1)
+    );
+    return this.investmentsCache;
+  }
+
+  createInvestment(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/investments`, data, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  updateInvestment(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/investments/${id}`, data, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  deleteInvestment(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/investments/${id}`, {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),

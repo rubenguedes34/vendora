@@ -42,8 +42,18 @@ export class TransactionService {
     return error.error || { message: 'An error occurred. Please try again.' };
   }
 
-  getTransactions(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${this.apiUrl}/transactions`, { headers: this.getHeaders() }).pipe(
+  getTransactions(filters?: { search?: string; type?: string; category_id?: number; date_from?: string; date_to?: string }): Observable<Transaction[]> {
+    let params = '';
+    if (filters) {
+      const parts: string[] = [];
+      if (filters.search)      parts.push(`search=${encodeURIComponent(filters.search)}`);
+      if (filters.type)        parts.push(`type=${filters.type}`);
+      if (filters.category_id) parts.push(`category_id=${filters.category_id}`);
+      if (filters.date_from)   parts.push(`date_from=${filters.date_from}`);
+      if (filters.date_to)     parts.push(`date_to=${filters.date_to}`);
+      if (parts.length) params = '?' + parts.join('&');
+    }
+    return this.http.get<Transaction[]>(`${this.apiUrl}/transactions${params}`, { headers: this.getHeaders() }).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
@@ -75,5 +85,28 @@ export class TransactionService {
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
+  }
+
+  exportTransactions(filters?: { search?: string; type?: string; category_id?: number; date_from?: string; date_to?: string }): void {
+    const parts: string[] = [];
+    if (filters?.search)      parts.push(`search=${encodeURIComponent(filters.search)}`);
+    if (filters?.type)        parts.push(`type=${filters.type}`);
+    if (filters?.category_id) parts.push(`category_id=${filters.category_id}`);
+    if (filters?.date_from)   parts.push(`date_from=${filters.date_from}`);
+    if (filters?.date_to)     parts.push(`date_to=${filters.date_to}`);
+
+    const qs = parts.length ? '?' + parts.join('&') : '';
+    const url = `${this.apiUrl}/transactions/export${qs}`;
+    const token = this.authService.getTokenValue();
+
+    fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
   }
 }

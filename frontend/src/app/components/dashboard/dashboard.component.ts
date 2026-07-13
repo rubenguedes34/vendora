@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener }
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FinancialService, FinancialRecord } from '../../services/financial.service';
+import { FinancialService, FinancialRecord, NetWorth } from '../../services/financial.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
 @Component({
@@ -14,17 +14,17 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
       <app-sidebar></app-sidebar>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-auto">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
         <!-- Header -->
         <header class="bg-primary-700 text-white shadow-md">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-14 lg:pl-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <div>
                 <h2 class="text-xl font-semibold">Dashboard</h2>
                 <p class="text-primary-200 text-xs">Welcome back, {{ user?.name }}!</p>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-sm text-primary-200">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+                <span class="text-sm text-primary-200 hidden sm:block">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
 
                 <!-- Notification Bell -->
                 <div class="relative alerts-panel-wrapper">
@@ -40,31 +40,34 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 
                   <!-- Alerts Panel -->
                   <div *ngIf="showAlerts"
-                    class="absolute right-0 top-12 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                    class="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                       <h3 class="font-semibold text-gray-800 text-base">Alerts</h3>
-                      <button (click)="showAlerts = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
+                      <div class="flex items-center gap-3">
+                        <button *ngIf="visibleAlerts.length > 0" (click)="clearAllAlerts()" class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors">Clear all</button>
+                        <button (click)="showAlerts = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </div>
                     </div>
 
                     <div class="max-h-96 overflow-y-auto">
                       <!-- Status badge -->
                       <div class="px-5 py-4 border-b border-gray-50">
                         <div class="flex items-center gap-2">
-                          <span [class]="alerts.length === 0 ? 'text-green-500' : (hasCritical ? 'text-red-500' : 'text-yellow-500')">
+                          <span [class]="visibleAlerts.length === 0 ? 'text-green-500' : (hasCritical ? 'text-red-500' : 'text-yellow-500')">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path *ngIf="alerts.length === 0" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                              <path *ngIf="alerts.length > 0" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                              <path *ngIf="visibleAlerts.length === 0" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                              <path *ngIf="visibleAlerts.length > 0" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                             </svg>
                           </span>
-                          <span class="font-semibold text-gray-800 text-sm">{{ alerts.length === 0 ? 'All good!' : (hasCritical ? 'Attention needed' : 'Some warnings') }}</span>
+                          <span class="font-semibold text-gray-800 text-sm">{{ visibleAlerts.length === 0 ? 'All good!' : (hasCritical ? 'Attention needed' : 'Some warnings') }}</span>
                         </div>
-                        <p *ngIf="alerts.length === 0" class="text-xs text-green-600 mt-1 ml-7">Your finances look healthy this month.</p>
+                        <p *ngIf="visibleAlerts.length === 0" class="text-xs text-green-600 mt-1 ml-7">Your finances look healthy this month.</p>
                       </div>
 
                       <!-- Alert items -->
-                      <div *ngFor="let alert of alerts" class="px-5 py-3 border-b border-gray-50 last:border-0">
+                      <div *ngFor="let alert of visibleAlerts; let i = index" class="px-5 py-3 border-b border-gray-50 last:border-0">
                         <div class="flex items-start gap-3">
                           <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-400 mt-0.5' : 'text-primary-400 mt-0.5'">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -73,10 +76,13 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
                               <path *ngIf="alert.type === 'info'" fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                             </svg>
                           </span>
-                          <div>
+                          <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-800">{{ alert.title }}</p>
                             <p class="text-xs text-gray-500 mt-0.5">{{ alert.message }}</p>
                           </div>
+                          <button (click)="dismissAlert(alert)" class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors" title="Dismiss">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
                         </div>
                       </div>
 
@@ -170,6 +176,45 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-primary-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Balance</h3>
               <p class="text-2xl font-bold text-primary-600">€{{ formatCurrency(totalBalance) }}</p>
+            </div>
+          </div>
+
+          <!-- Net Worth Widget -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-gray-800">Net Worth</h3>
+                <p class="text-xs text-gray-400">All-time: cash balance + investment portfolio</p>
+              </div>
+              <a routerLink="/investments" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">View investments →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              <div class="px-6 py-4">
+                <p class="text-xs text-gray-400 mb-1">Net Worth</p>
+                <p class="text-2xl font-bold" [class]="netWorth.net_worth >= 0 ? 'text-primary-600' : 'text-red-600'">
+                  €{{ formatCurrency(netWorth.net_worth) }}
+                </p>
+              </div>
+              <div class="px-6 py-4">
+                <p class="text-xs text-gray-400 mb-1">Cash Balance</p>
+                <p class="text-xl font-semibold" [class]="netWorth.cash_balance >= 0 ? 'text-blue-600' : 'text-red-600'">
+                  €{{ formatCurrency(netWorth.cash_balance) }}
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5">income − expenses</p>
+              </div>
+              <div class="px-6 py-4">
+                <p class="text-xs text-gray-400 mb-1">Investments</p>
+                <p class="text-xl font-semibold text-purple-600">€{{ formatCurrency(netWorth.investment_value) }}</p>
+                <p class="text-xs mt-0.5" [class]="netWorth.investment_gain >= 0 ? 'text-green-500' : 'text-red-500'">
+                  {{ netWorth.investment_gain >= 0 ? '+' : '' }}€{{ formatCurrency(netWorth.investment_gain) }} gain
+                </p>
+              </div>
+              <div class="px-6 py-4">
+                <p class="text-xs text-gray-400 mb-1">Investment ROI</p>
+                <p class="text-xl font-semibold" [class]="netWorth.investment_roi >= 0 ? 'text-green-600' : 'text-red-600'">
+                  {{ netWorth.investment_roi >= 0 ? '+' : '' }}{{ netWorth.investment_roi.toFixed(2) }}%
+                </p>
+              </div>
             </div>
           </div>
 
@@ -311,12 +356,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   showAlerts = false;
   alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
+  dismissedAlerts = new Set<string>();
   hasCritical = false;
   alertCount = 0;
   projectedBalance = 0;
   dailyAvgSpend = 0;
   daysRemaining = 0;
   savingsRate = 0;
+
+  netWorth: NetWorth = {
+    net_worth: 0, cash_balance: 0,
+    investment_value: 0, investment_cost: 0,
+    investment_gain: 0, investment_roi: 0,
+    total_income: 0, total_expenses: 0,
+  };
 
   constructor(
     private authService: AuthService,
@@ -356,6 +409,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
 
     this.loadExpensesByCategory();
+    this.loadNetWorth();
 
     this.financialService.getYearRecords(this.currentYear).subscribe({
       next: (records) => {
@@ -411,8 +465,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
 
     this.alerts = alerts;
-    this.hasCritical = alerts.some(a => a.type === 'danger');
-    this.alertCount = alerts.filter(a => a.type !== 'info').length;
+    this.hasCritical = this.visibleAlerts.some(a => a.type === 'danger');
+    this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
+  }
+
+  get visibleAlerts() {
+    return this.alerts.filter(a => !this.dismissedAlerts.has(a.title));
+  }
+
+  dismissAlert(alert: { type: string; title: string; message: string }): void {
+    this.dismissedAlerts.add(alert.title);
+    this.hasCritical = this.visibleAlerts.some(a => a.type === 'danger');
+    this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
+  }
+
+  clearAllAlerts(): void {
+    this.alerts.forEach(a => this.dismissedAlerts.add(a.title));
+    this.hasCritical = false;
+    this.alertCount = 0;
   }
 
   toggleAlerts(): void {
@@ -437,6 +507,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.updateCategoryBreakdownChart();
       },
       error: () => { this.expensesByCategory = []; }
+    });
+  }
+
+  loadNetWorth(): void {
+    this.financialService.getNetWorth().subscribe({
+      next: (data) => { this.netWorth = data; },
+      error: () => {}
     });
   }
 

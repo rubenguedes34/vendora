@@ -172,4 +172,33 @@ class FinancialRecordController extends Controller
 
         return response()->json(['message' => 'Financial record deleted']);
     }
+
+    public function netWorth(Request $request)
+    {
+        $user = $request->user();
+
+        $investmentValue = (float) $user->investments()->sum('current_amount');
+        $investmentCost  = (float) $user->investments()->sum('initial_amount');
+
+        $totalIncome   = (float) $user->transactions()->where('type', 'income')->sum('amount');
+        $totalExpenses = (float) $user->transactions()->where('type', 'expense')->sum('amount');
+        $cashBalance   = round($totalIncome - $totalExpenses, 2);
+
+        $netWorth     = round($cashBalance + $investmentValue, 2);
+        $investGain   = round($investmentValue - $investmentCost, 2);
+        $investRoi    = $investmentCost > 0
+            ? round(($investGain / $investmentCost) * 100, 2)
+            : 0;
+
+        return response()->json([
+            'net_worth'        => $netWorth,
+            'cash_balance'     => $cashBalance,
+            'investment_value' => $investmentValue,
+            'investment_cost'  => $investmentCost,
+            'investment_gain'  => $investGain,
+            'investment_roi'   => $investRoi,
+            'total_income'     => round($totalIncome, 2),
+            'total_expenses'   => round($totalExpenses, 2),
+        ]);
+    }
 }
