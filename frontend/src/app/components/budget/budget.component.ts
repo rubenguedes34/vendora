@@ -210,7 +210,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 </div>
               </div>
               <div class="mt-1 text-xs" [class]="item.remaining >= 0 ? 'text-gray-400' : 'text-red-500'">
-                {{ item.remaining >= 0 ? (item.remaining | currencySymbol) + ' remaining' : (item.remaining | currencySymbol:2) + ' over budget' }}
+                {{ item.remaining >= 0 ? (item.remaining | currencySymbol) + ' remaining' : ((-item.remaining) | currencySymbol) + ' over budget' }}
               </div>
             </div>
           </div>

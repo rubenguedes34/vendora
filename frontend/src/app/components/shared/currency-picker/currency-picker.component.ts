@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { CurrencyService, CurrencyOption } from '../../../services/currency.service';
 
@@ -44,17 +45,22 @@ import { CurrencyService, CurrencyOption } from '../../../services/currency.serv
     </div>
   `,
 })
-export class CurrencyPickerComponent implements OnInit {
+export class CurrencyPickerComponent implements OnInit, OnDestroy {
   currencies: CurrencyOption[] = [];
   active!: CurrencyOption;
   open = false;
+  private sub!: Subscription;
 
   constructor(private currencyService: CurrencyService) {}
 
   ngOnInit(): void {
     this.currencies = this.currencyService.currencies;
     this.active = this.currencyService.current;
-    this.currencyService.currency$.subscribe(c => this.active = c);
+    this.sub = this.currencyService.currency$.subscribe(c => this.active = c);
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   select(code: string): void {

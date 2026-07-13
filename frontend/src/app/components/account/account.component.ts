@@ -185,7 +185,7 @@ import { environment } from '../../../environments/environment';
             </div>
           </div>
 
-          <!-- Theme Preferences -->
+          <!-- Appearance -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +193,11 @@ import { environment } from '../../../environments/environment';
               </svg>
               Appearance
             </h3>
-            <app-theme-picker></app-theme-picker>
+            <div class="bg-primary-700 text-white rounded-xl p-4 space-y-2">
+              <app-theme-picker></app-theme-picker>
+              <hr class="border-primary-600" />
+              <app-currency-picker></app-currency-picker>
+            </div>
           </div>
 
           <!-- Danger Zone -->
