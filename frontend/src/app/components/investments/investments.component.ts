@@ -946,6 +946,7 @@ export class InvestmentsComponent implements OnInit {
     const payload = {
       name: v.name,
       type: v.type,
+      account: v.account || null,
       initial_amount: invested,
       units: units,
       price_per_unit: pricePerUnit,

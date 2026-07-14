@@ -20,13 +20,13 @@ class NotificationGenerator
 
     private function addOnce(User $user, string $type, string $key, string $title, string $body, array $data = []): void
     {
-        $exists = $user->notifications()
+        $exists = $user->appNotifications()
             ->where('type', $type)
             ->where('data->key', $key)
             ->exists();
 
         if (!$exists) {
-            $user->notifications()->create([
+            $user->appNotifications()->create([
                 'type'  => $type,
                 'title' => $title,
                 'body'  => $body,
@@ -60,6 +60,11 @@ class NotificationGenerator
             $key    = "budget-{$budget->id}-{$month}";
 
             if ($actual > $limit) {
+                $user->appNotifications()
+                    ->where('type', 'budget_almost_exceeded')
+                    ->where('data->key', $key)
+                    ->delete();
+
                 $this->addOnce(
                     $user,
                     'budget_exceeded',

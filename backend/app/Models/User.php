@@ -92,7 +92,7 @@ class User extends Authenticatable
         return $this->hasMany(WatchlistItem::class);
     }
 
-    public function notifications()
+    public function appNotifications()
     {
         return $this->hasMany(Notification::class);
     }

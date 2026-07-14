@@ -141,9 +141,14 @@ export class TransactionService {
     );
   }
 
-  getAttachmentUrl(transactionId: number): string {
-    const token = this.authService.getTokenValue();
-    return `${this.apiUrl}/transactions/${transactionId}/attachment?token=${encodeURIComponent(token ?? '')}`;
+  getAttachment(transactionId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/transactions/${transactionId}/attachment`, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    }).pipe(
+      timeout(8000),
+      catchError(err => throwError(() => this.handleError(err)))
+    );
   }
 
   deleteTransaction(id: number): Observable<any> {

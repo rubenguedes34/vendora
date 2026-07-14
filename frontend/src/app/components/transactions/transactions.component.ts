@@ -839,22 +839,18 @@ export class TransactionsComponent implements OnInit {
     this.previewIsImage = false;
     this.previewLoading = true;
 
-    const url = this.transactionService.getAttachmentUrl(transaction.id);
-    fetch(url)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load');
-        const mime = res.headers.get('Content-Type') ?? '';
+    this.transactionService.getAttachment(transaction.id).subscribe({
+      next: (blob) => {
+        const mime = blob.type ?? '';
         this.previewIsImage = mime.startsWith('image/');
-        return res.blob();
-      })
-      .then(blob => {
         this.previewObjectUrl = URL.createObjectURL(blob);
         this.previewLoading = false;
-      })
-      .catch(() => {
+      },
+      error: () => {
         this.previewObjectUrl = null;
         this.previewLoading = false;
-      });
+      }
+    });
   }
 
   closePreview(): void {

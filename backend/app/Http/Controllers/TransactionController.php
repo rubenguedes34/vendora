@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\Tag;
@@ -114,7 +115,10 @@ class TransactionController extends Controller
             'transaction_date' => 'required|date',
             'notes'        => 'nullable|string|max:1000',
             'tag_ids'      => 'nullable|array',
-            'tag_ids.*'    => 'integer|exists:tags,id',
+            'tag_ids.*'    => [
+                'integer',
+                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
+            ],
             'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
@@ -168,7 +172,10 @@ class TransactionController extends Controller
             'transaction_date' => 'sometimes|required|date',
             'notes'        => 'nullable|string|max:1000',
             'tag_ids'      => 'nullable|array',
-            'tag_ids.*'    => 'integer|exists:tags,id',
+            'tag_ids.*'    => [
+                'integer',
+                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
+            ],
             'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
@@ -179,7 +186,10 @@ class TransactionController extends Controller
             }
         }
 
-        $data = $request->except(['attachment']);
+        $data = $request->only([
+            'category_id', 'description', 'amount', 'type',
+            'transaction_date', 'notes',
+        ]);
 
         if ($request->hasFile('attachment')) {
             if ($transaction->attachment_path) {
