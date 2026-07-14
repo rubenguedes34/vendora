@@ -71,7 +71,7 @@ class MarketDataController extends Controller
     {
         $request->validate(['symbol' => 'required|string|max:20']);
         $symbol = strtoupper(trim($request->symbol));
-        $days   = (int) ($request->query('days', 7));
+        $days   = (int) ($request->query('days', '7'));
         $key    = $this->finnhubKey();
 
         if (!$key) {
@@ -188,7 +188,13 @@ class MarketDataController extends Controller
                 return response()->json(['error' => 'No data for this symbol'], 404);
             }
 
-            $closes    = array_values(array_filter($result['indicators']['quote'][0]['close'] ?? [], fn($v) => $v !== null));
+            $rawCloses = $result['indicators']['quote'][0]['close'] ?? [];
+            $closes    = [];
+            foreach ($rawCloses as $close) {
+                if ($close !== null) {
+                    $closes[] = $close;
+                }
+            }
             $sparkline = array_map(fn($v) => round($v, 4), $closes);
             $price     = round($meta['regularMarketPrice'] ?? 0, 4);
             $prev      = $meta['chartPreviousClose'] ?? $meta['previousClose'] ?? null;

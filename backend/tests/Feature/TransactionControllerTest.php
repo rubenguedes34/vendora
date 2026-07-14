@@ -401,7 +401,7 @@ class TransactionControllerTest extends TestCase
 
         $txId = $storeResponse->json('id');
 
-        $other      = User::factory()->create();
+        $other      = User::factory()->createOne();
         $otherToken = TokenService::issue($other);
 
         $this->getJson("/api/transactions/{$txId}/attachment", [

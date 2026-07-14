@@ -13,7 +13,7 @@ class NotificationController extends Controller
     {
         $this->generator->generateFor($request->user());
 
-        $unreadOnly = filter_var($request->query('unread_only', false), FILTER_VALIDATE_BOOL);
+        $unreadOnly = $request->boolean('unread_only', false);
         $query = $request->user()->notifications()->orderByDesc('created_at');
         if ($unreadOnly) {
             $query->where('is_read', false);
