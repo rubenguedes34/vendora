@@ -28,6 +28,18 @@ export interface BudgetSummary {
   balance: number;
 }
 
+export interface NetWorthHistory {
+  label: string;
+  net_worth: number;
+  cash: number;
+  investments: number;
+}
+
+export interface NetWorthAllocation {
+  type: string;
+  value: number;
+}
+
 export interface NetWorth {
   net_worth: number;
   cash_balance: number;
@@ -37,6 +49,10 @@ export interface NetWorth {
   investment_roi: number;
   total_income: number;
   total_expenses: number;
+  monthly_change: number;
+  yearly_change: number;
+  history: NetWorthHistory[];
+  allocation: NetWorthAllocation[];
 }
 
 export interface BudgetComparison {
@@ -48,6 +64,24 @@ export interface BudgetComparison {
   actual: number;
   remaining: number;
   pct: number | null;
+}
+
+export interface AllocationBreakdown {
+  type: string;
+  total: number;
+  percentage: number;
+  count: number;
+}
+
+export interface PortfolioAllocation {
+  total: number;
+  breakdown: AllocationBreakdown[];
+  filters: {
+    account: string | null;
+    date_from: string | null;
+    date_to: string | null;
+    type: string | null;
+  };
 }
 
 export interface Category {
@@ -258,6 +292,31 @@ export class FinancialService {
       headers: this.getHeaders()
     }).pipe(
       timeout(5000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  getHealthScore(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/financial-records/health-score`, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(8000),
+      catchError(error => throwError(() => this.handleError(error)))
+    );
+  }
+
+  getAllocation(filters?: { account?: string; date_from?: string; date_to?: string; type?: string }): Observable<PortfolioAllocation> {
+    const parts: string[] = [];
+    if (filters?.account)   parts.push(`account=${encodeURIComponent(filters.account)}`);
+    if (filters?.date_from) parts.push(`date_from=${filters.date_from}`);
+    if (filters?.date_to)   parts.push(`date_to=${filters.date_to}`);
+    if (filters?.type)      parts.push(`type=${encodeURIComponent(filters.type)}`);
+    const qs = parts.length ? '?' + parts.join('&') : '';
+
+    return this.http.get<PortfolioAllocation>(`${this.apiUrl}/financial-records/allocation${qs}`, {
+      headers: this.getHeaders()
+    }).pipe(
+      timeout(8000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }

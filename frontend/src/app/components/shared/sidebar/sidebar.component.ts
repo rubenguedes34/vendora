@@ -36,7 +36,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
       [class.translate-x-0]="mobileOpen"
       [class.-translate-x-full]="!mobileOpen">
 
-      <div class="p-6">
+      <div class="p-6 flex items-center justify-between">
         <!-- Close button (mobile only) -->
         <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-primary-200 hover:text-white">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,6 +102,50 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <span class="font-semibold">Investments</span>
+        </a>
+
+        <a routerLink="/watchlist" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/watchlist')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span class="font-semibold">Watchlist</span>
+        </a>
+
+        <a routerLink="/allocation" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/allocation')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+          </svg>
+          <span class="font-semibold">Allocation</span>
+        </a>
+
+        <a routerLink="/net-worth" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/net-worth')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-semibold">Net Worth</span>
+        </a>
+
+        <a routerLink="/health-score" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/health-score')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-semibold">Health Score</span>
         </a>
 
         <a routerLink="/account" (click)="mobileOpen = false"

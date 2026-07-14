@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use App\Models\Transaction;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Models\User;
 
 class TransactionController extends Controller
@@ -21,20 +25,34 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'search'      => 'nullable|string|max:100',
-            'type'        => 'nullable|in:income,expense',
-            'category_id' => 'nullable|integer|exists:categories,id',
-            'date_from'   => 'nullable|date',
-            'date_to'     => 'nullable|date|after_or_equal:date_from',
+            'search'       => 'nullable|string|max:100',
+            'notes_search' => 'nullable|string|max:100',
+            'type'         => 'nullable|in:income,expense',
+            'category_id'  => 'nullable|integer|exists:categories,id',
+            'date_from'    => 'nullable|date',
+            'date_to'      => 'nullable|date|after_or_equal:date_from',
+            'amount_min'   => 'nullable|numeric|min:0',
+            'amount_max'   => 'nullable|numeric|min:0',
+            'tag_ids'      => 'nullable|string',
+            'per_page'     => 'nullable|integer|in:10,20,50,100',
+            'page'         => 'nullable|integer|min:1',
         ]);
 
         $query = $request->user()
             ->transactions()
-            ->with('category')
-            ->orderBy('transaction_date', 'desc');
+            ->with(['category', 'tags'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('description', 'like', $term)
+                  ->orWhere('notes', 'like', $term);
+            });
+        }
+        if ($request->filled('notes_search')) {
+            $query->where('notes', 'like', '%' . $request->notes_search . '%');
         }
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -48,8 +66,25 @@ class TransactionController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('transaction_date', '<=', $request->date_to);
         }
+        if ($request->filled('amount_min')) {
+            $query->where('amount', '>=', $request->amount_min);
+        }
+        if ($request->filled('amount_max')) {
+            $query->where('amount', '<=', $request->amount_max);
+        }
+        if ($request->filled('tag_ids')) {
+            $tagIds = array_filter(array_map('intval', explode(',', $request->tag_ids)));
+            if (!empty($tagIds)) {
+                foreach ($tagIds as $tagId) {
+                    $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tagId));
+                }
+            }
+        }
 
-        return response()->json($query->get());
+        $perPage = $request->integer('per_page', 20);
+        $page    = $request->integer('page', 1);
+
+        return response()->json($query->paginate($perPage, ['*'], 'page', $page));
     }
 
     /**
@@ -73,11 +108,18 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:income,expense',
+            'category_id'  => 'required|exists:categories,id',
+            'description'  => 'required|string|max:255',
+            'amount'       => 'required|numeric|min:0',
+            'type'         => 'required|in:income,expense',
             'transaction_date' => 'required|date',
+            'notes'        => 'nullable|string|max:1000',
+            'tag_ids'      => 'nullable|array',
+            'tag_ids.*'    => [
+                'integer',
+                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
+            ],
+            'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         // Verify category belongs to user
@@ -86,20 +128,35 @@ class TransactionController extends Controller
             return response()->json(['message' => 'Invalid category'], 403);
         }
 
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->storeAs(
+                'receipts/' . $request->user()->id,
+                Str::uuid() . '.' . $request->file('attachment')->getClientOriginalExtension()
+            );
+        }
+
         $transaction = $request->user()->transactions()->create([
-            'category_id' => $request->category_id,
-            'description' => $request->description,
-            'amount' => $request->amount,
-            'type' => $request->type,
+            'category_id'     => $request->category_id,
+            'description'     => $request->description,
+            'amount'          => $request->amount,
+            'type'            => $request->type,
             'transaction_date' => $request->transaction_date,
+            'notes'           => $request->notes,
+            'attachment_path' => $attachmentPath,
         ]);
 
-        return response()->json($transaction->load('category'), 201);
+        if ($request->has('tag_ids')) {
+            $tagIds = $this->resolveTagIds($request);
+            $transaction->tags()->sync($tagIds);
+        }
+
+        return response()->json($transaction->load(['category', 'tags']), 201);
     }
 
     public function show(Request $request, $id)
     {
-        $transaction = $request->user()->transactions()->with('category')->findOrFail($id);
+        $transaction = $request->user()->transactions()->with(['category', 'tags'])->findOrFail($id);
         return response()->json($transaction);
     }
 
@@ -108,11 +165,18 @@ class TransactionController extends Controller
         $transaction = $request->user()->transactions()->findOrFail($id);
 
         $request->validate([
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'description' => 'sometimes|required|string|max:255',
-            'amount' => 'sometimes|required|numeric|min:0',
-            'type' => 'sometimes|required|in:income,expense',
+            'category_id'  => 'sometimes|required|exists:categories,id',
+            'description'  => 'sometimes|required|string|max:255',
+            'amount'       => 'sometimes|required|numeric|min:0',
+            'type'         => 'sometimes|required|in:income,expense',
             'transaction_date' => 'sometimes|required|date',
+            'notes'        => 'nullable|string|max:1000',
+            'tag_ids'      => 'nullable|array',
+            'tag_ids.*'    => [
+                'integer',
+                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
+            ],
+            'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         if ($request->has('category_id')) {
@@ -122,50 +186,136 @@ class TransactionController extends Controller
             }
         }
 
-        $transaction->update($request->all());
+        $data = $request->only([
+            'category_id', 'description', 'amount', 'type',
+            'transaction_date', 'notes',
+        ]);
 
-        return response()->json($transaction->load('category'));
+        if ($request->hasFile('attachment')) {
+            if ($transaction->attachment_path) {
+                Storage::delete($transaction->attachment_path);
+            }
+            $data['attachment_path'] = $request->file('attachment')->storeAs(
+                'receipts/' . $request->user()->id,
+                Str::uuid() . '.' . $request->file('attachment')->getClientOriginalExtension()
+            );
+        }
+
+        $transaction->update($data);
+
+        if ($request->has('tag_ids')) {
+            $tagIds = $this->resolveTagIds($request);
+            $transaction->tags()->sync($tagIds);
+        }
+
+        return response()->json($transaction->load(['category', 'tags']));
     }
 
     public function destroy(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
+
+        if ($transaction->attachment_path) {
+            Storage::delete($transaction->attachment_path);
+        }
+
         $transaction->delete();
 
         return response()->json(['message' => 'Transaction deleted']);
     }
 
+    public function serveAttachment(Request $request, $id)
+    {
+        $transaction = $request->user()->transactions()->findOrFail($id);
+
+        if (!$transaction->attachment_path || !Storage::exists($transaction->attachment_path)) {
+            return response()->json(['message' => 'Attachment not found'], 404);
+        }
+
+        $mime = Storage::mimeType($transaction->attachment_path);
+        $contents = Storage::get($transaction->attachment_path);
+
+        return response($contents, 200)->header('Content-Type', $mime);
+    }
+
+    public function deleteAttachment(Request $request, $id)
+    {
+        $transaction = $request->user()->transactions()->findOrFail($id);
+
+        if (!$transaction->attachment_path) {
+            return response()->json(['message' => 'No attachment to delete'], 404);
+        }
+
+        Storage::delete($transaction->attachment_path);
+        $transaction->update(['attachment_path' => null]);
+
+        return response()->json(['message' => 'Attachment deleted']);
+    }
+
+    private function resolveTagIds(Request $request): array
+    {
+        $raw = $request->input('tag_ids', []);
+        if (is_string($raw)) {
+            $raw = array_filter(array_map('intval', explode(',', $raw)));
+        }
+        $userId = $request->user()->id;
+        return Tag::whereIn('id', $raw)->where('user_id', $userId)->pluck('id')->toArray();
+    }
+
     public function export(Request $request)
     {
         $request->validate([
-            'search'      => 'nullable|string|max:100',
-            'type'        => 'nullable|in:income,expense',
-            'category_id' => 'nullable|integer|exists:categories,id',
-            'date_from'   => 'nullable|date',
-            'date_to'     => 'nullable|date|after_or_equal:date_from',
+            'search'       => 'nullable|string|max:100',
+            'notes_search' => 'nullable|string|max:100',
+            'type'         => 'nullable|in:income,expense',
+            'category_id'  => 'nullable|integer|exists:categories,id',
+            'date_from'    => 'nullable|date',
+            'date_to'      => 'nullable|date|after_or_equal:date_from',
+            'amount_min'   => 'nullable|numeric|min:0',
+            'amount_max'   => 'nullable|numeric|min:0',
+            'tag_ids'      => 'nullable|string',
         ]);
 
         $query = $request->user()
             ->transactions()
-            ->with('category')
-            ->orderBy('transaction_date', 'desc');
+            ->with(['category', 'tags'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc');
 
-        if ($request->filled('search'))      $query->where('description', 'like', '%' . $request->search . '%');
-        if ($request->filled('type'))        $query->where('type', $request->type);
-        if ($request->filled('category_id')) $query->where('category_id', $request->category_id);
-        if ($request->filled('date_from'))   $query->whereDate('transaction_date', '>=', $request->date_from);
-        if ($request->filled('date_to'))     $query->whereDate('transaction_date', '<=', $request->date_to);
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('description', 'like', $term)
+                  ->orWhere('notes', 'like', $term);
+            });
+        }
+        if ($request->filled('notes_search')) $query->where('notes', 'like', '%' . $request->notes_search . '%');
+        if ($request->filled('type'))         $query->where('type', $request->type);
+        if ($request->filled('category_id'))  $query->where('category_id', $request->category_id);
+        if ($request->filled('date_from'))    $query->whereDate('transaction_date', '>=', $request->date_from);
+        if ($request->filled('date_to'))      $query->whereDate('transaction_date', '<=', $request->date_to);
+        if ($request->filled('amount_min'))   $query->where('amount', '>=', $request->amount_min);
+        if ($request->filled('amount_max'))   $query->where('amount', '<=', $request->amount_max);
+        if ($request->filled('tag_ids')) {
+            $tagIds = array_filter(array_map('intval', explode(',', $request->tag_ids)));
+            foreach ($tagIds as $tagId) {
+                $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tagId));
+            }
+        }
 
         $transactions = $query->get();
 
-        $lines = ["Date,Description,Category,Type,Amount"];
+        $lines = ["Date,Description,Category,Type,Amount,Notes,Tags"];
         foreach ($transactions as $t) {
+            $tagNames = $t->tags->pluck('name')->implode(';');
             $lines[] = implode(',', [
                 $t->transaction_date,
                 '"' . str_replace('"', '""', $t->description) . '"',
                 '"' . str_replace('"', '""', $t->category?->name ?? '') . '"',
                 $t->type,
                 $t->amount,
+                '"' . str_replace('"', '""', $t->notes ?? '') . '"',
+                '"' . str_replace('"', '""', $tagNames) . '"',
             ]);
         }
 

@@ -14,18 +14,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $amount
  * @property string $type
  * @property \Carbon\Carbon $transaction_date
+ * @property string|null $notes
+ * @property string|null $attachment_path
+ * @property \Illuminate\Database\Eloquent\Collection<Tag> $tags
  */
 class Transaction extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'category_id',
         'description',
         'amount',
         'type',
         'transaction_date',
+        'notes',
+        'attachment_path',
     ];
 
     /** @var array<array-key, mixed> */
@@ -38,6 +42,11 @@ class Transaction extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'transaction_tag');
     }
 
     public function category()
