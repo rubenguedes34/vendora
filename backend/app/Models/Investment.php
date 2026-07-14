@@ -26,6 +26,7 @@ class Investment extends Model
         'user_id',
         'name',
         'type',
+        'account',
         'ticker_symbol',
         'initial_amount',
         'current_amount',

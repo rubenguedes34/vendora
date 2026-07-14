@@ -5,7 +5,7 @@ import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
-interface Transaction {
+export interface Transaction {
   id: number;
   user_id: number;
   category_id: number;
@@ -13,6 +13,9 @@ interface Transaction {
   amount: number;
   type: 'income' | 'expense';
   transaction_date: string;
+  notes?: string | null;
+  attachment_path?: string | null;
+  tags?: { id: number; name: string; color: string }[];
   category?: {
     id: number;
     name: string;
@@ -20,6 +23,22 @@ interface Transaction {
     color?: string;
     type: string;
   };
+}
+
+export interface PaginatedResponse<T> {
+  current_page: number;
+  data: T[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: { url: string | null; label: string; active: boolean }[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
 }
 
 @Injectable({
@@ -42,18 +61,36 @@ export class TransactionService {
     return error.error || { message: 'An error occurred. Please try again.' };
   }
 
-  getTransactions(filters?: { search?: string; type?: string; category_id?: number; date_from?: string; date_to?: string }): Observable<Transaction[]> {
+  getTransactions(filters?: {
+    search?: string;
+    notes_search?: string;
+    type?: string;
+    category_id?: number;
+    date_from?: string;
+    date_to?: string;
+    amount_min?: number;
+    amount_max?: number;
+    tag_ids?: number[];
+    page?: number;
+    per_page?: number;
+  }): Observable<PaginatedResponse<Transaction>> {
     let params = '';
     if (filters) {
       const parts: string[] = [];
-      if (filters.search)      parts.push(`search=${encodeURIComponent(filters.search)}`);
-      if (filters.type)        parts.push(`type=${filters.type}`);
-      if (filters.category_id) parts.push(`category_id=${filters.category_id}`);
-      if (filters.date_from)   parts.push(`date_from=${filters.date_from}`);
-      if (filters.date_to)     parts.push(`date_to=${filters.date_to}`);
+      if (filters.search)                           parts.push(`search=${encodeURIComponent(filters.search)}`);
+      if (filters.notes_search)                     parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
+      if (filters.type)                             parts.push(`type=${filters.type}`);
+      if (filters.category_id)                    parts.push(`category_id=${filters.category_id}`);
+      if (filters.date_from)                        parts.push(`date_from=${filters.date_from}`);
+      if (filters.date_to)                          parts.push(`date_to=${filters.date_to}`);
+      if (filters.amount_min != null)               parts.push(`amount_min=${filters.amount_min}`);
+      if (filters.amount_max != null)               parts.push(`amount_max=${filters.amount_max}`);
+      if (filters.tag_ids && filters.tag_ids.length) parts.push(`tag_ids=${filters.tag_ids.join(',')}`);
+      if (filters.page)                             parts.push(`page=${filters.page}`);
+      if (filters.per_page)                         parts.push(`per_page=${filters.per_page}`);
       if (parts.length) params = '?' + parts.join('&');
     }
-    return this.http.get<Transaction[]>(`${this.apiUrl}/transactions${params}`, { headers: this.getHeaders() }).pipe(
+    return this.http.get<PaginatedResponse<Transaction>>(`${this.apiUrl}/transactions${params}`, { headers: this.getHeaders() }).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
@@ -66,7 +103,17 @@ export class TransactionService {
     );
   }
 
+  private authHeaders(): HttpHeaders {
+    return new HttpHeaders({ 'Authorization': `Bearer ${this.authService.getTokenValue()}` });
+  }
+
   createTransaction(data: any): Observable<Transaction> {
+    if (data instanceof FormData) {
+      return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data, { headers: this.authHeaders() }).pipe(
+        timeout(10000),
+        catchError(err => throwError(() => this.handleError(err)))
+      );
+    }
     return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data, { headers: this.getHeaders() }).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
@@ -74,10 +121,29 @@ export class TransactionService {
   }
 
   updateTransaction(id: number, data: any): Observable<Transaction> {
+    if (data instanceof FormData) {
+      data.append('_method', 'PUT');
+      return this.http.post<Transaction>(`${this.apiUrl}/transactions/${id}`, data, { headers: this.authHeaders() }).pipe(
+        timeout(10000),
+        catchError(err => throwError(() => this.handleError(err)))
+      );
+    }
     return this.http.put<Transaction>(`${this.apiUrl}/transactions/${id}`, data, { headers: this.getHeaders() }).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
+  }
+
+  deleteAttachment(transactionId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/transactions/${transactionId}/attachment`, { headers: this.getHeaders() }).pipe(
+      timeout(5000),
+      catchError(err => throwError(() => this.handleError(err)))
+    );
+  }
+
+  getAttachmentUrl(transactionId: number): string {
+    const token = this.authService.getTokenValue();
+    return `${this.apiUrl}/transactions/${transactionId}/attachment?token=${encodeURIComponent(token ?? '')}`;
   }
 
   deleteTransaction(id: number): Observable<any> {
@@ -87,13 +153,27 @@ export class TransactionService {
     );
   }
 
-  exportTransactions(filters?: { search?: string; type?: string; category_id?: number; date_from?: string; date_to?: string }): void {
+  exportTransactions(filters?: {
+    search?: string;
+    notes_search?: string;
+    type?: string;
+    category_id?: number;
+    date_from?: string;
+    date_to?: string;
+    amount_min?: number;
+    amount_max?: number;
+    tag_ids?: number[];
+  }): void {
     const parts: string[] = [];
-    if (filters?.search)      parts.push(`search=${encodeURIComponent(filters.search)}`);
-    if (filters?.type)        parts.push(`type=${filters.type}`);
-    if (filters?.category_id) parts.push(`category_id=${filters.category_id}`);
-    if (filters?.date_from)   parts.push(`date_from=${filters.date_from}`);
-    if (filters?.date_to)     parts.push(`date_to=${filters.date_to}`);
+    if (filters?.search)                           parts.push(`search=${encodeURIComponent(filters.search)}`);
+    if (filters?.notes_search)                     parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
+    if (filters?.type)                             parts.push(`type=${filters.type}`);
+    if (filters?.category_id)                      parts.push(`category_id=${filters.category_id}`);
+    if (filters?.date_from)                        parts.push(`date_from=${filters.date_from}`);
+    if (filters?.date_to)                          parts.push(`date_to=${filters.date_to}`);
+    if (filters?.amount_min != null)               parts.push(`amount_min=${filters.amount_min}`);
+    if (filters?.amount_max != null)               parts.push(`amount_max=${filters.amount_max}`);
+    if (filters?.tag_ids && filters.tag_ids.length) parts.push(`tag_ids=${filters.tag_ids.join(',')}`);
 
     const qs = parts.length ? '?' + parts.join('&') : '';
     const url = `${this.apiUrl}/transactions/export${qs}`;

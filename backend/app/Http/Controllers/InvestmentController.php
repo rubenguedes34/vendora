@@ -22,6 +22,7 @@ class InvestmentController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|max:50',
+            'account' => 'nullable|string|max:100',
             'initial_amount' => 'required|numeric|min:0',
             'current_amount' => 'required|numeric|min:0',
             'purchase_date' => 'required|date',
@@ -45,6 +46,7 @@ class InvestmentController extends Controller
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'type' => 'sometimes|required|string|max:50',
+            'account' => 'nullable|string|max:100',
             'initial_amount' => 'sometimes|required|numeric|min:0',
             'current_amount' => 'sometimes|required|numeric|min:0',
             'purchase_date' => 'sometimes|required|date',

@@ -234,6 +234,11 @@ const TYPE_COLORS: Record<string, string> = {
                     </select>
                   </div>
                   <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Account</label>
+                    <input formControlName="account" type="text" placeholder="e.g. Trading 212, Binance"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                  </div>
+                  <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }})</label>
                     <input formControlName="initial_amount" type="number" step="0.01" min="0.01" placeholder="0.00"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
@@ -709,6 +714,7 @@ export class InvestmentsComponent implements OnInit {
     this.investmentForm = this.fb.group({
       name: ['', Validators.required],
       type: ['', Validators.required],
+      account: [null],
       initial_amount: ['', [Validators.required, Validators.min(0.01)]],
       units: [null],
       price_per_unit: [null],
@@ -965,7 +971,7 @@ export class InvestmentsComponent implements OnInit {
     this.quoteResult = null;
     this.quoteError = '';
     this.investmentForm.patchValue({
-      name: inv.name, type: inv.type,
+      name: inv.name, type: inv.type, account: inv.account ?? null,
       initial_amount: inv.initial_amount,
       units: inv.units ?? null,
       price_per_unit: inv.price_per_unit ?? null,

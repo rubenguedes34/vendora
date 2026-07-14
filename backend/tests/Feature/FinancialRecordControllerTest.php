@@ -36,6 +36,25 @@ class FinancialRecordControllerTest extends TestCase
         $this->getJson('/api/financial-records/current')->assertStatus(401);
     }
 
+    public function test_health_score_returns_score_and_history(): void
+    {
+        $response = $this->getJson('/api/financial-records/health-score', $this->authHeader())
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'score' => [
+                    'overall_score',
+                    'as_of',
+                    'categories',
+                    'weights',
+                ],
+                'history',
+            ]);
+
+        $this->assertGreaterThanOrEqual(0, $response->json('score.overall_score'));
+        $this->assertLessThanOrEqual(100, $response->json('score.overall_score'));
+        $this->assertCount(6, $response->json('history'));
+    }
+
     public function test_current_returns_default_record_when_none_exists(): void
     {
         $response = $this->getJson('/api/financial-records/current', $this->authHeader());

@@ -112,7 +112,7 @@ interface RecurrentTransaction {
                 class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto" />
               <button (click)="copyToMonth()"
                 [disabled]="!copyTargetMonth || isCopying"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors w-full sm:w-auto">
+                class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto">
                 {{ isCopying ? 'Copying...' : 'Copy Now' }}
               </button>
             </div>
@@ -139,7 +139,7 @@ interface RecurrentTransaction {
                   <p [class]="item.type === 'income' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
                     {{ item.type === 'income' ? '+' : '-' }}{{ item.amount | currencySymbol }}
                   </p>
-                  <button (click)="editItem(item)" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+                  <button (click)="editItem(item)" class="text-primary-600 hover:text-primary-800 text-sm">Edit</button>
                   <button (click)="deleteItem(item.id!)" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
                 </div>
               </div>

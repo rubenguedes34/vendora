@@ -82,6 +82,21 @@ class User extends Authenticatable
         return $this->hasMany(RecurrentTransaction::class);
     }
 
+    public function tags()
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    public function watchlistItems()
+    {
+        return $this->hasMany(WatchlistItem::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     /**
      * The attributes that should be cast.
      *

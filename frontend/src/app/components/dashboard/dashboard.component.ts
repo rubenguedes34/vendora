@@ -371,6 +371,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     investment_value: 0, investment_cost: 0,
     investment_gain: 0, investment_roi: 0,
     total_income: 0, total_expenses: 0,
+    monthly_change: 0, yearly_change: 0,
+    history: [], allocation: [],
   };
 
   constructor(
