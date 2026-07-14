@@ -29,10 +29,6 @@ const TYPE_COLORS: Record<string, string> = {
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Investments</h2>
-              <button (click)="toggleForm()"
-                class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors text-sm">
-                {{ showForm && !editingId ? '✕ Cancel' : '+ Add Investment' }}
-              </button>
             </div>
           </div>
         </header>
@@ -47,35 +43,35 @@ const TYPE_COLORS: Record<string, string> = {
 
           <!-- Summary Cards -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-purple-400 flex items-center justify-between">
-              <p class="text-xs text-gray-400 uppercase tracking-wide">Invested</p>
-              <p class="text-base font-bold text-purple-600">{{ totalInitial | currencySymbol }}</p>
+            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-purple-400">
+              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Invested</p>
+              <p class="text-sm sm:text-base font-bold text-purple-600">{{ totalInitial | currencySymbol }}</p>
             </div>
-            <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-400 flex items-center justify-between">
-              <p class="text-xs text-gray-400 uppercase tracking-wide">Current</p>
-              <p class="text-base font-bold text-blue-600">{{ totalCurrent | currencySymbol }}</p>
+            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-400">
+              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Current</p>
+              <p class="text-sm sm:text-base font-bold text-blue-600">{{ totalCurrent | currencySymbol }}</p>
             </div>
-            <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between"
+            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4"
               [class.border-l-green-400]="totalGain >= 0" [class.border-l-red-400]="totalGain < 0">
-              <p class="text-xs text-gray-400 uppercase tracking-wide">Gain/Loss</p>
-              <p class="text-base font-bold" [class]="totalGain >= 0 ? 'text-green-600' : 'text-red-600'">
+              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Gain/Loss</p>
+              <p class="text-sm sm:text-base font-bold" [class]="totalGain >= 0 ? 'text-green-600' : 'text-red-600'">
                 {{ totalGain >= 0 ? '+' : '' }}{{ totalGain | currencySymbol }}
               </p>
             </div>
-            <div class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between"
+            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4"
               [class.border-l-green-400]="totalRoi >= 0" [class.border-l-red-400]="totalRoi < 0">
-              <p class="text-xs text-gray-400 uppercase tracking-wide">ROI</p>
-              <p class="text-base font-bold" [class]="totalRoi >= 0 ? 'text-green-600' : 'text-red-600'">
+              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">ROI</p>
+              <p class="text-sm sm:text-base font-bold" [class]="totalRoi >= 0 ? 'text-green-600' : 'text-red-600'">
                 {{ totalRoi >= 0 ? '+' : '' }}{{ totalRoi.toFixed(2) }}%
               </p>
             </div>
           </div>
 
-          <!-- Charts + Add Form row -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Portfolio Breakdown + Add/Edit Form (always visible) -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
-            <!-- Portfolio Breakdown Donut Chart -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-1">
+            <!-- Portfolio Breakdown Donut Chart (desktop only) -->
+            <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-1">
               <h3 class="text-sm font-semibold text-gray-700 mb-4">Portfolio Breakdown</h3>
               <div *ngIf="investments.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-40 text-gray-300">
                 <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +83,6 @@ const TYPE_COLORS: Record<string, string> = {
                 <div class="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
               </div>
               <div *ngIf="investments.length > 0 && !isLoading">
-                <!-- SVG Donut -->
                 <div class="flex justify-center mb-4">
                   <svg width="140" height="140" viewBox="0 0 140 140">
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#f3f4f6" stroke-width="22"/>
@@ -100,11 +95,10 @@ const TYPE_COLORS: Record<string, string> = {
                         stroke-linecap="butt"
                         transform="rotate(-90 70 70)"/>
                     </ng-container>
-                    <text x="70" y="66" text-anchor="middle" class="text-xs" font-size="10" fill="#6b7280">Portfolio</text>
+                    <text x="70" y="66" text-anchor="middle" font-size="10" fill="#6b7280">Portfolio</text>
                     <text x="70" y="80" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">{{ totalCurrent | currencySymbol:0 }}</text>
                   </svg>
                 </div>
-                <!-- Legend -->
                 <div class="space-y-1.5">
                   <div *ngFor="let seg of donutSegments" class="flex items-center justify-between text-xs">
                     <div class="flex items-center gap-2">
@@ -117,135 +111,176 @@ const TYPE_COLORS: Record<string, string> = {
               </div>
             </div>
 
-            <!-- Add/Edit Form -->
+            <!-- Add/Edit Form panel -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">{{ editingId ? 'Edit Investment' : 'Add Investment' }}</h3>
-                <button *ngIf="showForm" (click)="cancelEdit()" class="text-xs text-gray-400 hover:text-gray-600">✕ Cancel</button>
-                <button *ngIf="!showForm" (click)="toggleForm()" class="text-xs text-purple-600 font-semibold hover:text-purple-800">+ New</button>
+                <button *ngIf="editingId" (click)="cancelEdit()" class="text-xs text-gray-400 hover:text-gray-600">✕ Cancel</button>
               </div>
 
-              <div *ngIf="!showForm" class="flex flex-col items-center justify-center h-40 text-gray-300">
-                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
-                </svg>
-                <p class="text-xs">Click "+ New" or the header button to add</p>
-              </div>
-
-              <div *ngIf="showForm">
-                <!-- Ticker lookup -->
-                <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                  <p class="text-xs font-semibold text-blue-700 mb-2">🔍 Live Price Lookup (Stocks / ETFs / Crypto)</p>
-                  <div class="flex gap-2">
-                    <input [(ngModel)]="tickerSymbol" [ngModelOptions]="{standalone: true}"
-                      type="text" placeholder="e.g. AAPL, BTC-USD, VWCE.DE"
-                      class="flex-1 px-3 py-2 border border-blue-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                      style="text-transform:uppercase"
-                      (keydown.enter)="fetchPrice()" />
-                    <button type="button" (click)="fetchPrice()" [disabled]="fetchingPrice || !tickerSymbol"
-                      class="px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap">
-                      {{ fetchingPrice ? '...' : 'Get Price' }}
+              <!-- Asset Picker -->
+              <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <div class="flex flex-col gap-2 mb-3">
+                  <div class="relative">
+                    <svg class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                    </svg>
+                    <input [(ngModel)]="assetSearch" [ngModelOptions]="{standalone:true}"
+                      type="text" placeholder="Search or type any ticker…"
+                      class="w-full pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white" />
+                  </div>
+                  <div class="flex gap-1">
+                    <button *ngFor="let f of ['All','Stocks','ETF','Crypto']"
+                      type="button"
+                      (click)="assetFilterType = $any(f)"
+                      class="flex-1 py-1 rounded-md text-xs font-medium transition-colors"
+                      [class.bg-purple-600]="assetFilterType === f"
+                      [class.text-white]="assetFilterType === f"
+                      [class.bg-white]="assetFilterType !== f"
+                      [class.text-gray-500]="assetFilterType !== f"
+                      [class.border]="assetFilterType !== f"
+                      [class.border-gray-200]="assetFilterType !== f">
+                      {{ f }}
                     </button>
                   </div>
-                  <div *ngIf="quoteResult" class="mt-2 flex items-center justify-between text-xs text-blue-800">
-                    <span>{{ quoteResult.name }} — <strong>{{ quoteResult.price }} {{ quoteResult.currency }}</strong></span>
-                    <button type="button" (click)="applyQuote()" class="text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition-colors ml-2">Use →</button>
-                  </div>
-                  <p *ngIf="quoteError" class="mt-1 text-xs text-red-500">{{ quoteError }}</p>
                 </div>
 
-                <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                      <input formControlName="name" type="text" placeholder="e.g., Apple Inc."
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+                  <button *ngFor="let a of filteredPresetAssets"
+                    type="button"
+                    (click)="selectAsset(a)"
+                    [disabled]="fetchingPrice"
+                    [class.ring-2]="tickerSymbol === a.symbol && quoteResult"
+                    [class.ring-purple-400]="tickerSymbol === a.symbol && quoteResult"
+                    class="relative flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-gray-100 hover:border-purple-300 hover:shadow-sm transition-all text-center disabled:opacity-60 cursor-pointer">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-base font-bold shrink-0"
+                      [style.background]="a.color + '20'" [style.color]="a.color">
+                      {{ a.icon }}
                     </div>
-                    <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                      <select formControlName="type"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
-                        <option value="">Select type</option>
-                        <option *ngFor="let t of investmentTypes" [value]="t">{{ typeIcon(t) }} {{ t }}</option>
-                      </select>
+                    <p class="text-xs font-semibold text-gray-800 leading-none truncate w-full">{{ a.symbol }}</p>
+                    <p class="text-[10px] text-gray-400 truncate w-full">{{ a.name }}</p>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+                      [class.bg-blue-50]="a.type==='Stocks'" [class.text-blue-600]="a.type==='Stocks'"
+                      [class.bg-orange-50]="a.type==='ETF'" [class.text-orange-600]="a.type==='ETF'"
+                      [class.bg-yellow-50]="a.type==='Crypto'" [class.text-yellow-700]="a.type==='Crypto'">
+                      {{ a.type }}
+                    </span>
+                    <div *ngIf="fetchingPrice && tickerSymbol === a.symbol"
+                      class="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center">
+                      <div class="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin"></div>
                     </div>
-                    <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }}) <span class="text-gray-400 font-normal">— what you paid</span></label>
-                      <input formControlName="initial_amount" type="number" step="0.01" min="0" placeholder="0.00"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Purchase Date</label>
-                      <input formControlName="purchase_date" type="date"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                    </div>
-                    <!-- Units × Price = Current Value row -->
-                    <div class="sm:col-span-2">
-                      <p class="text-xs font-semibold text-gray-500 mb-2 mt-1">Current Value <span class="font-normal text-gray-400">— enter units + price, or type value directly</span></p>
-                      <div class="grid grid-cols-3 gap-2 items-end">
-                        <div>
-                          <label class="block text-xs text-gray-500 mb-1">Units held</label>
-                          <input formControlName="units" type="number" step="any" min="0" placeholder="e.g. 0.5"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                        </div>
-                        <div>
-                          <label class="block text-xs text-gray-500 mb-1">Price / unit <span *ngIf="quoteResult" class="text-blue-500 font-semibold">(live)</span></label>
-                          <input formControlName="price_per_unit" type="number" step="any" min="0" placeholder="e.g. 63929"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-                        </div>
-                        <div>
-                          <label class="block text-xs text-gray-500 mb-1">Current Value ({{ currencyService.symbol }})</label>
-                          <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
-                            class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-purple-50 font-semibold" />
-                        </div>
-                      </div>
-                      <p class="text-xs text-gray-400 mt-1">💡 Use "Get Price" above to auto-fill today's price, then enter your units — current value updates automatically.</p>
-                    </div>
-                  </div>
-                  <p *ngIf="errorMessage" class="mt-2 text-red-500 text-xs">{{ errorMessage }}</p>
-                  <div class="mt-3 flex gap-2">
-                    <button type="submit" [disabled]="investmentForm.invalid || isSaving"
-                      class="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors">
-                      {{ isSaving ? 'Saving...' : (editingId ? 'Update' : 'Add Investment') }}
-                    </button>
-                    <button type="button" (click)="cancelEdit()"
-                      class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
+                  </button>
 
-          <!-- Search + Filter bar -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-            <div class="flex flex-col sm:flex-row gap-3">
-              <div class="relative flex-1">
-                <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
-                </svg>
-                <input type="text" placeholder="Search investments..."
-                  [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}"
-                  class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                  <button *ngIf="assetSearch && !filteredPresetAssets.length"
+                    type="button"
+                    (click)="selectAsset({ symbol: assetSearch.toUpperCase(), name: assetSearch.toUpperCase(), type: 'Stocks' })"
+                    [disabled]="fetchingPrice"
+                    class="flex flex-col items-center gap-1 p-2 rounded-xl bg-purple-50 border border-purple-200 hover:border-purple-400 transition-all text-center cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">?</div>
+                    <p class="text-xs font-semibold text-purple-700">{{ assetSearch.toUpperCase() }}</p>
+                    <p class="text-[10px] text-purple-400">Custom</p>
+                  </button>
+                </div>
+
+                <div *ngIf="quoteResult" class="mt-3 flex items-center justify-between p-2.5 bg-green-50 rounded-lg border border-green-200">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <div>
+                      <p class="text-xs font-semibold text-green-800">{{ quoteResult.name }}</p>
+                      <p class="text-xs text-green-600">{{ quoteResult.price | number:'1.2-6' }} {{ quoteResult.currency }} / unit · {{ quoteResult.exchange }}</p>
+                    </div>
+                  </div>
+                  <span *ngIf="quoteResult.change_24h != null"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full"
+                    [class.bg-green-100]="(quoteResult.change_24h ?? 0) >= 0" [class.text-green-700]="(quoteResult.change_24h ?? 0) >= 0"
+                    [class.bg-red-100]="(quoteResult.change_24h ?? 0) < 0" [class.text-red-700]="(quoteResult.change_24h ?? 0) < 0">
+                    {{ (quoteResult.change_24h ?? 0) >= 0 ? '+' : '' }}{{ (quoteResult.change_24h ?? 0).toFixed(2) }}%
+                  </span>
+                </div>
+                <div *ngIf="fetchingPrice && !quoteResult" class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                  <div class="w-3 h-3 border-2 border-gray-300 border-t-purple-500 rounded-full animate-spin"></div>
+                  Fetching live price…
+                </div>
+                <p *ngIf="quoteError" class="mt-2 text-xs text-red-500">{{ quoteError }}</p>
+
+                <div class="mt-2 pt-2 border-t border-gray-200 flex gap-2 items-center">
+                  <input [(ngModel)]="tickerSymbol" [ngModelOptions]="{standalone:true}"
+                    type="text" placeholder="Or type any ticker: AAPL, BTC-USD, VWCE.DE…"
+                    class="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                    style="text-transform:uppercase"
+                    (keydown.enter)="fetchPrice()" />
+                  <button type="button" (click)="fetchPrice()" [disabled]="fetchingPrice || !tickerSymbol"
+                    class="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors whitespace-nowrap">
+                    {{ fetchingPrice ? '…' : 'Go' }}
+                  </button>
+                </div>
               </div>
-              <select [(ngModel)]="filterType" [ngModelOptions]="{standalone: true}"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
-                <option value="">All types</option>
-                <option *ngFor="let t of investmentTypes" [value]="t">{{ typeIcon(t) }} {{ t }}</option>
-              </select>
-              <select [(ngModel)]="filterPerf" [ngModelOptions]="{standalone: true}"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
-                <option value="">All performance</option>
-                <option value="gain">Gains only</option>
-                <option value="loss">Losses only</option>
-              </select>
+
+              <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                    <input formControlName="name" type="text" placeholder="e.g., Apple Inc."
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                    <select formControlName="type"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
+                      <option value="">Select type</option>
+                      <option *ngFor="let t of investmentTypes" [value]="t">{{ typeIcon(t) }} {{ t }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }})</label>
+                    <input formControlName="initial_amount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Purchase Date</label>
+                    <input formControlName="purchase_date" type="date"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                  </div>
+                  <div class="sm:col-span-2">
+                    <div *ngIf="pricePerUnitForDisplay" class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
+                      <div class="text-xs text-purple-700">
+                        <span class="font-semibold">{{ currencyService.symbol }}{{ investmentForm.get('initial_amount')?.value || 0 | number:'1.2-2' }}</span> invested
+                        <span class="mx-1 text-purple-400">÷</span>
+                        <span class="font-semibold">{{ currencyService.symbol }}{{ pricePerUnitForDisplay }}</span>/unit
+                        <span class="mx-1 text-purple-400">=</span>
+                        <span class="font-semibold">{{ unitsForDisplay }} units</span>
+                      </div>
+                      <span class="text-xs text-purple-400">Current value updates when you refresh price</span>
+                    </div>
+                    <div *ngIf="!pricePerUnitForDisplay" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p class="text-xs text-gray-500 mb-2">No live price — enter current value manually (e.g. for Real Estate, Bonds)</p>
+                      <div>
+                        <label class="block text-xs text-gray-500 mb-1">Current Value ({{ currencyService.symbol }})</label>
+                        <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p *ngIf="errorMessage" class="mt-2 text-red-500 text-xs">{{ errorMessage }}</p>
+                <div class="mt-3 flex gap-2">
+                  <button type="submit" [disabled]="investmentForm.invalid || isSaving"
+                    class="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors">
+                    {{ isSaving ? 'Saving...' : (editingId ? 'Update' : 'Add Investment') }}
+                  </button>
+                  <button type="button" (click)="cancelEdit()"
+                    class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-            <p class="text-xs text-gray-400 mt-2">{{ filteredInvestments.length }} investment{{ filteredInvestments.length !== 1 ? 's' : '' }}</p>
           </div>
 
           <!-- Investments List -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
 
             <!-- Empty state -->
             <div *ngIf="!isLoading && investments.length === 0" class="text-center py-16 px-4">
@@ -313,11 +348,17 @@ const TYPE_COLORS: Record<string, string> = {
                     <div class="flex-1 min-w-16 hidden sm:block">
                       <div class="w-full bg-gray-100 rounded-full h-1.5">
                         <div class="h-1.5 rounded-full transition-all"
-                          [style.width]="Math.min(100, (+inv.current_amount / +inv.initial_amount) * 100) + '%'"
+                          [style.width]="(+inv.initial_amount > 0 ? Math.min(100, (+inv.current_amount / +inv.initial_amount) * 100) : 0) + '%'"
                           [class]="roi(inv) >= 0 ? 'bg-green-400' : 'bg-red-400'"></div>
                       </div>
                     </div>
-                    <div class="ml-auto flex gap-1">
+                    <div class="ml-auto flex gap-1 shrink-0">
+                      <button (click)="refreshPrice(inv)" [disabled]="refreshingId === inv.id"
+                        class="p-1.5 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-40" title="Refresh live price">
+                        <svg class="w-4 h-4" [class.animate-spin]="refreshingId === inv.id" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                      </button>
                       <button (click)="editInvestment(inv)" class="p-1.5 text-gray-400 hover:text-purple-600 transition-colors" title="Edit">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -345,7 +386,7 @@ const TYPE_COLORS: Record<string, string> = {
           <div class="mt-8">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-bold text-gray-800">Market Explorer</h2>
-              <span class="text-xs text-gray-400">Powered by CoinGecko &amp; Yahoo Finance</span>
+              <span class="text-xs text-gray-400">CoinGecko · Finnhub</span>
             </div>
 
             <!-- Tabs -->
@@ -370,7 +411,6 @@ const TYPE_COLORS: Record<string, string> = {
 
             <!-- CRYPTO TAB -->
             <div *ngIf="marketTab === 'crypto'">
-              <!-- Controls -->
               <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <div class="relative flex-1">
                   <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,31 +426,22 @@ const TYPE_COLORS: Record<string, string> = {
                   <option value="gain">Gainers 📈</option>
                   <option value="loss">Losers 📉</option>
                 </select>
-                <button (click)="loadCrypto()"
-                  [disabled]="cryptoLoading"
+                <button (click)="loadCrypto()" [disabled]="cryptoLoading"
                   class="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600 disabled:opacity-50 transition-colors whitespace-nowrap">
                   {{ cryptoLoading ? 'Loading...' : '↻ Refresh' }}
                 </button>
               </div>
-
               <p *ngIf="cryptoError" class="text-red-500 text-sm mb-3">{{ cryptoError }}</p>
-
-              <!-- Loading skeleton -->
               <div *ngIf="cryptoLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div *ngFor="let _ of [1,2,3,4,5,6]" class="bg-white rounded-xl p-4 border border-gray-100 animate-pulse">
                   <div class="flex items-center gap-3 mb-3">
                     <div class="w-9 h-9 bg-gray-100 rounded-full"></div>
-                    <div class="flex-1 space-y-1.5">
-                      <div class="h-3 bg-gray-100 rounded w-1/2"></div>
-                      <div class="h-2.5 bg-gray-100 rounded w-1/3"></div>
-                    </div>
+                    <div class="flex-1 space-y-1.5"><div class="h-3 bg-gray-100 rounded w-1/2"></div><div class="h-2.5 bg-gray-100 rounded w-1/3"></div></div>
                     <div class="h-4 bg-gray-100 rounded w-12"></div>
                   </div>
                   <div class="h-10 bg-gray-100 rounded"></div>
                 </div>
               </div>
-
-              <!-- Coin cards -->
               <div *ngIf="!cryptoLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div *ngFor="let coin of filteredCoins"
                   class="bg-white rounded-xl p-4 border border-gray-100 hover:border-yellow-200 hover:shadow-md transition-all">
@@ -429,89 +460,126 @@ const TYPE_COLORS: Record<string, string> = {
                       </p>
                     </div>
                   </div>
-
-                  <!-- Sparkline SVG -->
                   <div class="h-12 mb-2" *ngIf="coin.sparkline_in_7d?.price?.length">
                     <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="w-full h-full">
-                      <polyline
-                        [attr.points]="sparklinePoints(coin.sparkline_in_7d.price)"
-                        fill="none"
-                        stroke-width="1.5"
-                        [attr.stroke]="coin.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444'"
-                      />
+                      <polyline [attr.points]="sparklinePoints(coin.sparkline_in_7d.price)" fill="none" stroke-width="1.5"
+                        [attr.stroke]="coin.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444'" />
                     </svg>
                   </div>
-
                   <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
                     <span>Mkt cap: {{ '$' + formatBigNum(coin.market_cap) }}</span>
                     <span>Rank #{{ coin.market_cap_rank }}</span>
                   </div>
-
                   <button (click)="prefillFromCoin(coin)"
                     class="w-full text-xs py-1.5 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 font-medium transition-colors">
                     + Add to Portfolio
                   </button>
                 </div>
               </div>
-
               <p *ngIf="!cryptoLoading && filteredCoins.length === 0 && coins.length > 0" class="text-center text-gray-400 text-sm py-6">No coins match your search.</p>
             </div>
 
             <!-- STOCKS & ETFs TAB -->
             <div *ngIf="marketTab === 'stocks'">
-              <!-- Popular tickers -->
-              <div class="mb-4">
-                <p class="text-xs text-gray-500 mb-2 font-medium">Popular tickers</p>
-                <div class="flex flex-wrap gap-2">
-                  <button *ngFor="let t of popularTickers"
-                    (click)="stockSearch = t; fetchStockQuote()"
-                    class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-purple-300 hover:text-purple-700 transition-colors">
-                    {{ t }}
+              <div class="relative mb-4">
+                <div class="flex gap-2">
+                  <div class="relative flex-1">
+                    <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                    </svg>
+                    <input type="text" placeholder="Search by name or ticker: Apple, AAPL, VWCE.DE…"
+                      [(ngModel)]="stockSearch" [ngModelOptions]="{standalone:true}"
+                      (ngModelChange)="onStockSearchChange($event)"
+                      (keydown.enter)="fetchStockQuote()"
+                      (blur)="hideStockDropdown()"
+                      class="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white shadow-sm" />
+                    <div *ngIf="stockSearchResults.length > 0 && showStockDropdown"
+                      class="absolute z-30 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                      <button *ngFor="let r of stockSearchResults" type="button" (mousedown)="pickStockResult(r)"
+                        class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-purple-50 transition-colors text-left">
+                        <div class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">{{ r.symbol.slice(0,2) }}</div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-semibold text-gray-800 truncate">{{ r.symbol }}</p>
+                          <p class="text-xs text-gray-400 truncate">{{ r.name }}</p>
+                        </div>
+                        <span class="text-xs px-2 py-0.5 rounded-full shrink-0"
+                          [class.bg-blue-50]="r.type==='Stocks'" [class.text-blue-600]="r.type==='Stocks'"
+                          [class.bg-orange-50]="r.type==='ETF'" [class.text-orange-600]="r.type==='ETF'">{{ r.type }}</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button (click)="fetchStockQuote()" [disabled]="stockLoading || !stockSearch"
+                    class="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors whitespace-nowrap shadow-sm">
+                    {{ stockLoading ? '…' : 'Get Quote' }}
                   </button>
                 </div>
               </div>
-
-              <!-- Search input -->
-              <div class="flex gap-2 mb-5">
-                <div class="relative flex-1">
-                  <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
-                  </svg>
-                  <input type="text" placeholder="Ticker symbol (e.g. AAPL, VWCE.DE, MSFT)"
-                    [(ngModel)]="stockSearch" [ngModelOptions]="{standalone:true}"
-                    (keydown.enter)="fetchStockQuote()"
-                    style="text-transform:uppercase"
-                    class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white" />
+              <div class="mb-4">
+                <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Quick picks</p>
+                <div class="flex flex-wrap gap-2">
+                  <button *ngFor="let t of popularTickers" (click)="stockSearch = t; fetchStockQuote()"
+                    class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:border-purple-300 hover:text-purple-700 hover:bg-purple-50 transition-colors shadow-sm">{{ t }}</button>
                 </div>
-                <button (click)="fetchStockQuote()" [disabled]="stockLoading || !stockSearch"
-                  class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors whitespace-nowrap">
-                  {{ stockLoading ? 'Fetching...' : 'Search' }}
-                </button>
               </div>
-
-              <p *ngIf="stockError" class="text-red-500 text-sm mb-3">{{ stockError }}</p>
-
-              <!-- Quote card -->
-              <div *ngIf="stockQuote" class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 max-w-sm">
-                <div class="flex items-start justify-between mb-3">
-                  <div>
-                    <p class="font-bold text-gray-800">{{ stockQuote.name }}</p>
-                    <p class="text-xs text-gray-400 uppercase">{{ stockSearch }} · {{ stockQuote.exchange }}</p>
+              <p *ngIf="stockError" class="text-red-500 text-sm mb-3 p-3 bg-red-50 rounded-lg">{{ stockError }}</p>
+              <div *ngIf="stockLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white rounded-xl p-4 border border-gray-100 animate-pulse">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-gray-100 rounded-xl shrink-0"></div>
+                    <div class="flex-1 space-y-1.5"><div class="h-3 bg-gray-100 rounded w-2/3"></div><div class="h-2.5 bg-gray-100 rounded w-1/3"></div></div>
+                    <div class="h-4 bg-gray-100 rounded w-14 shrink-0"></div>
                   </div>
-                  <span class="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full font-medium">Live</span>
+                  <div class="h-12 bg-gray-100 rounded mb-3"></div>
+                  <div class="h-8 bg-gray-100 rounded"></div>
                 </div>
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ stockQuote.price }} <span class="text-base text-gray-400">{{ stockQuote.currency }}</span></p>
-                <button (click)="prefillFromStock()"
-                  class="mt-3 w-full py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors">
-                  + Add to Portfolio
-                </button>
               </div>
-
+              <div *ngIf="stockQuote && !stockLoading"
+                class="bg-white rounded-xl p-4 border border-gray-100 hover:border-purple-200 hover:shadow-md transition-all max-w-sm">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+                    <img *ngIf="stockQuote.logo" [src]="stockQuote.logo" class="w-full h-full object-contain p-1" (error)="$any($event.target).style.display='none'" />
+                    <span *ngIf="!stockQuote.logo" class="text-xs font-bold text-gray-600">{{ stockSearch.slice(0,3) }}</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-800 text-sm truncate">{{ stockQuote.name }}</p>
+                    <p class="text-xs text-gray-400">{{ stockSearch }} · {{ stockQuote.exchange }}</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="font-bold text-gray-900">{{ stockQuote.price | number:'1.2-4' }}</p>
+                    <p class="text-xs text-gray-400">{{ stockQuote.currency }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-full"
+                    [class.bg-green-50]="(stockQuote.change_24h ?? 0) >= 0" [class.text-green-700]="(stockQuote.change_24h ?? 0) >= 0"
+                    [class.bg-red-50]="(stockQuote.change_24h ?? 0) < 0" [class.text-red-700]="(stockQuote.change_24h ?? 0) < 0">
+                    {{ stockQuote.change_24h !== null ? ((stockQuote.change_24h >= 0 ? '+' : '') + stockQuote.change_24h.toFixed(2) + '%') : '—' }} 24h
+                  </span>
+                  <span class="text-xs text-gray-400 ml-auto">7-day chart</span>
+                  <span class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full font-medium">Live</span>
+                </div>
+                <div class="h-14 mb-3" *ngIf="stockQuote.sparkline?.length > 1">
+                  <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="w-full h-full">
+                    <defs>
+                      <linearGradient [id]="'sg'" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" [attr.stop-color]="(stockQuote.change_24h ?? 0) >= 0 ? '#22c55e' : '#ef4444'" stop-opacity="0.2"/>
+                        <stop offset="100%" [attr.stop-color]="(stockQuote.change_24h ?? 0) >= 0 ? '#22c55e' : '#ef4444'" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <polygon [attr.points]="sparklineArea(stockQuote.sparkline)" [attr.fill]="'url(#sg)'" />
+                    <polyline [attr.points]="sparklinePoints(stockQuote.sparkline)" fill="none" stroke-width="1.5"
+                      [attr.stroke]="(stockQuote.change_24h ?? 0) >= 0 ? '#22c55e' : '#ef4444'" />
+                  </svg>
+                </div>
+                <div *ngIf="!stockQuote.sparkline?.length" class="h-14 mb-3 bg-gray-50 rounded-lg flex items-center justify-center text-xs text-gray-300">Chart available on weekdays</div>
+                <button (click)="prefillFromStock()" class="w-full text-xs py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 font-semibold transition-colors">+ Add to Portfolio</button>
+              </div>
               <div *ngIf="!stockQuote && !stockLoading && !stockError" class="text-center py-12 text-gray-300">
-                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                <p class="text-sm">Search a ticker to see live data</p>
+                <p class="text-sm font-medium text-gray-400">Search a company or ticker above</p>
+                <p class="text-xs text-gray-300 mt-1">Powered by Finnhub · real-time quotes</p>
               </div>
             </div>
           </div>
@@ -547,7 +615,7 @@ export class InvestmentsComponent implements OnInit {
 
   tickerSymbol = '';
   fetchingPrice = false;
-  quoteResult: { name: string; price: number; currency: string; exchange: string } | null = null;
+  quoteResult: { name: string; price: number; currency: string; exchange: string; change_24h: number | null; sparkline: number[] } | null = null;
   quoteError = '';
 
   // Market explorer
@@ -560,12 +628,73 @@ export class InvestmentsComponent implements OnInit {
   cryptoSearch = '';
   cryptoFilter = '';
 
+  // Asset quick-pick catalogue (used in the Add form)
+  readonly presetAssets = [
+    { symbol: 'AAPL',    name: 'Apple',       type: 'Stocks', icon: '🍎', color: '#1d1d1f' },
+    { symbol: 'MSFT',    name: 'Microsoft',   type: 'Stocks', icon: '🪟', color: '#00a4ef' },
+    { symbol: 'GOOGL',   name: 'Alphabet',    type: 'Stocks', icon: '🔍', color: '#4285f4' },
+    { symbol: 'NVDA',    name: 'NVIDIA',      type: 'Stocks', icon: '💚', color: '#76b900' },
+    { symbol: 'AMZN',    name: 'Amazon',      type: 'Stocks', icon: '📦', color: '#ff9900' },
+    { symbol: 'TSLA',    name: 'Tesla',       type: 'Stocks', icon: '⚡', color: '#e31937' },
+    { symbol: 'META',    name: 'Meta',        type: 'Stocks', icon: '👤', color: '#0082fb' },
+    { symbol: 'BRK-B',   name: 'Berkshire',   type: 'Stocks', icon: '🏦', color: '#6b46c1' },
+    { symbol: 'VOO',     name: 'VOO ETF',     type: 'ETF',    icon: '📊', color: '#e53e3e' },
+    { symbol: 'SPY',     name: 'S&P 500 ETF', type: 'ETF',    icon: '📊', color: '#dd6b20' },
+    { symbol: 'QQQ',     name: 'Nasdaq ETF',  type: 'ETF',    icon: '📊', color: '#2b6cb0' },
+    { symbol: 'VWCE.DE', name: 'VWCE',        type: 'ETF',    icon: '🌍', color: '#2f855a' },
+    { symbol: 'IWDA.AS', name: 'IWDA',        type: 'ETF',    icon: '🌐', color: '#276749' },
+    { symbol: 'BTC-USD', name: 'Bitcoin',     type: 'Crypto', icon: '₿',  color: '#f7931a' },
+    { symbol: 'ETH-USD', name: 'Ethereum',    type: 'Crypto', icon: 'Ξ',  color: '#627eea' },
+    { symbol: 'SOL-USD', name: 'Solana',      type: 'Crypto', icon: '◎',  color: '#9945ff' },
+    { symbol: 'BNB-USD', name: 'BNB',         type: 'Crypto', icon: '🔶', color: '#f3ba2f' },
+    { symbol: 'XRP-USD', name: 'XRP',         type: 'Crypto', icon: '✕',  color: '#346aa9' },
+  ];
+  assetSearch = '';
+  assetFilterType: 'All' | 'Stocks' | 'ETF' | 'Crypto' = 'All';
+
+  get filteredPresetAssets() {
+    const q = this.assetSearch.toLowerCase();
+    return this.presetAssets.filter(a =>
+      (this.assetFilterType === 'All' || a.type === this.assetFilterType) &&
+      (!q || a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q))
+    );
+  }
+
+  selectAsset(asset: { symbol: string; name: string; type: string }): void {
+    this.tickerSymbol = asset.symbol;
+    this.fetchingPrice = true;
+    this.quoteResult = null;
+    this.quoteError = '';
+    const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authService.getTokenValue() });
+    this.http.get<any>(this.apiUrl + '/market/quote', { headers, params: { symbol: asset.symbol } }).subscribe({
+      next: (data) => {
+        this.fetchingPrice = false;
+        this.quoteResult = data;
+        // auto-apply immediately
+        const patch: any = { name: data.name, type: asset.type, price_per_unit: data.price };
+        const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
+        if (invested > 0 && data.price > 0) {
+          patch.units = invested / data.price;
+          patch.current_amount = (patch.units * data.price).toFixed(2);
+        }
+        this.investmentForm.patchValue(patch);
+      },
+      error: (err) => {
+        this.fetchingPrice = false;
+        this.quoteError = err?.error?.error || 'Could not fetch price for ' + asset.symbol;
+      }
+    });
+  }
+
   // Stocks
   popularTickers = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'VOO', 'SPY', 'QQQ', 'VWCE.DE', 'IWDA.AS', 'BRK-B'];
   stockSearch = '';
   stockLoading = false;
   stockError = '';
-  stockQuote: { name: string; price: number; currency: string; exchange: string } | null = null;
+  stockQuote: { name: string; price: number; currency: string; exchange: string; change_24h: number | null; sparkline: number[]; logo: string | null } | null = null;
+  stockSearchResults: { symbol: string; name: string; type: string; exchange: string }[] = [];
+  showStockDropdown = false;
+  private stockSearchTimer: any = null;
 
   private apiUrl = environment.apiUrl;
 
@@ -580,15 +709,24 @@ export class InvestmentsComponent implements OnInit {
     this.investmentForm = this.fb.group({
       name: ['', Validators.required],
       type: ['', Validators.required],
-      initial_amount: ['', [Validators.required, Validators.min(0)]],
+      initial_amount: ['', [Validators.required, Validators.min(0.01)]],
       units: [null],
       price_per_unit: [null],
       current_amount: ['', [Validators.required, Validators.min(0)]],
       purchase_date: ['', Validators.required]
     });
 
-    this.investmentForm.get('units')!.valueChanges.subscribe(() => this.recalcCurrentAmount());
-    this.investmentForm.get('price_per_unit')!.valueChanges.subscribe(() => this.recalcCurrentAmount());
+    this.investmentForm.get('initial_amount')!.valueChanges.subscribe(() => {
+      const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
+      if (price <= 0) return;
+      const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
+      if (invested <= 0) return;
+      const units = invested / price;
+      this.investmentForm.patchValue(
+        { units, current_amount: (units * price).toFixed(2) },
+        { emitEvent: false }
+      );
+    });
   }
 
   ngOnInit(): void {
@@ -608,12 +746,41 @@ export class InvestmentsComponent implements OnInit {
         this.investments = data;
         this.recalcTotals();
         this.isLoading = false;
+        this.autoRefreshPrices(data);
       },
       error: (err: any) => {
         this.isLoading = false;
         const status = err?.status ? ' (HTTP ' + err.status + ')' : '';
         this.loadError = (err?.message || err?.error?.message || JSON.stringify(err) || 'Failed to load investments') + status;
       }
+    });
+  }
+
+  autoRefreshPrices(investments: any[]): void {
+    const withTicker = investments.filter(inv => inv.ticker_symbol && +inv.units > 0);
+    if (withTicker.length === 0) return;
+    const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authService.getTokenValue() });
+    withTicker.forEach(inv => {
+      this.http.get<any>(this.apiUrl + '/market/quote', {
+        headers,
+        params: { symbol: inv.ticker_symbol }
+      }).subscribe({
+        next: (data) => {
+          const newCurrent = (+inv.units * data.price).toFixed(2);
+          if (Math.abs(parseFloat(newCurrent) - parseFloat(inv.current_amount)) < 0.01) return;
+          this.financialService.updateInvestment(inv.id, {
+            ...inv,
+            price_per_unit: data.price,
+            current_amount: newCurrent,
+          }).subscribe({
+            next: () => {
+              inv.current_amount = newCurrent;
+              inv.price_per_unit = data.price;
+              this.recalcTotals();
+            }
+          });
+        }
+      });
     });
   }
 
@@ -647,12 +814,16 @@ export class InvestmentsComponent implements OnInit {
     });
   }
 
-  recalcCurrentAmount(): void {
-    const units = parseFloat(this.investmentForm.get('units')?.value) || 0;
+  get pricePerUnitForDisplay(): string {
+    const v = parseFloat(this.investmentForm.get('price_per_unit')?.value);
+    return v > 0 ? v.toLocaleString('en-US', { maximumFractionDigits: 6 }) : '';
+  }
+
+  get unitsForDisplay(): string {
+    const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
     const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
-    if (units > 0 && price > 0) {
-      this.investmentForm.patchValue({ current_amount: (units * price).toFixed(2) }, { emitEvent: false });
-    }
+    if (invested > 0 && price > 0) return (invested / price).toFixed(6);
+    return '—';
   }
 
   applyQuote(): void {
@@ -662,7 +833,39 @@ export class InvestmentsComponent implements OnInit {
       const sym = this.tickerSymbol.toUpperCase();
       patch.type = sym.includes('-USD') || sym.includes('-EUR') ? 'Crypto' : 'Stocks';
     }
+    const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
+    const units = invested > 0 && this.quoteResult.price > 0 ? invested / this.quoteResult.price : null;
+    if (units !== null) {
+      patch.units = units;
+      patch.current_amount = (units * this.quoteResult.price).toFixed(2);
+    }
     this.investmentForm.patchValue(patch);
+  }
+
+  refreshingId: number | null = null;
+
+  refreshPrice(inv: any): void {
+    if (!inv.ticker_symbol && !inv.name) return;
+    const sym = inv.ticker_symbol || inv.name.toUpperCase().replace(' ', '-');
+    this.refreshingId = inv.id;
+    const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authService.getTokenValue() });
+    this.http.get<any>(this.apiUrl + '/market/quote', { headers, params: { symbol: sym } }).subscribe({
+      next: (data) => {
+        this.refreshingId = null;
+        const units = +inv.units > 0 ? +inv.units : (+inv.initial_amount / data.price);
+        const newCurrent = (units * data.price).toFixed(2);
+        this.financialService.updateInvestment(inv.id, {
+          ...inv,
+          units,
+          price_per_unit: data.price,
+          current_amount: newCurrent,
+        }).subscribe({
+          next: () => this.loadInvestments(true),
+          error: () => { this.refreshingId = null; }
+        });
+      },
+      error: () => { this.refreshingId = null; }
+    });
   }
 
   get filteredInvestments(): any[] {
@@ -728,9 +931,26 @@ export class InvestmentsComponent implements OnInit {
     this.isSaving = true;
     this.errorMessage = '';
 
+    const v = this.investmentForm.value;
+    const pricePerUnit = parseFloat(v.price_per_unit) || null;
+    const invested = parseFloat(v.initial_amount) || 0;
+    const units = pricePerUnit && invested > 0 ? invested / pricePerUnit : (parseFloat(v.units) || null);
+    const currentAmount = pricePerUnit && units ? (units * pricePerUnit).toFixed(2) : v.current_amount;
+
+    const payload = {
+      name: v.name,
+      type: v.type,
+      initial_amount: invested,
+      units: units,
+      price_per_unit: pricePerUnit,
+      current_amount: currentAmount,
+      purchase_date: v.purchase_date,
+      ticker_symbol: this.tickerSymbol || null,
+    };
+
     const obs = this.editingId
-      ? this.financialService.updateInvestment(this.editingId, this.investmentForm.value)
-      : this.financialService.createInvestment(this.investmentForm.value);
+      ? this.financialService.updateInvestment(this.editingId, payload)
+      : this.financialService.createInvestment(payload);
 
     obs.subscribe({
       next: () => { this.isSaving = false; this.loadInvestments(true); this.cancelEdit(); },
@@ -740,6 +960,10 @@ export class InvestmentsComponent implements OnInit {
 
   editInvestment(inv: any): void {
     this.editingId = inv.id;
+    this.tickerSymbol = inv.ticker_symbol || '';
+    this.assetSearch = '';
+    this.quoteResult = null;
+    this.quoteError = '';
     this.investmentForm.patchValue({
       name: inv.name, type: inv.type,
       initial_amount: inv.initial_amount,
@@ -749,8 +973,7 @@ export class InvestmentsComponent implements OnInit {
       purchase_date: inv.purchase_date,
     });
     this.showForm = true;
-    this.quoteResult = null;
-    this.quoteError = '';
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
   deleteInvestment(id: number): void {
@@ -768,6 +991,8 @@ export class InvestmentsComponent implements OnInit {
     this.quoteResult = null;
     this.quoteError = '';
     this.tickerSymbol = '';
+    this.assetSearch = '';
+    this.assetFilterType = 'All';
     this.investmentForm.reset();
   }
 
@@ -839,12 +1064,41 @@ export class InvestmentsComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ---- Stocks / ETFs (Yahoo via backend) ----
+  // ---- Stocks / ETFs (Finnhub via backend) ----
+  onStockSearchChange(value: string): void {
+    clearTimeout(this.stockSearchTimer);
+    this.showStockDropdown = false;
+    this.stockSearchResults = [];
+    if (!value || value.length < 2) return;
+    this.stockSearchTimer = setTimeout(() => {
+      const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authService.getTokenValue() });
+      this.http.get<any[]>(this.apiUrl + '/market/search', { headers, params: { q: value } }).subscribe({
+        next: (results) => {
+          this.stockSearchResults = results || [];
+          this.showStockDropdown = this.stockSearchResults.length > 0;
+        },
+        error: () => { this.stockSearchResults = []; }
+      });
+    }, 350);
+  }
+
+  pickStockResult(r: { symbol: string; name: string; type: string; exchange: string }): void {
+    this.stockSearch = r.symbol;
+    this.stockSearchResults = [];
+    this.showStockDropdown = false;
+    this.fetchStockQuote();
+  }
+
+  hideStockDropdown(): void {
+    setTimeout(() => { this.showStockDropdown = false; }, 200);
+  }
+
   fetchStockQuote(): void {
     if (!this.stockSearch) return;
     this.stockLoading = true;
     this.stockError = '';
     this.stockQuote = null;
+    this.showStockDropdown = false;
     const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authService.getTokenValue() });
     this.http.get<any>(this.apiUrl + '/market/quote', {
       headers,
@@ -856,6 +1110,19 @@ export class InvestmentsComponent implements OnInit {
         this.stockError = err?.error?.error || ('"' + this.stockSearch + '" not found. Try a valid ticker like AAPL or VOO.');
       }
     });
+  }
+
+  sparklineArea(prices: number[]): string {
+    if (!prices || prices.length < 2) return '';
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 1;
+    const pts = prices.map((p, i) => {
+      const x = (i / (prices.length - 1)) * 100;
+      const y = 40 - ((p - min) / range) * 36;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    });
+    return `0,40 ${pts.join(' ')} 100,40`;
   }
 
   prefillFromStock(): void {

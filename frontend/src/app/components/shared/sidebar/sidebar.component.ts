@@ -32,7 +32,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
 
     <!-- Sidebar -->
     <aside
-      class="fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col min-h-screen transition-transform duration-300 lg:translate-x-0"
+      class="fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50 w-64 h-screen bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col transition-transform duration-300 lg:translate-x-0"
       [class.translate-x-0]="mobileOpen"
       [class.-translate-x-full]="!mobileOpen">
 
@@ -53,7 +53,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
         </a>
       </div>
 
-      <nav class="mt-2 flex-1">
+      <nav class="mt-2 flex-1 overflow-y-auto">
         <a routerLink="/dashboard" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
           [class.bg-primary-700]="isActive('/dashboard')">

@@ -16,7 +16,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -25,22 +25,22 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           </div>
         </header>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <p class="text-gray-600 mb-6">Set your monthly budget for each category</p>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Income</h3>
-            <p class="text-3xl font-bold text-blue-600">{{ summary.income | currencySymbol }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2">Total Income</h3>
+            <p class="text-xl sm:text-3xl font-bold text-blue-600">{{ summary.income | currencySymbol }}</p>
           </div>
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Expenses</h3>
-            <p class="text-3xl font-bold text-red-600">{{ summary.expenses | currencySymbol }}</p>
+          <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2">Total Expenses</h3>
+            <p class="text-xl sm:text-3xl font-bold text-red-600">{{ summary.expenses | currencySymbol }}</p>
           </div>
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Savings</h3>
-            <p class="text-3xl font-bold text-green-600">{{ summary.savings | currencySymbol }}</p>
+          <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2">Total Savings</h3>
+            <p class="text-xl sm:text-3xl font-bold text-green-600">{{ summary.savings | currencySymbol }}</p>
           </div>
         </div>
 

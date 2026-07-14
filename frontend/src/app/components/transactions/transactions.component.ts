@@ -34,7 +34,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 </button>
                 <button
                   (click)="showForm = !showForm"
-                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                  class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors text-sm"
                 >
                   {{ showForm && !editingTransaction ? 'Cancel' : '+ Add Transaction' }}
                 </button>
@@ -53,19 +53,19 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
                   <input type="text" formControlName="description"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400"
                     placeholder="Enter description" />
                 </div>
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Amount ({{ currencyService.symbol }})</label>
                   <input type="number" step="0.01" formControlName="amount"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400"
                     placeholder="0.00" />
                 </div>
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Type</label>
                   <select formControlName="type"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                   </select>
@@ -73,12 +73,12 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">Date</label>
                   <input type="date" formControlName="transaction_date"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400" />
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
                   <select formControlName="category_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400">
                     <option value="">Select a category</option>
                     <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
                   </select>
@@ -87,7 +87,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
               <div *ngIf="errorMessage" class="mt-3 text-red-500 text-sm">{{ errorMessage }}</div>
               <div class="mt-4 flex space-x-3">
                 <button type="submit" [disabled]="transactionForm.invalid || isSaving"
-                  class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
+                  class="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors">
                   {{ isSaving ? 'Saving...' : (editingTransaction ? 'Update' : 'Add') + ' Transaction' }}
                 </button>
                 <button type="button" (click)="cancelEdit()"
@@ -110,16 +110,16 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                   <input type="text" placeholder="Search description..."
                     [value]="filterSearch"
                     (input)="onSearchInput($event)"
-                    class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
                 </div>
                 <select (change)="onFilterChange('type', $any($event.target).value)"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400">
                   <option value="">All types</option>
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
                 </select>
                 <select (change)="onFilterChange('category_id', $any($event.target).value)"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400">
                   <option value="">All categories</option>
                   <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
                 </select>
@@ -128,16 +128,16 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
               <div class="grid grid-cols-2 gap-3">
                 <input type="date"
                   (change)="onFilterChange('date_from', $any($event.target).value)"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
                 <input type="date"
                   (change)="onFilterChange('date_to', $any($event.target).value)"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
               </div>
             </div>
             <div class="flex items-center justify-between mt-2">
               <span class="text-xs text-gray-400">{{ transactions.length }} transaction{{ transactions.length !== 1 ? 's' : '' }} found</span>
               <button *ngIf="hasActiveFilters()" (click)="clearFilters()"
-                class="text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors">
+                class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">
                 Clear filters
               </button>
             </div>
@@ -147,7 +147,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <div class="bg-white rounded-xl shadow-sm border border-gray-100">
             <div class="p-6">
               <div *ngIf="isLoading" class="text-gray-400 text-center py-10">
-                <svg class="w-8 h-8 mx-auto mb-2 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 mx-auto mb-2 animate-spin text-primary-400" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
@@ -176,7 +176,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                   <span [class]="transaction.type === 'income' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
                     {{ transaction.type === 'income' ? '+' : '-' }}{{ transaction.amount | currencySymbol }}
                   </span>
-                  <button (click)="editTransaction(transaction)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                  <button (click)="editTransaction(transaction)" class="p-1 text-gray-400 hover:text-primary-600 transition-colors" title="Edit">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>

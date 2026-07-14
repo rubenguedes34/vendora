@@ -30,7 +30,7 @@ interface RecurrentTransaction {
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -39,7 +39,7 @@ interface RecurrentTransaction {
           </div>
         </header>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <p class="text-gray-600 mb-6">
             Define transactions that repeat monthly. They will be automatically copied to each month on the specified day.
           </p>

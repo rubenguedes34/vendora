@@ -47,8 +47,10 @@ Route::middleware('auth.custom')->group(function () {
     // Investments
     Route::apiResource('investments', InvestmentController::class);
 
-    // Market data (live price lookup)
-    Route::get('/market/quote', [MarketDataController::class, 'quote']);
+    // Market data (live price lookup, symbol search, candle chart)
+    Route::get('/market/quote',  [MarketDataController::class, 'quote']);
+    Route::get('/market/search', [MarketDataController::class, 'search']);
+    Route::get('/market/candle', [MarketDataController::class, 'candle']);
 
     // Recurrent transactions
     Route::post('/recurrent-transactions/copy', [RecurrentTransactionController::class, 'copyToMonth']);

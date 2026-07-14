@@ -60,7 +60,7 @@ export class CurrencyPickerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.sub.unsubscribe();
+    this.sub?.unsubscribe();
   }
 
   select(code: string): void {

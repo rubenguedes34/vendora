@@ -24,7 +24,7 @@ import { environment } from '../../../environments/environment';
       <main class="flex-1 overflow-auto pt-14 lg:pt-0">
         <!-- Header -->
         <header class="bg-primary-700 text-white shadow-md">
-          <div class="max-w-4xl mx-auto px-6">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-16">
               <div>
                 <h2 class="text-xl font-semibold">Account Settings</h2>
@@ -37,7 +37,7 @@ import { environment } from '../../../environments/environment';
           </div>
         </header>
 
-        <div class="max-w-4xl mx-auto px-6 py-8 space-y-6">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-6">
 
           <!-- Avatar + name banner -->
           <div class="bg-white rounded-xl shadow-md p-6 flex items-center gap-5">
