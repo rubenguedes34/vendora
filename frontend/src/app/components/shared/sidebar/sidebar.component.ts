@@ -71,27 +71,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
-          <span class="font-semibold">Budgets</span>
-        </a>
-
-        <a routerLink="/transactions" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/transactions')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
-          <span class="font-semibold">Transactions</span>
-        </a>
-
-        <a routerLink="/recurrent-transactions" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/recurrent-transactions')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span class="font-semibold">Recurrent</span>
+          <span class="font-semibold">Budget</span>
         </a>
 
         <a routerLink="/investments" (click)="mobileOpen = false"
@@ -102,30 +82,6 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <span class="font-semibold">Investments</span>
-        </a>
-
-        <a routerLink="/watchlist" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/watchlist')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <span class="font-semibold">Watchlist</span>
-        </a>
-
-        <a routerLink="/allocation" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/allocation')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-          </svg>
-          <span class="font-semibold">Allocation</span>
         </a>
 
         <a routerLink="/net-worth" (click)="mobileOpen = false"
@@ -147,16 +103,6 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
           </svg>
           <span class="font-semibold">Health Score</span>
         </a>
-
-        <a routerLink="/account" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/account')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 20a9 9 0 10-18 0" />
-          </svg>
-          <span class="font-semibold">Account</span>
-        </a>
       </nav>
 
       <div class="p-4 border-t border-primary-600 space-y-2">
@@ -164,7 +110,16 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
         <app-currency-picker></app-currency-picker>
       </div>
 
-      <div class="p-4 border-t border-primary-600">
+      <div class="p-4 border-t border-primary-600 space-y-1">
+        <a routerLink="/account" (click)="mobileOpen = false"
+          class="flex items-center px-3 py-2 text-white hover:bg-primary-600 rounded-md transition-colors"
+          [class.bg-primary-700]="isActive('/account')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 20a9 9 0 10-18 0" />
+          </svg>
+          <span class="font-semibold">Account</span>
+        </a>
         <button (click)="logout()"
           class="w-full flex items-center px-3 py-2 text-red-200 hover:bg-primary-600 hover:text-white rounded-md transition-colors">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

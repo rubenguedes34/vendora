@@ -1,9 +1,9 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { TagService, Tag } from '../../services/tag.service';
 import { FinancialService, Category } from '../../services/financial.service';
@@ -17,10 +17,21 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
-    <div class="min-h-screen bg-gray-100 flex">
-      <app-sidebar></app-sidebar>
+    <ng-container *ngIf="!embedded; else embeddedTpl">
+      <div class="min-h-screen bg-gray-100 flex">
+        <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+        <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+          <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+        </main>
+      </div>
+    </ng-container>
+
+    <ng-template #embeddedTpl>
+      <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+    </ng-template>
+
+    <ng-template #contentTpl>
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -421,8 +432,6 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Attachment Preview Modal -->
     <div *ngIf="previewTransaction" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60" (click)="closePreview()">
@@ -478,9 +487,12 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
         </div>
       </div>
     </div>
+  </ng-template>
   `
 })
 export class TransactionsComponent implements OnInit {
+  @Input() embedded = false;
+
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   transactions: Transaction[] = [];
@@ -543,8 +555,8 @@ export class TransactionsComponent implements OnInit {
   previewIsImage = false;
   previewLoading = false;
 
-  private searchSubject = new Subject<string>();
-  private slowSubject  = new Subject<void>();
+  private searchTimeout: any;
+  private slowTimeout: any;
 
   constructor(
     private fb: FormBuilder,
@@ -571,8 +583,6 @@ export class TransactionsComponent implements OnInit {
       return;
     }
     this.restoreFilters();
-    this.searchSubject.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => { this.saveFilters(); this.loadTransactions(); });
-    this.slowSubject.pipe(debounceTime(500)).subscribe(() => { this.saveFilters(); this.loadTransactions(); });
     this.tagService.tags$.subscribe(tags => this.availableTags = tags);
     this.tagService.loadTags();
     this.loadCategories();
@@ -619,7 +629,9 @@ export class TransactionsComponent implements OnInit {
   onSearchInput(event: Event): void {
     this.filterSearch = (event.target as HTMLInputElement).value;
     this.currentPage = 1;
-    this.searchSubject.next(this.filterSearch);
+    this.saveFilters();
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => this.loadTransactions(), 350);
   }
 
   onFilterChange(field: string, value: string): void {
@@ -635,7 +647,9 @@ export class TransactionsComponent implements OnInit {
   onNotesSearchInput(event: Event): void {
     this.filterNotesSearch = (event.target as HTMLInputElement).value;
     this.currentPage = 1;
-    this.slowSubject.next();
+    this.saveFilters();
+    clearTimeout(this.slowTimeout);
+    this.slowTimeout = setTimeout(() => this.loadTransactions(), 500);
   }
 
   onAmountInput(which: 'min' | 'max', event: Event): void {
@@ -644,7 +658,9 @@ export class TransactionsComponent implements OnInit {
     if (which === 'min') this.filterAmountMin = val;
     else                  this.filterAmountMax = val;
     this.currentPage = 1;
-    this.slowSubject.next();
+    this.saveFilters();
+    clearTimeout(this.slowTimeout);
+    this.slowTimeout = setTimeout(() => this.loadTransactions(), 500);
   }
 
   toggleFilterTag(tagId: number): void {
@@ -819,7 +835,7 @@ export class TransactionsComponent implements OnInit {
       amount: transaction.amount,
       type: transaction.type,
       transaction_date: transaction.transaction_date,
-      category_id: transaction.category_id,
+      category_id: transaction.category_id ? String(transaction.category_id) : '',
       notes: transaction.notes ?? null,
     });
     this.showForm = true;

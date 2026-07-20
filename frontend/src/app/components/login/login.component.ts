@@ -10,52 +10,81 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-100">
-      <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login to Vendora</h2>
-        
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-            <input 
-              type="email" 
-              formControlName="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your email"
-            />
-            <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="text-red-500 text-sm mt-1">
-              Email is required
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-4">
+      <div class="w-full max-w-md">
+        <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+          <!-- Logo -->
+          <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-500 to-primary-700 flex items-center justify-center shadow-lg mb-4">
+              <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
             </div>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Vendora</h1>
+            <p class="text-sm text-gray-500 mt-1">Your personal finance dashboard</p>
           </div>
 
-          <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-            <input 
-              type="password" 
-              formControlName="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
-            />
-            <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-red-500 text-sm mt-1">
-              Password is required
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="mb-5">
+              <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  formControlName="email"
+                  class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="text-red-500 text-sm mt-1">
+                Email is required
+              </div>
             </div>
+
+            <div class="mb-6">
+              <label class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                  </svg>
+                </div>
+                <input
+                  type="password"
+                  formControlName="password"
+                  class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                  placeholder="Enter your password"
+                />
+              </div>
+              <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-red-500 text-sm mt-1">
+                Password is required
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              [disabled]="loginForm.invalid || isLoading"
+              class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:from-primary-700 hover:to-primary-800 hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
+            >
+              <span *ngIf="!isLoading">Login</span>
+              <span *ngIf="isLoading">Loading...</span>
+            </button>
+          </form>
+
+          <div class="relative flex py-5 items-center">
+            <div class="flex-grow border-t border-gray-200"></div>
+            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">or</span>
+            <div class="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <button 
-            type="submit" 
-            [disabled]="loginForm.invalid || isLoading"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-          >
-            <span *ngIf="!isLoading">Login</span>
-            <span *ngIf="isLoading">Loading...</span>
-          </button>
-        </form>
-
-        <div class="mt-4">
           <button
             type="button"
             (click)="onGoogleLogin()"
-            class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors"
+            class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-all"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -65,16 +94,16 @@ import { environment } from '../../../environments/environment';
             </svg>
             Continue with Google
           </button>
-        </div>
 
-        <div *ngIf="errorMessage" class="mt-4 text-red-500 text-center text-sm">
-          {{ errorMessage }}
-        </div>
+          <div *ngIf="errorMessage" class="mt-5 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm text-center">
+            {{ errorMessage }}
+          </div>
 
-        <p class="mt-4 text-center text-gray-600">
-          Don't have an account? 
-          <a routerLink="/register" class="text-blue-600 hover:underline">Register</a>
-        </p>
+          <p class="mt-6 text-center text-gray-600 text-sm">
+            Don't have an account?
+            <a routerLink="/register" class="font-semibold text-primary-600 hover:text-primary-800 hover:underline ml-1">Register</a>
+          </p>
+        </div>
       </div>
     </div>
   `

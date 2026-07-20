@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -20,10 +20,21 @@ interface EnrichedItem extends WatchlistItem {
   standalone: true,
   imports: [CommonModule, FormsModule, SidebarComponent],
   template: `
-    <div class="min-h-screen bg-gray-100 flex">
-      <app-sidebar></app-sidebar>
+    <ng-container *ngIf="!embedded; else embeddedTpl">
+      <div class="min-h-screen bg-gray-100 flex">
+        <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+        <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+          <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+        </main>
+      </div>
+    </ng-container>
+
+    <ng-template #embeddedTpl>
+      <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+    </ng-template>
+
+    <ng-template #contentTpl>
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -189,11 +200,12 @@ interface EnrichedItem extends WatchlistItem {
           </div>
 
         </div>
-      </main>
-    </div>
+    </ng-template>
   `
 })
 export class WatchlistComponent implements OnInit, OnDestroy {
+  @Input() embedded = false;
+
   items: WatchlistItem[] = [];
   enrichedItems: EnrichedItem[] = [];
 

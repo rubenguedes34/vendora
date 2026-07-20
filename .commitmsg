@@ -1,0 +1,13 @@
+feat: refresh UI/UX, consolidate navigation and fix Google OAuth
+
+Frontend:
+- Redesign Login, Investments, Dashboard quick actions and tabs
+- Embed Transactions and Recurrent Transactions inside Budget tabs
+- Consolidate sidebar: Budget, Investments, Account links only
+- Merge Watchlist/Allocation into Investments; fix quote currency display
+- Fix delayed chart rendering on Net Worth and Health Score
+- Make Transactions, Recurrent and Watchlist embeddable
+- Add CurrencyService getSymbol helper
+
+Backend:
+- Add GOOGLE_SSL_VERIFY env for Guzzle SSL verification in OAuth

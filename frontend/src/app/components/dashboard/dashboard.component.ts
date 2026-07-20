@@ -16,7 +16,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
       <app-sidebar></app-sidebar>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20">
         <!-- Header -->
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,7 +42,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
                   <!-- Alerts Panel -->
                   <div *ngIf="showAlerts"
-                    class="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                    class="fixed left-4 right-4 top-20 z-50 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-96 sm:max-w-sm">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                       <h3 class="font-semibold text-gray-800 text-base">Alerts</h3>
                       <div class="flex items-center gap-3">
@@ -92,21 +92,21 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                       <div class="px-5 py-4 bg-gray-50">
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Monthly Projection</p>
                         <div class="space-y-2">
-                          <div class="flex justify-between text-xs">
-                            <span class="text-gray-500">Projected balance</span>
-                            <span [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">{{ projectedBalance | currencySymbol }}</span>
+                          <div class="flex justify-between items-center gap-2 text-xs">
+                            <span class="text-gray-500 whitespace-nowrap">Projected balance</span>
+                            <span class="whitespace-nowrap shrink-0" [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">{{ projectedBalance | currencySymbol }}</span>
                           </div>
-                          <div class="flex justify-between text-xs">
-                            <span class="text-gray-500">Daily avg spend</span>
-                            <span class="font-semibold text-gray-700">{{ dailyAvgSpend | currencySymbol }}</span>
+                          <div class="flex justify-between items-center gap-2 text-xs">
+                            <span class="text-gray-500 whitespace-nowrap">Daily avg spend</span>
+                            <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{ dailyAvgSpend | currencySymbol }}</span>
                           </div>
-                          <div class="flex justify-between text-xs">
-                            <span class="text-gray-500">Days remaining</span>
-                            <span class="font-semibold text-gray-700">{{ daysRemaining }} days</span>
+                          <div class="flex justify-between items-center gap-2 text-xs">
+                            <span class="text-gray-500 whitespace-nowrap">Days remaining</span>
+                            <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{ daysRemaining }} days</span>
                           </div>
-                          <div class="flex justify-between text-xs">
-                            <span class="text-gray-500">Savings rate</span>
-                            <span [class]="savingsRate >= 20 ? 'font-semibold text-primary-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
+                          <div class="flex justify-between items-center gap-2 text-xs">
+                            <span class="text-gray-500 whitespace-nowrap">Savings rate</span>
+                            <span class="whitespace-nowrap shrink-0" [class]="savingsRate >= 20 ? 'font-semibold text-primary-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
                               {{ savingsRate.toFixed(1) }}%
                             </span>
                           </div>
@@ -132,32 +132,44 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <!-- Quick Actions (top) -->
           <div class="flex flex-wrap gap-3 mb-6">
             <a routerLink="/budgets"
-              class="flex items-center gap-2 bg-primary-500 text-white py-2 px-4 rounded-md hover:bg-primary-600 transition-colors text-sm font-semibold shadow">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-              </svg>
-              Budgets
+              class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
+              <span class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <span>Budget</span>
+              <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
             <a routerLink="/transactions"
-              class="flex items-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-semibold shadow">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-              </svg>
-              Transactions
+              class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
+              <span class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+              </span>
+              <span>Transactions</span>
+              <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
             <a routerLink="/recurrent-transactions"
-              class="flex items-center gap-2 bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition-colors text-sm font-semibold shadow">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              Recurrent
+              class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
+              <span class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </span>
+              <span>Recurrent</span>
+              <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
             <a routerLink="/investments"
-              class="flex items-center gap-2 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors text-sm font-semibold shadow">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-              </svg>
-              Investments
+              class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
+              <span class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </span>
+              <span>Investments</span>
+              <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
           </div>
 
@@ -183,37 +195,37 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
           <!-- Net Worth Widget -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+            <div class="px-6 py-4 border-b border-gray-50 flex items-start justify-between">
               <div>
                 <h3 class="text-base font-semibold text-gray-800">Net Worth</h3>
                 <p class="text-xs text-gray-400">All-time: cash balance + investment portfolio</p>
               </div>
-              <a routerLink="/investments" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">View investments →</a>
+              <a routerLink="/investments" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors mt-0.5">View investments →</a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              <div class="px-6 py-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 items-stretch">
+              <div class="px-4 md:px-6 py-4 flex flex-col">
                 <p class="text-xs text-gray-400 mb-1">Net Worth</p>
-                <p class="text-2xl font-bold" [class]="netWorth.net_worth >= 0 ? 'text-primary-600' : 'text-red-600'">
+                <p class="text-2xl font-bold leading-tight" [class]="netWorth.net_worth >= 0 ? 'text-primary-600' : 'text-red-600'">
                   {{ netWorth.net_worth | currencySymbol }}
                 </p>
               </div>
-              <div class="px-6 py-4">
+              <div class="px-4 md:px-6 py-4 flex flex-col">
                 <p class="text-xs text-gray-400 mb-1">Cash Balance</p>
-                <p class="text-xl font-semibold" [class]="netWorth.cash_balance >= 0 ? 'text-blue-600' : 'text-red-600'">
+                <p class="text-xl font-semibold leading-tight" [class]="netWorth.cash_balance >= 0 ? 'text-blue-600' : 'text-red-600'">
                   {{ netWorth.cash_balance | currencySymbol }}
                 </p>
                 <p class="text-xs text-gray-400 mt-0.5">income − expenses</p>
               </div>
-              <div class="px-6 py-4">
+              <div class="px-4 md:px-6 py-4 flex flex-col">
                 <p class="text-xs text-gray-400 mb-1">Investments</p>
-                <p class="text-xl font-semibold text-purple-600">{{ netWorth.investment_value | currencySymbol }}</p>
+                <p class="text-xl font-semibold text-purple-600 leading-tight">{{ netWorth.investment_value | currencySymbol }}</p>
                 <p class="text-xs mt-0.5" [class]="netWorth.investment_gain >= 0 ? 'text-green-500' : 'text-red-500'">
                   {{ netWorth.investment_gain >= 0 ? '+' : '' }}{{ netWorth.investment_gain | currencySymbol }} gain
                 </p>
               </div>
-              <div class="px-6 py-4">
+              <div class="px-4 md:px-6 py-4 flex flex-col">
                 <p class="text-xs text-gray-400 mb-1">Investment ROI</p>
-                <p class="text-xl font-semibold" [class]="netWorth.investment_roi >= 0 ? 'text-green-600' : 'text-red-600'">
+                <p class="text-xl font-semibold leading-tight" [class]="netWorth.investment_roi >= 0 ? 'text-green-600' : 'text-red-600'">
                   {{ netWorth.investment_roi >= 0 ? '+' : '' }}{{ netWorth.investment_roi.toFixed(2) }}%
                 </p>
               </div>

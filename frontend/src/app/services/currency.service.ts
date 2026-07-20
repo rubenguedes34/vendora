@@ -46,6 +46,10 @@ export class CurrencyService {
     return this.currentCurrency.value.code;
   }
 
+  getSymbol(code: string): string {
+    return this.currencies.find(c => c.code === code)?.symbol ?? code;
+  }
+
   setCurrency(code: string): void {
     const found = this.currencies.find(c => c.code === code);
     if (!found) return;

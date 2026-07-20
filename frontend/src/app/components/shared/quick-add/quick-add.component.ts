@@ -35,27 +35,36 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
       class="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
 
       <!-- Tab bar: Expense / Income / Investment -->
-      <div class="flex border-b border-gray-100">
+      <div class="flex border-b border-gray-200">
         <button (click)="activeTab = 'expense'"
-          class="flex-1 py-3 text-xs font-semibold transition-colors"
-          [class.bg-red-50]="activeTab === 'expense'"
-          [class.text-red-600]="activeTab === 'expense'"
+          class="group relative flex-1 py-3.5 text-xs font-medium tracking-wide transition-colors"
+          [class.text-gray-900]="activeTab === 'expense'"
           [class.text-gray-400]="activeTab !== 'expense'">
-          − Expense
+          <span class="relative z-10">− Expense</span>
+          <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+            [class.w-full]="activeTab === 'expense'"
+            [class.w-0]="activeTab !== 'expense'"
+            [class.group-hover:w-full]="activeTab !== 'expense'"></span>
         </button>
         <button (click)="activeTab = 'income'"
-          class="flex-1 py-3 text-xs font-semibold transition-colors"
-          [class.bg-green-50]="activeTab === 'income'"
-          [class.text-green-600]="activeTab === 'income'"
+          class="group relative flex-1 py-3.5 text-xs font-medium tracking-wide transition-colors"
+          [class.text-gray-900]="activeTab === 'income'"
           [class.text-gray-400]="activeTab !== 'income'">
-          + Income
+          <span class="relative z-10">+ Income</span>
+          <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+            [class.w-full]="activeTab === 'income'"
+            [class.w-0]="activeTab !== 'income'"
+            [class.group-hover:w-full]="activeTab !== 'income'"></span>
         </button>
         <button (click)="activeTab = 'investment'"
-          class="flex-1 py-3 text-xs font-semibold transition-colors"
-          [class.bg-purple-50]="activeTab === 'investment'"
-          [class.text-purple-600]="activeTab === 'investment'"
+          class="group relative flex-1 py-3.5 text-xs font-medium tracking-wide transition-colors"
+          [class.text-gray-900]="activeTab === 'investment'"
           [class.text-gray-400]="activeTab !== 'investment'">
-          📈 Invest
+          <span class="relative z-10">Invest</span>
+          <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+            [class.w-full]="activeTab === 'investment'"
+            [class.w-0]="activeTab !== 'investment'"
+            [class.group-hover:w-full]="activeTab !== 'investment'"></span>
         </button>
       </div>
 

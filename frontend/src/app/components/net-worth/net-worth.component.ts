@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -235,7 +235,7 @@ function allocationColor(type: string): string {
     </div>
   `
 })
-export class NetWorthComponent implements OnInit, AfterViewInit, OnDestroy {
+export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('historyChart')    historyChartRef!:    ElementRef<HTMLCanvasElement>;
   @ViewChild('allocationChart') allocationChartRef!: ElementRef<HTMLCanvasElement>;
 
@@ -245,7 +245,7 @@ export class NetWorthComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private historyChartInstance:    any = null;
   private allocationChartInstance: any = null;
-  private chartsReady = false;
+  private needsRender = false;
 
   constructor(
     private financialService: FinancialService,
@@ -259,9 +259,8 @@ export class NetWorthComponent implements OnInit, AfterViewInit, OnDestroy {
     this.load();
   }
 
-  ngAfterViewInit(): void {
-    this.chartsReady = true;
-    if (this.data) this.renderCharts();
+  ngAfterViewChecked(): void {
+    this.renderIfReady();
   }
 
   ngOnDestroy(): void {
@@ -276,7 +275,7 @@ export class NetWorthComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (d) => {
         this.data = d;
         this.isLoading = false;
-        if (this.chartsReady) setTimeout(() => this.renderCharts(), 50);
+        this.needsRender = true;
       },
       error: (e) => { this.errorMessage = e?.message || 'Failed to load net worth'; this.isLoading = false; }
     });
@@ -284,6 +283,15 @@ export class NetWorthComponent implements OnInit, AfterViewInit, OnDestroy {
 
   colorFor(type: string): string {
     return ALLOCATION_COLORS[type] ?? '#94a3b8';
+  }
+
+  private renderIfReady(): void {
+    if (!this.needsRender || !this.data) return;
+    if (!this.historyChartRef?.nativeElement) return;
+    if (this.data.allocation.length > 0 && !this.allocationChartRef?.nativeElement) return;
+
+    this.renderCharts();
+    this.needsRender = false;
   }
 
   private renderCharts(): void {

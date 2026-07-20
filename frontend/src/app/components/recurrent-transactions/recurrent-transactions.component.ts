@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -27,10 +27,21 @@ interface RecurrentTransaction {
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
-    <div class="min-h-screen bg-gray-100 flex">
-      <app-sidebar></app-sidebar>
+    <ng-container *ngIf="!embedded; else embeddedTpl">
+      <div class="min-h-screen bg-gray-100 flex">
+        <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+        <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+          <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+        </main>
+      </div>
+    </ng-container>
+
+    <ng-template #embeddedTpl>
+      <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+    </ng-template>
+
+    <ng-template #contentTpl>
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -148,11 +159,12 @@ interface RecurrentTransaction {
 
           <div *ngIf="errorMessage" class="mt-4 text-red-500 text-center">{{ errorMessage }}</div>
         </div>
-      </main>
-    </div>
+    </ng-template>
   `
 })
 export class RecurrentTransactionsComponent implements OnInit {
+  @Input() embedded = false;
+
   form: FormGroup;
   recurrentList: RecurrentTransaction[] = [];
   categories: Category[] = [];
@@ -236,7 +248,10 @@ export class RecurrentTransactionsComponent implements OnInit {
 
   editItem(item: RecurrentTransaction): void {
     this.editing = item;
-    this.form.patchValue(item);
+    this.form.patchValue({
+      ...item,
+      category_id: item.category_id ? String(item.category_id) : '',
+    });
   }
 
   cancelEdit(): void {

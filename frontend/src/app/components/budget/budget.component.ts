@@ -7,11 +7,13 @@ import { FinancialService, Category, BudgetSummary, BudgetComparison } from '../
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
+import { TransactionsComponent } from '../transactions/transactions.component';
+import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurrent-transactions.component';
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe, TransactionsComponent, RecurrentTransactionsComponent],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -20,11 +22,47 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-              <h2 class="text-xl font-semibold">Define Budgets</h2>
+              <h2 class="text-xl font-semibold">Budget</h2>
             </div>
           </div>
         </header>
 
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+        <div class="flex gap-2 sm:gap-6 border-b border-gray-200 mb-8">
+          <button (click)="activeTab = 'setup'"
+            class="group relative px-3 sm:px-5 py-3.5 text-sm font-medium tracking-wide transition-colors"
+            [class.text-gray-900]="activeTab === 'setup'"
+            [class.text-gray-400]="activeTab !== 'setup'">
+            <span class="relative z-10">Setup</span>
+            <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+              [class.w-full]="activeTab === 'setup'"
+              [class.w-0]="activeTab !== 'setup'"
+              [class.group-hover:w-full]="activeTab !== 'setup'"></span>
+          </button>
+          <button (click)="activeTab = 'transactions'"
+            class="group relative px-3 sm:px-5 py-3.5 text-sm font-medium tracking-wide transition-colors"
+            [class.text-gray-900]="activeTab === 'transactions'"
+            [class.text-gray-400]="activeTab !== 'transactions'">
+            <span class="relative z-10">Transactions</span>
+            <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+              [class.w-full]="activeTab === 'transactions'"
+              [class.w-0]="activeTab !== 'transactions'"
+              [class.group-hover:w-full]="activeTab !== 'transactions'"></span>
+          </button>
+          <button (click)="activeTab = 'recurrent'"
+            class="group relative px-3 sm:px-5 py-3.5 text-sm font-medium tracking-wide transition-colors"
+            [class.text-gray-900]="activeTab === 'recurrent'"
+            [class.text-gray-400]="activeTab !== 'recurrent'">
+            <span class="relative z-10">Recurrent</span>
+            <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+              [class.w-full]="activeTab === 'recurrent'"
+              [class.w-0]="activeTab !== 'recurrent'"
+              [class.group-hover:w-full]="activeTab !== 'recurrent'"></span>
+          </button>
+        </div>
+      </div>
+
+      <ng-container *ngIf="activeTab === 'setup'">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <p class="text-gray-600 mb-6">Set your monthly budget for each category</p>
 
@@ -237,6 +275,15 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           {{ errorMessage }}
         </div>
       </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'transactions'">
+        <app-transactions [embedded]="true"></app-transactions>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'recurrent'">
+        <app-recurrent-transactions [embedded]="true"></app-recurrent-transactions>
+      </ng-container>
       </main>
     </div>
   `
@@ -244,6 +291,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 export class BudgetComponent implements OnInit {
   Math = Math;
   user: any = null;
+  activeTab: 'setup' | 'transactions' | 'recurrent' = 'setup';
   activeSection: 'income' | 'expenses' | 'savings' = 'income';
 
   sections: { key: 'income' | 'expenses' | 'savings'; label: string }[] = [

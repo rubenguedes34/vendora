@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -119,7 +119,7 @@ const ICONS: Record<string, string> = {
     </div>
   `
 })
-export class HealthScoreComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('historyChart') chartRef!: ElementRef<HTMLCanvasElement>;
 
   data: any = null;
@@ -127,7 +127,7 @@ export class HealthScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   errorMessage = '';
 
   private chartInstance: any = null;
-  private chartsReady = false;
+  private needsRender = false;
 
   constructor(
     private authService: AuthService,
@@ -140,9 +140,8 @@ export class HealthScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     this.load();
   }
 
-  ngAfterViewInit(): void {
-    this.chartsReady = true;
-    if (this.data) this.renderChart();
+  ngAfterViewChecked(): void {
+    this.renderIfReady();
   }
 
   ngOnDestroy(): void {
@@ -156,7 +155,7 @@ export class HealthScoreComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (d) => {
         this.data = d;
         this.isLoading = false;
-        if (this.chartsReady) setTimeout(() => this.renderChart(), 50);
+        this.needsRender = true;
       },
       error: (e) => { this.errorMessage = e?.message || 'Failed to load health score'; this.isLoading = false; }
     });
@@ -179,6 +178,14 @@ export class HealthScoreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   colorFor(key: string): string { return COLORS[key] ?? '#94a3b8'; }
   iconFor(key: string): string { return ICONS[key] ?? '📌'; }
+
+  private renderIfReady(): void {
+    if (!this.needsRender || !this.data) return;
+    if (!this.chartRef?.nativeElement) return;
+
+    this.renderChart();
+    this.needsRender = false;
+  }
 
   private renderChart(): void {
     if (!this.chartRef?.nativeElement || !this.data?.history?.length) return;

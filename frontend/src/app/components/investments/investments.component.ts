@@ -8,6 +8,7 @@ import { CurrencyService } from '../../services/currency.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
+import { WatchlistComponent } from '../watchlist/watchlist.component';
 import { environment } from '../../../environments/environment';
 
 const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
@@ -15,11 +16,12 @@ const TYPE_COLORS: Record<string, string> = {
   'Stocks': '#8b5cf6', 'ETF': '#3b82f6', 'Crypto': '#f59e0b',
   'Real Estate': '#10b981', 'Bonds': '#6366f1', 'Savings Account': '#14b8a6', 'Other': '#94a3b8'
 };
+const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#14b8a6', '#ec4899', '#f43f5e', '#06b6d4', '#84cc16', '#a855f7', '#f97316'];
 
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe, WatchlistComponent],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -42,28 +44,58 @@ const TYPE_COLORS: Record<string, string> = {
           </div>
 
           <!-- Summary Cards -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-purple-400">
-              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Invested</p>
-              <p class="text-sm sm:text-base font-bold text-purple-600">{{ totalInitial | currencySymbol }}</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="bg-white px-4 py-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">Invested</p>
+                <p class="text-sm sm:text-lg font-bold text-purple-600">{{ totalInitial | currencySymbol }}</p>
+              </div>
             </div>
-            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-400">
-              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Current</p>
-              <p class="text-sm sm:text-base font-bold text-blue-600">{{ totalCurrent | currencySymbol }}</p>
+            <div class="bg-white px-4 py-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">Current</p>
+                <p class="text-sm sm:text-lg font-bold text-blue-600">{{ totalCurrent | currencySymbol }}</p>
+              </div>
             </div>
-            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4"
-              [class.border-l-green-400]="totalGain >= 0" [class.border-l-red-400]="totalGain < 0">
-              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">Gain/Loss</p>
-              <p class="text-sm sm:text-base font-bold" [class]="totalGain >= 0 ? 'text-green-600' : 'text-red-600'">
-                {{ totalGain >= 0 ? '+' : '' }}{{ totalGain | currencySymbol }}
-              </p>
+            <div class="bg-white px-4 py-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                [class.bg-green-50]="totalGain >= 0" [class.text-green-600]="totalGain >= 0"
+                [class.bg-red-50]="totalGain < 0" [class.text-red-600]="totalGain < 0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="totalGain >= 0 ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">Gain/Loss</p>
+                <p class="text-sm sm:text-lg font-bold" [class]="totalGain >= 0 ? 'text-green-600' : 'text-red-600'">
+                  {{ totalGain >= 0 ? '+' : '' }}{{ totalGain | currencySymbol }}
+                </p>
+              </div>
             </div>
-            <div class="bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-gray-100 border-l-4"
-              [class.border-l-green-400]="totalRoi >= 0" [class.border-l-red-400]="totalRoi < 0">
-              <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide mb-1">ROI</p>
-              <p class="text-sm sm:text-base font-bold" [class]="totalRoi >= 0 ? 'text-green-600' : 'text-red-600'">
-                {{ totalRoi >= 0 ? '+' : '' }}{{ totalRoi.toFixed(2) }}%
-              </p>
+            <div class="bg-white px-4 py-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                [class.bg-green-50]="totalRoi >= 0" [class.text-green-600]="totalRoi >= 0"
+                [class.bg-red-50]="totalRoi < 0" [class.text-red-600]="totalRoi < 0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">ROI</p>
+                <p class="text-sm sm:text-lg font-bold" [class]="totalRoi >= 0 ? 'text-green-600' : 'text-red-600'">
+                  {{ totalRoi >= 0 ? '+' : '' }}{{ totalRoi.toFixed(2) }}%
+                </p>
+              </div>
             </div>
           </div>
 
@@ -72,7 +104,14 @@ const TYPE_COLORS: Record<string, string> = {
 
             <!-- Portfolio Breakdown Donut Chart (desktop only) -->
             <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-1">
-              <h3 class="text-sm font-semibold text-gray-700 mb-4">Portfolio Breakdown</h3>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-700">Portfolio Breakdown</h3>
+                <select [(ngModel)]="groupBy" (change)="recalcTotals()"
+                  class="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
+                  <option value="type">By type</option>
+                  <option value="account">By account</option>
+                </select>
+              </div>
               <div *ngIf="investments.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-40 text-gray-300">
                 <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
@@ -189,7 +228,7 @@ const TYPE_COLORS: Record<string, string> = {
                     </svg>
                     <div>
                       <p class="text-xs font-semibold text-green-800">{{ quoteResult.name }}</p>
-                      <p class="text-xs text-green-600">{{ quoteResult.price | number:'1.2-6' }} {{ quoteResult.currency }} / unit · {{ quoteResult.exchange }}</p>
+                      <p class="text-xs text-green-600">{{ quoteSymbol }}{{ quoteResult.price | number:'1.2-6' }} {{ quoteResult.currency }} / unit · {{ quoteResult.exchange }}</p>
                     </div>
                   </div>
                   <span *ngIf="quoteResult.change_24h != null"
@@ -239,7 +278,7 @@ const TYPE_COLORS: Record<string, string> = {
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ currencyService.symbol }})</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ investmentCurrencySymbol }})</label>
                     <input formControlName="initial_amount" type="number" step="0.01" min="0.01" placeholder="0.00"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                   </div>
@@ -249,34 +288,34 @@ const TYPE_COLORS: Record<string, string> = {
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                   </div>
                   <div class="sm:col-span-2">
-                    <div *ngIf="pricePerUnitForDisplay" class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
-                      <div class="text-xs text-purple-700">
-                        <span class="font-semibold">{{ currencyService.symbol }}{{ investmentForm.get('initial_amount')?.value || 0 | number:'1.2-2' }}</span> invested
+                    <div *ngIf="pricePerUnitForDisplay" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3.5 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-xl border border-purple-100">
+                      <div class="text-xs text-purple-800">
+                        <span class="font-bold">{{ investmentCurrencySymbol }}{{ investmentForm.get('initial_amount')?.value || 0 | number:'1.2-2' }}</span> invested
                         <span class="mx-1 text-purple-400">÷</span>
-                        <span class="font-semibold">{{ currencyService.symbol }}{{ pricePerUnitForDisplay }}</span>/unit
+                        <span class="font-bold">{{ quoteSymbol }}{{ pricePerUnitForDisplay }}</span>/unit
                         <span class="mx-1 text-purple-400">=</span>
-                        <span class="font-semibold">{{ unitsForDisplay }} units</span>
+                        <span class="font-bold">{{ unitsForDisplay }} units</span>
                       </div>
-                      <span class="text-xs text-purple-400">Current value updates when you refresh price</span>
+                      <span class="text-[10px] text-purple-400">Current value updates when you refresh price</span>
                     </div>
-                    <div *ngIf="!pricePerUnitForDisplay" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div *ngIf="!pricePerUnitForDisplay" class="p-3.5 bg-gray-50 rounded-xl border border-gray-200">
                       <p class="text-xs text-gray-500 mb-2">No live price — enter current value manually (e.g. for Real Estate, Bonds)</p>
                       <div>
                         <label class="block text-xs text-gray-500 mb-1">Current Value ({{ currencyService.symbol }})</label>
                         <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                          class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                       </div>
                     </div>
                   </div>
                 </div>
                 <p *ngIf="errorMessage" class="mt-2 text-red-500 text-xs">{{ errorMessage }}</p>
-                <div class="mt-3 flex gap-2">
+                <div class="mt-4 flex gap-2">
                   <button type="submit" [disabled]="investmentForm.invalid || isSaving"
-                    class="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors">
+                    class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2.5 rounded-xl text-sm font-semibold shadow-md hover:from-purple-700 hover:to-purple-800 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5">
                     {{ isSaving ? 'Saving...' : (editingId ? 'Update' : 'Add Investment') }}
                   </button>
                   <button type="button" (click)="cancelEdit()"
-                    class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                    class="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
                     Cancel
                   </button>
                 </div>
@@ -289,15 +328,15 @@ const TYPE_COLORS: Record<string, string> = {
 
             <!-- Empty state -->
             <div *ngIf="!isLoading && investments.length === 0" class="text-center py-16 px-4">
-              <div class="w-16 h-16 mx-auto bg-purple-50 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                <svg class="w-10 h-10 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                 </svg>
               </div>
-              <h3 class="text-gray-700 font-semibold mb-1">No investments yet</h3>
-              <p class="text-gray-400 text-sm mb-4">Track your stocks, ETFs, crypto and more</p>
+              <h3 class="text-gray-800 font-bold text-lg mb-1">No investments yet</h3>
+              <p class="text-gray-400 text-sm mb-6">Track your stocks, ETFs, crypto and more in one place.</p>
               <button (click)="toggleForm()"
-                class="bg-purple-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors">
+                class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:from-purple-700 hover:to-purple-800 hover:shadow-lg transition-all">
                 + Add your first investment
               </button>
             </div>
@@ -316,60 +355,60 @@ const TYPE_COLORS: Record<string, string> = {
 
             <!-- Investment rows -->
             <div *ngFor="let inv of filteredInvestments; let last = last"
-              class="px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors"
+              class="px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors group"
               [class.border-b]="!last" [class.border-gray-100]="!last">
-              <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 text-lg"
-                  [style.background]="typeColor(inv.type) + '20'">
+              <div class="flex items-start gap-4">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-lg shadow-sm"
+                  [style.background]="typeColor(inv.type) + '20'" [style.color]="typeColor(inv.type)">
                   {{ typeIcon(inv.type) }}
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                      <p class="font-medium text-gray-800 truncate">{{ inv.name }}</p>
+                      <p class="font-semibold text-gray-900 truncate">{{ inv.name }}</p>
                       <p class="text-xs text-gray-400">{{ inv.type }} · {{ inv.purchase_date | date:'mediumDate' }}</p>
                     </div>
-                    <span class="inline-block px-2 py-1 rounded-lg text-xs font-bold shrink-0"
+                    <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold shrink-0"
                       [class]="roi(inv) >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
                       {{ roi(inv) >= 0 ? '+' : '' }}{{ roi(inv).toFixed(1) }}%
                     </span>
                   </div>
-                  <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <div class="flex items-center gap-4 mt-3 flex-wrap">
                     <div class="hidden sm:block">
-                      <p class="text-xs text-gray-400">Invested</p>
-                      <p class="text-sm font-medium text-gray-700">{{ +inv.initial_amount | currencySymbol }}</p>
+                      <p class="text-[10px] uppercase tracking-wide text-gray-400">Invested</p>
+                      <p class="text-sm font-semibold text-gray-700">{{ +inv.initial_amount | currencySymbol }}</p>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-400">Current</p>
-                      <p class="text-sm font-semibold text-blue-600">{{ +inv.current_amount | currencySymbol }}</p>
+                      <p class="text-[10px] uppercase tracking-wide text-gray-400">Current</p>
+                      <p class="text-sm font-bold text-blue-600">{{ +inv.current_amount | currencySymbol }}</p>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-400">Gain/Loss</p>
-                      <p class="text-sm font-semibold" [class]="gain(inv) >= 0 ? 'text-green-600' : 'text-red-600'">
+                      <p class="text-[10px] uppercase tracking-wide text-gray-400">Gain/Loss</p>
+                      <p class="text-sm font-bold" [class]="gain(inv) >= 0 ? 'text-green-600' : 'text-red-600'">
                         {{ gain(inv) >= 0 ? '+' : '' }}{{ gain(inv) | currencySymbol }}
                       </p>
                     </div>
                     <!-- Progress bar -->
-                    <div class="flex-1 min-w-16 hidden sm:block">
-                      <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="h-1.5 rounded-full transition-all"
+                    <div class="flex-1 min-w-20 hidden sm:block">
+                      <div class="w-full bg-gray-100 rounded-full h-2">
+                        <div class="h-2 rounded-full transition-all"
                           [style.width]="(+inv.initial_amount > 0 ? Math.min(100, (+inv.current_amount / +inv.initial_amount) * 100) : 0) + '%'"
-                          [class]="roi(inv) >= 0 ? 'bg-green-400' : 'bg-red-400'"></div>
+                          [class]="roi(inv) >= 0 ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-red-400 to-red-500'"></div>
                       </div>
                     </div>
-                    <div class="ml-auto flex gap-1 shrink-0">
+                    <div class="ml-auto flex gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                       <button (click)="refreshPrice(inv)" [disabled]="refreshingId === inv.id"
-                        class="p-1.5 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-40" title="Refresh live price">
+                        class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-40" title="Refresh live price">
                         <svg class="w-4 h-4" [class.animate-spin]="refreshingId === inv.id" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                       </button>
-                      <button (click)="editInvestment(inv)" class="p-1.5 text-gray-400 hover:text-purple-600 transition-colors" title="Edit">
+                      <button (click)="editInvestment(inv)" class="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Edit">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                       </button>
-                      <button (click)="deleteInvestment(inv.id)" class="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                      <button (click)="deleteInvestment(inv.id)" class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -395,22 +434,36 @@ const TYPE_COLORS: Record<string, string> = {
             </div>
 
             <!-- Tabs -->
-            <div class="flex gap-1 bg-gray-200 p-1 rounded-xl w-fit mb-5">
+            <div class="flex gap-2 sm:gap-6 border-b border-gray-200 mb-5">
               <button (click)="marketTab = 'crypto'"
-                class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                [class.bg-white]="marketTab === 'crypto'"
-                [class.shadow-sm]="marketTab === 'crypto'"
-                [class.text-gray-800]="marketTab === 'crypto'"
-                [class.text-gray-500]="marketTab !== 'crypto'">
-                🪙 Crypto
+                class="group relative px-3 sm:px-4 py-3 text-sm font-medium tracking-wide transition-colors"
+                [class.text-gray-900]="marketTab === 'crypto'"
+                [class.text-gray-400]="marketTab !== 'crypto'">
+                <span class="relative z-10">Crypto</span>
+                <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+                  [class.w-full]="marketTab === 'crypto'"
+                  [class.w-0]="marketTab !== 'crypto'"
+                  [class.group-hover:w-full]="marketTab !== 'crypto'"></span>
               </button>
               <button (click)="marketTab = 'stocks'"
-                class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                [class.bg-white]="marketTab === 'stocks'"
-                [class.shadow-sm]="marketTab === 'stocks'"
-                [class.text-gray-800]="marketTab === 'stocks'"
-                [class.text-gray-500]="marketTab !== 'stocks'">
-                📈 Stocks &amp; ETFs
+                class="group relative px-3 sm:px-4 py-3 text-sm font-medium tracking-wide transition-colors"
+                [class.text-gray-900]="marketTab === 'stocks'"
+                [class.text-gray-400]="marketTab !== 'stocks'">
+                <span class="relative z-10">Stocks &amp; ETFs</span>
+                <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+                  [class.w-full]="marketTab === 'stocks'"
+                  [class.w-0]="marketTab !== 'stocks'"
+                  [class.group-hover:w-full]="marketTab !== 'stocks'"></span>
+              </button>
+              <button (click)="marketTab = 'watchlist'"
+                class="group relative px-3 sm:px-4 py-3 text-sm font-medium tracking-wide transition-colors"
+                [class.text-gray-900]="marketTab === 'watchlist'"
+                [class.text-gray-400]="marketTab !== 'watchlist'">
+                <span class="relative z-10">Watchlist</span>
+                <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
+                  [class.w-full]="marketTab === 'watchlist'"
+                  [class.w-0]="marketTab !== 'watchlist'"
+                  [class.group-hover:w-full]="marketTab !== 'watchlist'"></span>
               </button>
             </div>
 
@@ -587,6 +640,11 @@ const TYPE_COLORS: Record<string, string> = {
                 <p class="text-xs text-gray-300 mt-1">Powered by Finnhub · real-time quotes</p>
               </div>
             </div>
+
+            <!-- WATCHLIST TAB -->
+            <div *ngIf="marketTab === 'watchlist'">
+              <app-watchlist [embedded]="true"></app-watchlist>
+            </div>
           </div>
           <!-- ===== END MARKET EXPLORER ===== -->
 
@@ -614,6 +672,7 @@ export class InvestmentsComponent implements OnInit {
   searchQuery = '';
   filterType = '';
   filterPerf = '';
+  groupBy: 'type' | 'account' = 'type';
 
   donutSegments: { type: string; color: string; pct: number; dash: number; gap: number; offset: number }[] = [];
   readonly Math = Math;
@@ -624,7 +683,7 @@ export class InvestmentsComponent implements OnInit {
   quoteError = '';
 
   // Market explorer
-  marketTab: 'crypto' | 'stocks' = 'crypto';
+  marketTab: 'crypto' | 'stocks' | 'watchlist' = 'crypto';
 
   // Crypto
   coins: any[] = [];
@@ -740,7 +799,7 @@ export class InvestmentsComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadInvestments();
+    this.loadInvestments(true);
     this.loadCrypto();
   }
 
@@ -825,6 +884,18 @@ export class InvestmentsComponent implements OnInit {
     return v > 0 ? v.toLocaleString('en-US', { maximumFractionDigits: 6 }) : '';
   }
 
+  get quoteCurrency(): string {
+    return this.quoteResult?.currency || 'USD';
+  }
+
+  get quoteSymbol(): string {
+    return this.currencyService.getSymbol(this.quoteCurrency);
+  }
+
+  get investmentCurrencySymbol(): string {
+    return this.quoteResult ? this.quoteSymbol : this.currencyService.symbol;
+  }
+
   get unitsForDisplay(): string {
     const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
     const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
@@ -898,14 +969,15 @@ export class InvestmentsComponent implements OnInit {
     const circumference = 2 * Math.PI * 54;
     const grouped: Record<string, number> = {};
     for (const inv of this.investments) {
-      grouped[inv.type] = (grouped[inv.type] || 0) + +inv.current_amount;
+      const key = this.groupBy === 'account' ? (inv.account || 'No account') : inv.type;
+      grouped[key] = (grouped[key] || 0) + +inv.current_amount;
     }
     let offset = 0;
     this.donutSegments = Object.entries(grouped).map(([type, value]) => {
       const pct = (value / this.totalCurrent) * 100;
       const dash = (pct / 100) * circumference;
       const gap = circumference - dash;
-      const seg = { type, color: TYPE_COLORS[type] || '#94a3b8', pct, dash, gap, offset };
+      const seg = { type, color: this.colorForGroup(type), pct, dash, gap, offset };
       offset -= dash;
       return seg;
     });
@@ -913,6 +985,14 @@ export class InvestmentsComponent implements OnInit {
 
   typeColor(type: string): string {
     return TYPE_COLORS[type] || '#94a3b8';
+  }
+
+  colorForGroup(key: string): string {
+    if (this.groupBy === 'account') {
+      const idx = key.split('').reduce((s, c) => s + c.charCodeAt(0), 0) % ACCOUNT_COLORS.length;
+      return ACCOUNT_COLORS[idx];
+    }
+    return TYPE_COLORS[key] || '#94a3b8';
   }
 
   roi(inv: any): number {
