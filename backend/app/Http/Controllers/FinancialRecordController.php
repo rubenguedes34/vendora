@@ -223,31 +223,46 @@ class FinancialRecordController extends Controller
         $yearlyChange = round($incomeThisYear - $expenseThisYear, 2);
 
         // ── 13-month history (current + 12 prior) ───────────────────────────
-        // Each point = cumulative cash up to that month-end + investment value at time of snapshot
+        // Pre-sort and accumulate in a single pass instead of filtering on every month.
+        $incomeRows   = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
+        $expenseRows  = $transactions->where('type', 'expense')->sortBy('transaction_date')->values();
+        $investSorted = $investmentRows
+            ->filter(fn ($inv) => $inv->purchase_date)
+            ->sortBy('purchase_date')
+            ->values();
+
+        $incomeIdx  = 0;
+        $expenseIdx = 0;
+        $investIdx  = 0;
+        $cumulativeIncome  = 0.0;
+        $cumulativeExpense = 0.0;
+        $cumulativeInvest  = 0.0;
+
         $history = [];
         for ($i = 12; $i >= 0; $i--) {
             $pointEnd = $now->copy()->subMonths($i)->endOfMonth();
             $label    = $now->copy()->subMonths($i)->format('M y');
 
-            $cumulativeIncome  = (float) $transactions
-                ->where('type', 'income')
-                ->filter(fn ($t) => $t->transaction_date <= $pointEnd)
-                ->sum('amount');
-            $cumulativeExpense = (float) $transactions
-                ->where('type', 'expense')
-                ->filter(fn ($t) => $t->transaction_date <= $pointEnd)
-                ->sum('amount');
-            $cash = round($cumulativeIncome - $cumulativeExpense, 2);
+            while ($incomeIdx < $incomeRows->count() && $incomeRows[$incomeIdx]->transaction_date <= $pointEnd) {
+                $cumulativeIncome += (float) $incomeRows[$incomeIdx]->amount;
+                $incomeIdx++;
+            }
+            while ($expenseIdx < $expenseRows->count() && $expenseRows[$expenseIdx]->transaction_date <= $pointEnd) {
+                $cumulativeExpense += (float) $expenseRows[$expenseIdx]->amount;
+                $expenseIdx++;
+            }
+            while ($investIdx < $investSorted->count() && $investSorted[$investIdx]->purchase_date <= $pointEnd) {
+                $cumulativeInvest += (float) $investSorted[$investIdx]->current_amount;
+                $investIdx++;
+            }
 
-            $invAtPoint = (float) $investmentRows
-                ->filter(fn ($inv) => $inv->purchase_date && $inv->purchase_date <= $pointEnd)
-                ->sum('current_amount');
+            $cash = round($cumulativeIncome - $cumulativeExpense, 2);
 
             $history[] = [
                 'label'       => $label,
-                'net_worth'   => round($cash + $invAtPoint, 2),
+                'net_worth'   => round($cash + $cumulativeInvest, 2),
                 'cash'        => $cash,
-                'investments' => round($invAtPoint, 2),
+                'investments' => round($cumulativeInvest, 2),
             ];
         }
 
