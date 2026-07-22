@@ -12,6 +12,16 @@ use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/admin/dashboard-metrics",
+     *     tags={"Admin"},
+     *     summary="Get admin dashboard metrics",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Dashboard metrics"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function dashboardMetrics(): \Illuminate\Http\JsonResponse
     {
         $usersQuery = User::query();
@@ -43,6 +53,17 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/users",
+     *     tags={"Admin"},
+     *     summary="List users with pagination",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Paginated users"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function users(Request $request): \Illuminate\Http\JsonResponse
     {
         $search = $request->query('search');
@@ -62,6 +83,23 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/users/{user}/role",
+     *     tags={"Admin"},
+     *     summary="Update a user's role",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"role"},
+     *             @OA\Property(property="role", type="string", enum={"admin","manager","user"})
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Role updated"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function updateRole(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         if ($request->user()->id === $user->id) {
@@ -81,6 +119,17 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/users/{user}/blacklist",
+     *     tags={"Admin"},
+     *     summary="Toggle user blacklist status",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Blacklist toggled"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function toggleBlacklist(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         if ($request->user()->id === $user->id) {
@@ -96,6 +145,18 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/admin/users/{user}",
+     *     tags={"Admin"},
+     *     summary="Delete a user",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="User deleted"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=422, description="Cannot delete self")
+     * )
+     */
     public function destroyUser(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         if ($request->user()->id === $user->id) {
@@ -107,6 +168,19 @@ class AdminController extends Controller
         return response()->json(['message' => 'User deleted.']);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/budgets-metrics",
+     *     tags={"Admin"},
+     *     summary="Get admin budget metrics",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Budget metrics"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function budgetsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
         $year = $request->query('year');
@@ -154,6 +228,19 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/investments-metrics",
+     *     tags={"Admin"},
+     *     summary="Get admin investment metrics",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Investment metrics"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function investmentsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
         $year = $request->query('year');
@@ -203,6 +290,20 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/transactions-metrics",
+     *     tags={"Admin"},
+     *     summary="Get admin transaction metrics",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Transaction metrics"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function transactionsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
         $year = $request->query('year');

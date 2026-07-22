@@ -201,6 +201,23 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/user/profile",
+     *     tags={"Auth"},
+     *     summary="Update user profile",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="monthly_income", type="number"),
+     *             @OA\Property(property="monthly_expenses", type="number")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Profile updated")
+     * )
+     */
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -225,6 +242,22 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/user/password",
+     *     tags={"Auth"},
+     *     summary="Update user password",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"current_password","password","password_confirmation"},
+     *             @OA\Property(property="current_password", type="string"),
+     *             @OA\Property(property="password", type="string", minLength=8),
+     *             @OA\Property(property="password_confirmation", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Password updated")
+     * )
+     */
     public function updatePassword(Request $request)
     {
         $user = $request->user();

@@ -67,12 +67,39 @@ class BudgetController extends Controller
         return response()->json($budget->load('category'), 201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/budgets/{budget}",
+     *     tags={"Budgets"},
+     *     summary="Get a single budget",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Budget object")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $budget = $request->user()->budgets()->with('category')->findOrFail($id);
         return response()->json($budget);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/budgets/{budget}",
+     *     tags={"Budgets"},
+     *     summary="Update a budget",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="category_id", type="integer"),
+     *             @OA\Property(property="amount", type="number"),
+     *             @OA\Property(property="month", type="string", example="2025-07")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Budget updated")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $budget = $request->user()->budgets()->findOrFail($id);
@@ -95,6 +122,16 @@ class BudgetController extends Controller
         return response()->json($budget->load('category'));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/budgets/{budget}",
+     *     tags={"Budgets"},
+     *     summary="Delete a budget",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Budget deleted")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $budget = $request->user()->budgets()->findOrFail($id);
@@ -103,6 +140,16 @@ class BudgetController extends Controller
         return response()->json(['message' => 'Budget deleted']);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/budgets/comparison/{month}",
+     *     tags={"Budgets"},
+     *     summary="Compare budgeted vs actual spending",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="month", in="path", required=false, @OA\Schema(type="string", example="2025-07")),
+     *     @OA\Response(response=200, description="Budget comparison")
+     * )
+     */
     public function comparison(Request $request, $month = null)
     {
         $month = $month ?? date('Y-m');

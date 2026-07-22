@@ -22,11 +22,17 @@ namespace App\Http\Controllers;
  * )
  *
  * @OA\Tag(name="Auth", description="Authentication endpoints")
+ * @OA\Tag(name="Setup", description="Initial user setup")
  * @OA\Tag(name="Categories", description="Category management")
  * @OA\Tag(name="Transactions", description="Transaction management")
  * @OA\Tag(name="Budgets", description="Budget management")
  * @OA\Tag(name="Financial Records", description="Monthly financial records")
  * @OA\Tag(name="Recurrent Transactions", description="Monthly recurrent transactions")
  * @OA\Tag(name="Investments", description="Investment management")
+ * @OA\Tag(name="Watchlist", description="Market watchlist")
+ * @OA\Tag(name="Market Data", description="Stock and crypto market data")
+ * @OA\Tag(name="Notifications", description="User notifications")
+ * @OA\Tag(name="Tags", description="Transaction tags")
+ * @OA\Tag(name="Admin", description="Admin panel endpoints")
  */
 class SwaggerInfo {}

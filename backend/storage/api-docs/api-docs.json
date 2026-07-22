@@ -15,6 +15,337 @@
         }
     ],
     "paths": {
+        "/api/admin/dashboard-metrics": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get admin dashboard metrics",
+                "operationId": "e70980b66d5f2947d5f3d68735de9ece",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard metrics"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List users with pagination",
+                "operationId": "6df5675e4162a2cb784fd7bd54a30be7",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated users"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{user}/role": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update a user's role",
+                "operationId": "b35928003579f486550b29ed7f58d6ca",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "role"
+                                ],
+                                "properties": {
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "admin",
+                                            "manager",
+                                            "user"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Role updated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{user}/blacklist": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Toggle user blacklist status",
+                "operationId": "b17e64bca6d4ff156fd945b5036a60ec",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blacklist toggled"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{user}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Delete a user",
+                "operationId": "c53daedf3d979a9d6840f0aa25f1263a",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Cannot delete self"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/budgets-metrics": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get admin budget metrics",
+                "operationId": "33b15a6cbfc3b04c2f04b75c1e7572e1",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget metrics"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/investments-metrics": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get admin investment metrics",
+                "operationId": "a279abf63d46fdd0640c29f143a76efa",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Investment metrics"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/transactions-metrics": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get admin transaction metrics",
+                "operationId": "857a79aa400c806e8d1ecab282227d32",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction metrics"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/register": {
             "post": {
                 "tags": [
@@ -142,6 +473,96 @@
                 ]
             }
         },
+        "/api/user/profile": {
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update user profile",
+                "operationId": "4a75ccb2b8a3aa3f7230a2a2dd1de04d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "monthly_income": {
+                                        "type": "number"
+                                    },
+                                    "monthly_expenses": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/password": {
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update user password",
+                "operationId": "0a2d0350f37a0e08de86e1956f48a442",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/budgets": {
             "get": {
                 "tags": [
@@ -216,6 +637,141 @@
                 ]
             }
         },
+        "/api/budgets/{budget}": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Get a single budget",
+                "operationId": "3b05da08ba0e0c54e06295c4e33b28b1",
+                "parameters": [
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Update a budget",
+                "operationId": "a4cbd9e44f72d029d102a073d44befe6",
+                "parameters": [
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "month": {
+                                        "type": "string",
+                                        "example": "2025-07"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Budget updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Delete a budget",
+                "operationId": "50b5dbe95a64bb5096ad44800351c02b",
+                "parameters": [
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/budgets/comparison/{month}": {
+            "get": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Compare budgeted vs actual spending",
+                "operationId": "451ec29975dcd44effb1f5f4e384075b",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "path",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-07"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget comparison"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/budgets/summary/{month}": {
             "get": {
                 "tags": [
@@ -246,6 +802,221 @@
                 ]
             }
         },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "List all categories",
+                "operationId": "3f5817a34833d0a1f4af4548dd3aeaba",
+                "responses": {
+                    "200": {
+                        "description": "Array of categories"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create a category",
+                "operationId": "71fcad552bb0eaba9fb191fd8d8dcab0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense",
+                                            "savings"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{category}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get a single category",
+                "operationId": "e92579e78391b6199e78c2a091dbea0a",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update a category",
+                "operationId": "02aa39951e67916277e28086f85909c8",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense",
+                                            "savings"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete a category",
+                "operationId": "d9ecd5c4a74c4d75339251863eedc08c",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories-by-type/{type}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "List categories by type",
+                "operationId": "e782153132b3e1e592c9481bd6cf2977",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "income",
+                                "expense",
+                                "savings"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of categories"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/financial-records": {
             "get": {
                 "tags": [
@@ -256,6 +1027,63 @@
                 "responses": {
                     "200": {
                         "description": "Array of financial records"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Create or update a financial record",
+                "operationId": "2373fd7492ca64bb5f746d388f3c6ea0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "year",
+                                    "month",
+                                    "monthly_income",
+                                    "monthly_expenses"
+                                ],
+                                "properties": {
+                                    "year": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "integer"
+                                    },
+                                    "monthly_income": {
+                                        "type": "number"
+                                    },
+                                    "monthly_expenses": {
+                                        "type": "number"
+                                    },
+                                    "savings_goal": {
+                                        "type": "number"
+                                    },
+                                    "savings_goal_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "percentage",
+                                            "fixed"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Financial record saved"
                     }
                 },
                 "security": [
@@ -305,6 +1133,622 @@
                 "responses": {
                     "200": {
                         "description": "Array of monthly records for the year"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/{financial_record}": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get a single financial record",
+                "operationId": "67377f736452a33552cf4e8c70aa749b",
+                "parameters": [
+                    {
+                        "name": "financial_record",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Financial record object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Update a financial record",
+                "operationId": "1fe2cc18b4d20e1be2c8603b3f159ccb",
+                "parameters": [
+                    {
+                        "name": "financial_record",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "monthly_income": {
+                                        "type": "number"
+                                    },
+                                    "monthly_expenses": {
+                                        "type": "number"
+                                    },
+                                    "savings_goal": {
+                                        "type": "number"
+                                    },
+                                    "savings_goal_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "percentage",
+                                            "fixed"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Financial record updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Delete a financial record",
+                "operationId": "f73fdb46ffb4e63f9aa69a14ba86238c",
+                "parameters": [
+                    {
+                        "name": "financial_record",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Financial record deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/net-worth": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get net worth overview",
+                "operationId": "4bb070b958095dc0e90c81f6f3e397d2",
+                "responses": {
+                    "200": {
+                        "description": "Net worth data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/allocation": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get investment allocation breakdown",
+                "operationId": "c6a423c03025d4b4ef42934211443d21",
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Allocation data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/health-score": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Get financial health score",
+                "operationId": "6faf9f4979393193c1ef4deaf53a830d",
+                "responses": {
+                    "200": {
+                        "description": "Health score data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/investments": {
+            "get": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "List all investments",
+                "operationId": "0219250acdc66727d7781c2bbe38dd17",
+                "responses": {
+                    "200": {
+                        "description": "Array of investments"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Create an investment",
+                "operationId": "650ba82fccad5f7634cd8f4e7580abbc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "initial_amount",
+                                    "current_amount",
+                                    "purchase_date"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "account": {
+                                        "type": "string"
+                                    },
+                                    "initial_amount": {
+                                        "type": "number"
+                                    },
+                                    "current_amount": {
+                                        "type": "number"
+                                    },
+                                    "purchase_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Investment created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/investments/{investment}": {
+            "get": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Get a single investment",
+                "operationId": "3586fe45c408d5d968f69c30bafe7d9e",
+                "parameters": [
+                    {
+                        "name": "investment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Investment object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Update an investment",
+                "operationId": "87877e3690e0733a7dd5717bd3afdfb0",
+                "parameters": [
+                    {
+                        "name": "investment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "account": {
+                                        "type": "string"
+                                    },
+                                    "initial_amount": {
+                                        "type": "number"
+                                    },
+                                    "current_amount": {
+                                        "type": "number"
+                                    },
+                                    "purchase_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Investment updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Delete an investment",
+                "operationId": "0a4739ecd1c8f3534ab210f341739a5d",
+                "parameters": [
+                    {
+                        "name": "investment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Investment deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/quote": {
+            "get": {
+                "tags": [
+                    "Market Data"
+                ],
+                "summary": "Get live quote for a symbol",
+                "operationId": "e6019b3cd46b8075eee1bf13a4c1d09c",
+                "parameters": [
+                    {
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "AAPL"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quote data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/search": {
+            "get": {
+                "tags": [
+                    "Market Data"
+                ],
+                "summary": "Search for market symbols",
+                "operationId": "8175f79460e82ed42fbbdf53e1fb4dce",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "apple"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/candle": {
+            "get": {
+                "tags": [
+                    "Market Data"
+                ],
+                "summary": "Get candle/sparkline data for a symbol",
+                "operationId": "4faad4cef38a9d19d3fb229e5d4fc4e5",
+                "parameters": [
+                    {
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "AAPL"
+                        }
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 7
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sparkline data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "List user notifications",
+                "operationId": "911565ad9aff9ba7eded3f189509e578",
+                "parameters": [
+                    {
+                        "name": "unread_only",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of notifications"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread notification count",
+                "operationId": "0272623bed30dd4d72141741fb3f25da",
+                "responses": {
+                    "200": {
+                        "description": "Unread count"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{id}/read": {
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark a notification as read",
+                "operationId": "65581bb40eba3764fb900f21495814de",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/read-all": {
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "operationId": "116662a87d4b13956efde9efdfbd18e6",
+                "responses": {
+                    "200": {
+                        "description": "All marked as read"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{id}": {
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Delete a notification",
+                "operationId": "54c4eb5ec5dc0d1e2916cec2fced1056",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification deleted"
                     }
                 },
                 "security": [
@@ -390,6 +1834,122 @@
                 ]
             }
         },
+        "/api/recurrent-transactions/{recurrent_transaction}": {
+            "get": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Get a single recurrent transaction",
+                "operationId": "8f34ba96f2a4f390cf435feeb06da548",
+                "parameters": [
+                    {
+                        "name": "recurrent_transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recurrent transaction object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Update a recurrent transaction",
+                "operationId": "01a7907c380bdb78a05ae47c1b7f0c82",
+                "parameters": [
+                    {
+                        "name": "recurrent_transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ]
+                                    },
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "day_of_month": {
+                                        "type": "integer",
+                                        "maximum": 28,
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Recurrent transaction updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Delete a recurrent transaction",
+                "operationId": "77219a7abd0c2b658fd24fdcd78096de",
+                "parameters": [
+                    {
+                        "name": "recurrent_transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recurrent transaction deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/recurrent-transactions/copy": {
             "post": {
                 "tags": [
@@ -419,6 +1979,180 @@
                 "responses": {
                     "200": {
                         "description": "Number of transactions created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/setup": {
+            "post": {
+                "tags": [
+                    "Setup"
+                ],
+                "summary": "Complete initial financial setup",
+                "operationId": "d3a9b03e340dcacbbce6ba3fabb1e468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "monthly_income",
+                                    "monthly_expenses"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "monthly_income": {
+                                        "type": "number"
+                                    },
+                                    "monthly_expenses": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Setup completed"
+                    },
+                    "401": {
+                        "description": "Invalid token"
+                    }
+                }
+            }
+        },
+        "/api/tags": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "List all tags",
+                "operationId": "4d0f4baf9e6fa992c0d85fbf140ebf17",
+                "responses": {
+                    "200": {
+                        "description": "Array of tags"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Create a tag",
+                "operationId": "a0a246f29dcb119a2189fd230fc10028",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tag created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tags/{tag}": {
+            "put": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update a tag",
+                "operationId": "41b49eb4f2a830e150f50252f4d831b8",
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tag updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete a tag",
+                "operationId": "383a246a07edec1e79fc652a61402685",
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag deleted"
                     }
                 },
                 "security": [
@@ -502,6 +2236,327 @@
                     }
                 ]
             }
+        },
+        "/api/transactions/{transaction}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get a single transaction",
+                "operationId": "05e2714a413c88baa08631aea0c3bb87",
+                "parameters": [
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Update a transaction",
+                "operationId": "62887e13e128ce1c3fb8d577b94a82a7",
+                "parameters": [
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "income",
+                                            "expense"
+                                        ]
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    },
+                                    "tag_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Delete a transaction",
+                "operationId": "5ac55b483b75b2b80a812c542c974181",
+                "parameters": [
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/{id}/attachment": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Serve a transaction attachment",
+                "operationId": "170cad65813c124100c539f98c957cdb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment file"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Delete a transaction attachment",
+                "operationId": "6934f367824f1a804b8c0780347251af",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/export": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Export transactions as CSV",
+                "operationId": "8b4a681cc7eebb8a8802a17f0eb92f86",
+                "responses": {
+                    "200": {
+                        "description": "CSV file"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/expenses-by-category": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get expenses grouped by category for a month",
+                "operationId": "3c642df5d77f64cb20d74552e40b0026",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-07"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Expenses by category"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/watchlist": {
+            "get": {
+                "tags": [
+                    "Watchlist"
+                ],
+                "summary": "List watchlist items",
+                "operationId": "21ad718f4ed8ca05100b48d0e94d4469",
+                "responses": {
+                    "200": {
+                        "description": "Array of watchlist items"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Watchlist"
+                ],
+                "summary": "Add a symbol to the watchlist",
+                "operationId": "0d4b76ac0e299d4bcb38458e2f8ad2d0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "symbol"
+                                ],
+                                "properties": {
+                                    "symbol": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "exchange": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Added to watchlist"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/watchlist/{watchlist}": {
+            "delete": {
+                "tags": [
+                    "Watchlist"
+                ],
+                "summary": "Remove an item from the watchlist",
+                "operationId": "29fdfa5bb90c65a5ffd417338f8d5b83",
+                "parameters": [
+                    {
+                        "name": "watchlist",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Removed from watchlist"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -518,6 +2573,14 @@
             "description": "Authentication endpoints"
         },
         {
+            "name": "Setup",
+            "description": "Initial user setup"
+        },
+        {
+            "name": "Categories",
+            "description": "Category management"
+        },
+        {
             "name": "Transactions",
             "description": "Transaction management"
         },
@@ -532,6 +2595,30 @@
         {
             "name": "Recurrent Transactions",
             "description": "Monthly recurrent transactions"
+        },
+        {
+            "name": "Investments",
+            "description": "Investment management"
+        },
+        {
+            "name": "Watchlist",
+            "description": "Market watchlist"
+        },
+        {
+            "name": "Market Data",
+            "description": "Stock and crypto market data"
+        },
+        {
+            "name": "Notifications",
+            "description": "User notifications"
+        },
+        {
+            "name": "Tags",
+            "description": "Transaction tags"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin panel endpoints"
         }
     ]
 }

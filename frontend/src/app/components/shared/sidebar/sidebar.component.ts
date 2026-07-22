@@ -105,7 +105,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
           <span class="font-semibold">Health Score</span>
         </a>
 
-        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_self" (click)="mobileOpen = false"
+        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_blank" rel="noopener noreferrer" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -67,12 +67,41 @@ class RecurrentTransactionController extends Controller
         return response()->json($item->load('category'), 201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/recurrent-transactions/{recurrent_transaction}",
+     *     tags={"Recurrent Transactions"},
+     *     summary="Get a single recurrent transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Recurrent transaction object")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $item = $request->user()->recurrentTransactions()->with('category')->findOrFail($id);
         return response()->json($item);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/recurrent-transactions/{recurrent_transaction}",
+     *     tags={"Recurrent Transactions"},
+     *     summary="Update a recurrent transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="amount", type="number"),
+     *             @OA\Property(property="type", type="string", enum={"income","expense"}),
+     *             @OA\Property(property="category_id", type="integer"),
+     *             @OA\Property(property="day_of_month", type="integer", minimum=1, maximum=28)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Recurrent transaction updated")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $item = $request->user()->recurrentTransactions()->findOrFail($id);
@@ -97,6 +126,16 @@ class RecurrentTransactionController extends Controller
         return response()->json($item->load('category'));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/recurrent-transactions/{recurrent_transaction}",
+     *     tags={"Recurrent Transactions"},
+     *     summary="Delete a recurrent transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Recurrent transaction deleted")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $item = $request->user()->recurrentTransactions()->findOrFail($id);

@@ -154,12 +154,43 @@ class TransactionController extends Controller
         return response()->json($transaction->load(['category', 'tags']), 201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/transactions/{transaction}",
+     *     tags={"Transactions"},
+     *     summary="Get a single transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Transaction object")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->with(['category', 'tags'])->findOrFail($id);
         return response()->json($transaction);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/transactions/{transaction}",
+     *     tags={"Transactions"},
+     *     summary="Update a transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="category_id", type="integer"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="amount", type="number"),
+     *             @OA\Property(property="type", type="string", enum={"income","expense"}),
+     *             @OA\Property(property="transaction_date", type="string", format="date"),
+     *             @OA\Property(property="notes", type="string"),
+     *             @OA\Property(property="tag_ids", type="array", @OA\Items(type="integer"))
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Transaction updated")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
@@ -211,6 +242,16 @@ class TransactionController extends Controller
         return response()->json($transaction->load(['category', 'tags']));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/transactions/{transaction}",
+     *     tags={"Transactions"},
+     *     summary="Delete a transaction",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Transaction deleted")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
@@ -224,6 +265,16 @@ class TransactionController extends Controller
         return response()->json(['message' => 'Transaction deleted']);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/transactions/{id}/attachment",
+     *     tags={"Transactions"},
+     *     summary="Serve a transaction attachment",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Attachment file")
+     * )
+     */
     public function serveAttachment(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
@@ -238,6 +289,16 @@ class TransactionController extends Controller
         return response($contents, 200)->header('Content-Type', $mime);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/transactions/{id}/attachment",
+     *     tags={"Transactions"},
+     *     summary="Delete a transaction attachment",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Attachment deleted")
+     * )
+     */
     public function deleteAttachment(Request $request, $id)
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
@@ -262,6 +323,15 @@ class TransactionController extends Controller
         return Tag::whereIn('id', $raw)->where('user_id', $userId)->pluck('id')->toArray();
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/transactions/export",
+     *     tags={"Transactions"},
+     *     summary="Export transactions as CSV",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="CSV file")
+     * )
+     */
     public function export(Request $request)
     {
         $request->validate([
@@ -328,6 +398,16 @@ class TransactionController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/transactions/expenses-by-category",
+     *     tags={"Transactions"},
+     *     summary="Get expenses grouped by category for a month",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2025-07")),
+     *     @OA\Response(response=200, description="Expenses by category")
+     * )
+     */
     public function expensesByCategory(Request $request)
     {
         $request->validate(['month' => ['nullable', 'regex:/^\d{4}-\d{2}$/']]);
