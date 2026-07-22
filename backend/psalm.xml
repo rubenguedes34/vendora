@@ -17,6 +17,8 @@
         <ignoreFiles>
             <!-- Third-party installer script, not our code -->
             <file name="composer-setup.php" />
+            <!-- Polyfill for systems missing ext-intl; runtime-only -->
+            <file name="app/Support/NumberFormatterPolyfill.php" />
             <!-- Laravel framework internals resolved via stubs -->
             <directory name="vendor" />
         </ignoreFiles>
