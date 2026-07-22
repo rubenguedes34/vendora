@@ -6,6 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -15,11 +18,12 @@ use Illuminate\Notifications\Notifiable;
  * @property float|null $monthly_income
  * @property float|null $monthly_expenses
  * @property string|null $google_id
+ * @property \Carbon\Carbon|null $blacklisted_at
  * @property float $savings
  */
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +34,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'blacklisted_at',
         'monthly_income',
         'monthly_expenses',
         'google_id',
@@ -104,6 +109,22 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'blacklisted_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function isBlacklisted(): bool
+    {
+        return $this->blacklisted_at !== null;
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return $this->hasAnyRole(['admin', 'manager']);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->can('access admin panel');
+    }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\RecurrentTransactionController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WatchlistController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AdminController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -75,4 +76,16 @@ Route::middleware('auth.custom')->group(function () {
     // Recurrent transactions
     Route::post('/recurrent-transactions/copy', [RecurrentTransactionController::class, 'copyToMonth']);
     Route::apiResource('recurrent-transactions', RecurrentTransactionController::class);
+
+    // Admin routes
+    Route::middleware('permission:access admin panel')->prefix('admin')->group(function () {
+        Route::get('/dashboard-metrics', [AdminController::class, 'dashboardMetrics']);
+        Route::get('/users', [AdminController::class, 'users']);
+        Route::patch('/users/{user}/role', [AdminController::class, 'updateRole']);
+        Route::patch('/users/{user}/blacklist', [AdminController::class, 'toggleBlacklist']);
+        Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);
+        Route::get('/budgets-metrics', [AdminController::class, 'budgetsMetrics']);
+        Route::get('/investments-metrics', [AdminController::class, 'investmentsMetrics']);
+        Route::get('/transactions-metrics', [AdminController::class, 'transactionsMetrics']);
+    });
 });
