@@ -32,16 +32,17 @@ jobs:
           php-version: '8.2'
           extensions: dom, curl, libxml, mbstring, zip
 
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress
-
       - name: Prepare environment for Psalm
         run: |
+          mkdir -p database
           cp .env.example .env 2>/dev/null || echo "APP_ENV=testing" > .env
           echo "DB_CONNECTION=sqlite" >> .env
           echo "DB_DATABASE=/tmp/psalm-test.sqlite" >> .env
           touch /tmp/psalm-test.sqlite
           php artisan key:generate --quiet 2>/dev/null || true
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress
 
       - name: Bootstrap Psalm Laravel Plugin
         run: vendor/bin/psalm-plugin enable psalm/plugin-laravel || true
