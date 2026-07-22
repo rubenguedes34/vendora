@@ -111,6 +111,8 @@ export class FinancialService {
   private categoryCache = new Map<string, Observable<Category[]>>();
   private allCategoriesCache: Observable<Category[]> | null = null;
   private investmentsCache: Observable<any[]> | null = null;
+  private netWorthCache: Observable<NetWorth> | null = null;
+  private healthScoreCache: Observable<any> | null = null;
 
   constructor(
     private http: HttpClient,
@@ -120,6 +122,8 @@ export class FinancialService {
     this.authService.loggedOut$.subscribe(() => {
       this.clearCategoryCache();
       this.clearInvestmentsCache();
+      this.clearNetWorthCache();
+      this.clearHealthScoreCache();
     });
   }
 
@@ -130,6 +134,14 @@ export class FinancialService {
 
   clearInvestmentsCache(): void {
     this.investmentsCache = null;
+  }
+
+  clearNetWorthCache(): void {
+    this.netWorthCache = null;
+  }
+
+  clearHealthScoreCache(): void {
+    this.healthScoreCache = null;
   }
 
   getAllCategories(): Observable<Category[]> {
@@ -288,21 +300,45 @@ export class FinancialService {
   }
 
   getNetWorth(): Observable<NetWorth> {
-    return this.http.get<NetWorth>(`${this.apiUrl}/financial-records/net-worth`, {
-      headers: this.getHeaders()
-    }).pipe(
-      timeout(5000),
-      catchError(error => throwError(() => this.handleError(error)))
-    );
+    if (!this.netWorthCache) {
+      this.netWorthCache = this.http.get<NetWorth>(`${this.apiUrl}/financial-records/net-worth`, {
+        headers: this.getHeaders()
+      }).pipe(
+        timeout(8000),
+        catchError(error => {
+          this.netWorthCache = null;
+          return throwError(() => this.handleError(error));
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.netWorthCache;
+  }
+
+  refreshNetWorth(): Observable<NetWorth> {
+    this.clearNetWorthCache();
+    return this.getNetWorth();
   }
 
   getHealthScore(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/financial-records/health-score`, {
-      headers: this.getHeaders()
-    }).pipe(
-      timeout(8000),
-      catchError(error => throwError(() => this.handleError(error)))
-    );
+    if (!this.healthScoreCache) {
+      this.healthScoreCache = this.http.get<any>(`${this.apiUrl}/financial-records/health-score`, {
+        headers: this.getHeaders()
+      }).pipe(
+        timeout(10000),
+        catchError(error => {
+          this.healthScoreCache = null;
+          return throwError(() => this.handleError(error));
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.healthScoreCache;
+  }
+
+  refreshHealthScore(): Observable<any> {
+    this.clearHealthScoreCache();
+    return this.getHealthScore();
   }
 
   getAllocation(filters?: { account?: string; date_from?: string; date_to?: string; type?: string }): Observable<PortfolioAllocation> {

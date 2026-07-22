@@ -4,6 +4,30 @@
 
 /* You can add global styles to this file, and also import other style files */
 
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+/* Prevent iOS zoom on input focus */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Push fixed bottom UI above mobile gesture bars */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 :root {
   --primary-500: #14b8a6;
 }

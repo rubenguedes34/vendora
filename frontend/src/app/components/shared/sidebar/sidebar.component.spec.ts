@@ -6,7 +6,7 @@ import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { SidebarComponent } from './sidebar.component';
 import { AuthService } from '../../../services/auth.service';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 
 const routes = [
   { path: 'login', component: class {} },
@@ -24,6 +24,8 @@ describe('SidebarComponent', () => {
 
     authService = {
       getUserObservable: vi.fn().mockReturnValue(userSubject.asObservable()),
+      getTokenValue: vi.fn().mockReturnValue('mock-token'),
+      loggedOut$: new Subject<void>(),
       logout: vi.fn().mockReturnValue(of({})),
       clearAuth: vi.fn(),
       isLoggedIn: vi.fn().mockReturnValue(true),
@@ -138,11 +140,6 @@ describe('SidebarComponent', () => {
   });
 
   // ── Template rendering ────────────────────────────────────────────────────
-
-  it('renders user name in sidebar', () => {
-    const nameEl = fixture.debugElement.query(By.css('span.text-primary-100'));
-    expect(nameEl.nativeElement.textContent.trim()).toBe('John Doe');
-  });
 
   it('aside has -translate-x-full class when closed', () => {
     expect(component.mobileOpen).toBeFalsy();

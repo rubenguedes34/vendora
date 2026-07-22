@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FinancialCacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,19 @@ class Budget extends Model
     protected $casts = [
         'amount' => 'decimal:2',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saved(function (self $budget): void {
+            FinancialCacheService::clearForUser($budget->user);
+        });
+
+        static::deleted(function (self $budget): void {
+            FinancialCacheService::clearForUser($budget->user);
+        });
+    }
 
     public function user()
     {

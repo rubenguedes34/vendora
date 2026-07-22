@@ -12,6 +12,6 @@ export class App {
   protected readonly title = signal('frontend');
 
   constructor(private themeService: ThemeService) {
-    this.themeService.getSavedTheme();
+    this.themeService.setTheme(this.themeService.getSavedTheme());
   }
 }

@@ -24,7 +24,7 @@ interface EnrichedItem extends WatchlistItem {
       <div class="min-h-screen bg-gray-100 flex">
         <app-sidebar></app-sidebar>
 
-        <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+        <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
           <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
         </main>
       </div>

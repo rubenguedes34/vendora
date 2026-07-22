@@ -179,122 +179,146 @@ class FinancialRecordController extends Controller
     {
         $user = $request->user();
 
-        // Load data once to avoid N+1 queries in the history loop
-        $transactions  = $user->transactions()->get(['type', 'transaction_date', 'amount']);
-        $investmentRows = $user->investments()->get(['type', 'purchase_date', 'current_amount', 'initial_amount']);
+        $result = Cache::remember(
+            "net-worth:{$user->id}",
+            now()->addMinutes(15),
+            function () use ($user) {
+                $now = now();
+                $historyWindowStart = $now->copy()->subMonths(13)->startOfMonth()->toDateString();
 
-        // ── Current snapshot ────────────────────────────────────────────────
-        $investmentValue = (float) $investmentRows->sum('current_amount');
-        $investmentCost  = (float) $investmentRows->sum('initial_amount');
+                // Aggregates are far cheaper than hydrating every row.
+                $totals = $user->transactions()
+                    ->selectRaw("type, SUM(amount) as total")
+                    ->groupBy('type')
+                    ->pluck('total', 'type')
+                    ->toArray();
 
-        $totalIncome   = (float) $transactions->where('type', 'income')->sum('amount');
-        $totalExpenses = (float) $transactions->where('type', 'expense')->sum('amount');
-        $cashBalance   = round($totalIncome - $totalExpenses, 2);
+                $totalIncome   = (float) ($totals['income'] ?? 0);
+                $totalExpenses = (float) ($totals['expense'] ?? 0);
+                $cashBalance   = round($totalIncome - $totalExpenses, 2);
 
-        $netWorth   = round($cashBalance + $investmentValue, 2);
-        $investGain = round($investmentValue - $investmentCost, 2);
-        $investRoi  = $investmentCost > 0
-            ? round(($investGain / $investmentCost) * 100, 2)
-            : 0;
+                $investmentSummary = $user->investments()
+                    ->selectRaw("SUM(initial_amount) as cost, SUM(current_amount) as value")
+                    ->first();
 
-        // ── Monthly / yearly deltas ──────────────────────────────────────────
-        $now           = now();
-        $monthStart    = $now->copy()->startOfMonth();
-        $yearStart     = $now->copy()->startOfYear();
+                $investmentValue = (float) $investmentSummary?->value ?? 0;
+                $investmentCost  = (float) $investmentSummary?->cost ?? 0;
+                $investGain      = round($investmentValue - $investmentCost, 2);
+                $investRoi       = $investmentCost > 0
+                    ? round(($investGain / $investmentCost) * 100, 2)
+                    : 0;
 
-        $incomeThisMonth  = (float) $transactions
-            ->where('type', 'income')
-            ->filter(fn ($t) => $t->transaction_date >= $monthStart)
-            ->sum('amount');
-        $expenseThisMonth = (float) $transactions
-            ->where('type', 'expense')
-            ->filter(fn ($t) => $t->transaction_date >= $monthStart)
-            ->sum('amount');
-        $monthlyChange = round($incomeThisMonth - $expenseThisMonth, 2);
+                $netWorth = round($cashBalance + $investmentValue, 2);
 
-        $incomeThisYear  = (float) $transactions
-            ->where('type', 'income')
-            ->filter(fn ($t) => $t->transaction_date >= $yearStart)
-            ->sum('amount');
-        $expenseThisYear = (float) $transactions
-            ->where('type', 'expense')
-            ->filter(fn ($t) => $t->transaction_date >= $yearStart)
-            ->sum('amount');
-        $yearlyChange = round($incomeThisYear - $expenseThisYear, 2);
+                // Monthly / yearly deltas use filtered aggregates instead of in-memory loops.
+                $monthStart = $now->copy()->startOfMonth();
+                $yearStart  = $now->copy()->startOfYear();
 
-        // ── 13-month history (current + 12 prior) ───────────────────────────
-        // Pre-sort and accumulate in a single pass instead of filtering on every month.
-        $incomeRows   = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
-        $expenseRows  = $transactions->where('type', 'expense')->sortBy('transaction_date')->values();
-        $investSorted = $investmentRows
-            ->filter(fn ($inv) => $inv->purchase_date)
-            ->sortBy('purchase_date')
-            ->values();
+                $monthlyIncome = (float) $user->transactions()
+                    ->where('type', 'income')
+                    ->whereDate('transaction_date', '>=', $monthStart)
+                    ->sum('amount');
+                $monthlyExpense = (float) $user->transactions()
+                    ->where('type', 'expense')
+                    ->whereDate('transaction_date', '>=', $monthStart)
+                    ->sum('amount');
+                $monthlyChange = round($monthlyIncome - $monthlyExpense, 2);
 
-        $incomeIdx  = 0;
-        $expenseIdx = 0;
-        $investIdx  = 0;
-        $cumulativeIncome  = 0.0;
-        $cumulativeExpense = 0.0;
-        $cumulativeInvest  = 0.0;
+                $yearlyIncome = (float) $user->transactions()
+                    ->where('type', 'income')
+                    ->whereDate('transaction_date', '>=', $yearStart)
+                    ->sum('amount');
+                $yearlyExpense = (float) $user->transactions()
+                    ->where('type', 'expense')
+                    ->whereDate('transaction_date', '>=', $yearStart)
+                    ->sum('amount');
+                $yearlyChange = round($yearlyIncome - $yearlyExpense, 2);
 
-        $history = [];
-        for ($i = 12; $i >= 0; $i--) {
-            $pointEnd = $now->copy()->subMonths($i)->endOfMonth();
-            $label    = $now->copy()->subMonths($i)->format('M y');
+                // History only needs the last 13 months of data.
+                $transactions  = $user->transactions()
+                    ->whereDate('transaction_date', '>=', $historyWindowStart)
+                    ->get(['type', 'transaction_date', 'amount']);
+                $investmentRows = $user->investments()
+                    ->whereDate('purchase_date', '>=', $historyWindowStart)
+                    ->orWhereNull('purchase_date')
+                    ->get(['type', 'purchase_date', 'current_amount', 'initial_amount']);
 
-            while ($incomeIdx < $incomeRows->count() && $incomeRows[$incomeIdx]->transaction_date <= $pointEnd) {
-                $cumulativeIncome += (float) $incomeRows[$incomeIdx]->amount;
-                $incomeIdx++;
+                $incomeRows   = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
+                $expenseRows  = $transactions->where('type', 'expense')->sortBy('transaction_date')->values();
+                $investSorted = $investmentRows
+                    ->filter(fn ($inv) => $inv->purchase_date)
+                    ->sortBy('purchase_date')
+                    ->values();
+
+                $incomeIdx  = 0;
+                $expenseIdx = 0;
+                $investIdx  = 0;
+                $cumulativeIncome  = 0.0;
+                $cumulativeExpense = 0.0;
+                $cumulativeInvest  = 0.0;
+
+                $history = [];
+                for ($i = 12; $i >= 0; $i--) {
+                    $pointEnd = $now->copy()->subMonths($i)->endOfMonth();
+                    $label    = $now->copy()->subMonths($i)->format('M y');
+
+                    while ($incomeIdx < $incomeRows->count() && $incomeRows[$incomeIdx]->transaction_date <= $pointEnd) {
+                        $cumulativeIncome += (float) $incomeRows[$incomeIdx]->amount;
+                        $incomeIdx++;
+                    }
+                    while ($expenseIdx < $expenseRows->count() && $expenseRows[$expenseIdx]->transaction_date <= $pointEnd) {
+                        $cumulativeExpense += (float) $expenseRows[$expenseIdx]->amount;
+                        $expenseIdx++;
+                    }
+                    while ($investIdx < $investSorted->count() && $investSorted[$investIdx]->purchase_date <= $pointEnd) {
+                        $cumulativeInvest += (float) $investSorted[$investIdx]->current_amount;
+                        $investIdx++;
+                    }
+
+                    $cash = round($cumulativeIncome - $cumulativeExpense, 2);
+
+                    $history[] = [
+                        'label'       => $label,
+                        'net_worth'   => round($cash + $cumulativeInvest, 2),
+                        'cash'        => $cash,
+                        'investments' => round($cumulativeInvest, 2),
+                    ];
+                }
+
+                // Asset allocation by investment type.
+                $allocation = $user->investments()
+                    ->selectRaw('type, SUM(current_amount) as value')
+                    ->groupBy('type')
+                    ->orderByDesc('value')
+                    ->get()
+                    ->map(fn ($row) => [
+                        'type'  => $row->type,
+                        'value' => round((float) $row->value, 2),
+                    ])
+                    ->values();
+
+                $allocationFull = collect([['type' => 'Cash', 'value' => max(0, $cashBalance)]])
+                    ->concat($allocation)
+                    ->values();
+
+                return [
+                    'net_worth'        => $netWorth,
+                    'cash_balance'     => $cashBalance,
+                    'investment_value' => $investmentValue,
+                    'investment_cost'  => $investmentCost,
+                    'investment_gain'  => $investGain,
+                    'investment_roi'   => $investRoi,
+                    'total_income'     => round($totalIncome, 2),
+                    'total_expenses'   => round($totalExpenses, 2),
+                    'monthly_change'   => $monthlyChange,
+                    'yearly_change'    => $yearlyChange,
+                    'history'          => $history,
+                    'allocation'       => $allocationFull,
+                ];
             }
-            while ($expenseIdx < $expenseRows->count() && $expenseRows[$expenseIdx]->transaction_date <= $pointEnd) {
-                $cumulativeExpense += (float) $expenseRows[$expenseIdx]->amount;
-                $expenseIdx++;
-            }
-            while ($investIdx < $investSorted->count() && $investSorted[$investIdx]->purchase_date <= $pointEnd) {
-                $cumulativeInvest += (float) $investSorted[$investIdx]->current_amount;
-                $investIdx++;
-            }
+        );
 
-            $cash = round($cumulativeIncome - $cumulativeExpense, 2);
-
-            $history[] = [
-                'label'       => $label,
-                'net_worth'   => round($cash + $cumulativeInvest, 2),
-                'cash'        => $cash,
-                'investments' => round($cumulativeInvest, 2),
-            ];
-        }
-
-        // ── Asset allocation (by investment type) ────────────────────────────
-        $allocation = $investmentRows
-            ->groupBy('type')
-            ->map(fn ($rows, $type) => [
-                'type'  => $type,
-                'value' => round((float) $rows->sum('current_amount'), 2),
-            ])
-            ->sortByDesc('value')
-            ->values();
-
-        // Add cash as an allocation bucket
-        $allocationFull = collect([['type' => 'Cash', 'value' => max(0, $cashBalance)]])
-            ->concat($allocation)
-            ->values();
-
-        return response()->json([
-            'net_worth'        => $netWorth,
-            'cash_balance'     => $cashBalance,
-            'investment_value' => $investmentValue,
-            'investment_cost'  => $investmentCost,
-            'investment_gain'  => $investGain,
-            'investment_roi'   => $investRoi,
-            'total_income'     => round($totalIncome, 2),
-            'total_expenses'   => round($totalExpenses, 2),
-            'monthly_change'   => $monthlyChange,
-            'yearly_change'    => $yearlyChange,
-            'history'          => $history,
-            'allocation'       => $allocationFull,
-        ]);
+        return response()->json($result);
     }
 
     public function allocation(Request $request)
@@ -358,10 +382,7 @@ class FinancialRecordController extends Controller
             "health-score:{$user->id}",
             now()->addMinutes(15),
             function () use ($user, $calculator) {
-                return [
-                    'score'   => $calculator->calculate($user),
-                    'history' => $calculator->history($user, 6),
-                ];
+                return $calculator->both($user, now(), 6);
             }
         );
 

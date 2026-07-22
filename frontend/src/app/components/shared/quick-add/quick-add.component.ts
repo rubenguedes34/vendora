@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { FinancialService, Category } from '../../../services/financial.service';
 import { AuthService } from '../../../services/auth.service';
 import { CurrencyService } from '../../../services/currency.service';
+import { VoiceService } from '../../../services/voice.service';
 import { environment } from '../../../../environments/environment';
 
 const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
@@ -17,7 +19,7 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
     <!-- FAB Button -->
     <button
       (click)="open = !open"
-      class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-xl hover:bg-primary-500 active:scale-95 transition-all flex items-center justify-center"
+      class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-xl hover:bg-primary-500 active:scale-95 transition-all flex items-center justify-center safe-bottom"
       title="Quick add">
       <svg class="w-7 h-7 transition-transform duration-200" [class.rotate-45]="open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -27,12 +29,12 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
     <!-- Modal backdrop -->
     <div *ngIf="open"
       (click)="close()"
-      class="fixed inset-0 z-40 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity">
     </div>
 
     <!-- Modal panel -->
     <div *ngIf="open"
-      class="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+      class="fixed bottom-[max(6rem,env(safe-area-inset-bottom)+4.5rem)] right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 max-h-[80dvh] flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
 
       <!-- Tab bar: Expense / Income / Investment -->
       <div class="flex border-b border-gray-200">
@@ -104,6 +106,32 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
         <p *ngIf="errorMsg" class="text-xs text-red-500">{{ errorMsg }}</p>
         <p *ngIf="successMsg" class="text-xs text-green-600 font-medium">{{ successMsg }}</p>
 
+        <!-- Voice input -->
+        <div *ngIf="voiceSupported" class="space-y-2">
+          <button *ngIf="!voiceListening" type="button" (click)="toggleVoice()"
+            class="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-primary-300 text-sm text-primary-700 hover:bg-primary-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            </svg>
+            Add by voice — covers amount, description & date
+          </button>
+          <button *ngIf="voiceListening" type="button" (click)="toggleVoice()"
+            class="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 hover:bg-red-100 transition-colors animate-pulse">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Stop listening
+          </button>
+          <p class="text-[10px] text-gray-400 leading-tight">
+            Try: <span class="italic">"Expense 42.50 groceries today"</span>, <span class="italic">"Income 2000 salary"</span>, <span class="italic">"Investment 500 Apple stock"</span>
+          </p>
+          <div *ngIf="voiceListening || voiceTranscript || voiceError" class="space-y-1">
+            <p *ngIf="voiceListening && !voiceTranscript" class="text-xs text-primary-600 font-medium animate-pulse">Listening...</p>
+            <p *ngIf="voiceTranscript" class="text-xs text-gray-600 italic">“{{ voiceTranscript }}”</p>
+            <p *ngIf="voiceError" class="text-xs text-red-500">{{ voiceError }}</p>
+          </div>
+        </div>
+
         <div class="flex gap-2 pt-1">
           <button type="button" (click)="close()"
             class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
@@ -153,6 +181,32 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
         <p *ngIf="invErrorMsg" class="text-xs text-red-500">{{ invErrorMsg }}</p>
         <p *ngIf="invSuccessMsg" class="text-xs text-purple-600 font-medium">{{ invSuccessMsg }}</p>
 
+        <!-- Voice input -->
+        <div *ngIf="voiceSupported" class="space-y-2">
+          <button *ngIf="!voiceListening" type="button" (click)="toggleVoice()"
+            class="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-purple-300 text-sm text-purple-700 hover:bg-purple-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            </svg>
+            Add by voice — covers amount, name & date
+          </button>
+          <button *ngIf="voiceListening" type="button" (click)="toggleVoice()"
+            class="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 hover:bg-red-100 transition-colors animate-pulse">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Stop listening
+          </button>
+          <p class="text-[10px] text-gray-400 leading-tight">
+            Try: <span class="italic">"Investment 500 Apple stock"</span>, <span class="italic">"Bought 1000 Bitcoin"</span>, <span class="italic">"ETF 250 S&P 500"</span>
+          </p>
+          <div *ngIf="voiceListening || voiceTranscript || voiceError" class="space-y-1">
+            <p *ngIf="voiceListening && !voiceTranscript" class="text-xs text-primary-600 font-medium animate-pulse">Listening...</p>
+            <p *ngIf="voiceTranscript" class="text-xs text-gray-600 italic">“{{ voiceTranscript }}”</p>
+            <p *ngIf="voiceError" class="text-xs text-red-500">{{ voiceError }}</p>
+          </div>
+        </div>
+
         <div class="flex gap-2 pt-1">
           <button type="button" (click)="close()"
             class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
@@ -167,7 +221,7 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
     </div>
   `
 })
-export class QuickAddComponent implements OnInit {
+export class QuickAddComponent implements OnInit, OnDestroy {
   open = false;
   private _activeTab: 'expense' | 'income' | 'investment' = 'expense';
   get activeTab() { return this._activeTab; }
@@ -196,12 +250,20 @@ export class QuickAddComponent implements OnInit {
   readonly investmentTypes = INVESTMENT_TYPES;
   private apiUrl = environment.apiUrl;
 
+  voiceSupported = false;
+  voiceListening = false;
+  voiceTranscript = '';
+  voiceError: string | null = null;
+
+  private voiceSub = new Subscription();
+
   constructor(
     private fb: FormBuilder,
     private financialService: FinancialService,
     private authService: AuthService,
     private http: HttpClient,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private voiceService: VoiceService
   ) {
     this.form = this.fb.group({
       amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -221,6 +283,22 @@ export class QuickAddComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.voiceSupported = this.voiceService.supported;
+    this.voiceSub.add(
+      this.voiceService.listening$.subscribe(listening => this.voiceListening = listening)
+    );
+    this.voiceSub.add(
+      this.voiceService.transcript$.subscribe(text => {
+        this.voiceTranscript = text;
+        if (text) {
+          this.applyVoiceCommand(text);
+        }
+      })
+    );
+    this.voiceSub.add(
+      this.voiceService.error$.subscribe(err => this.voiceError = err)
+    );
+
     this.loadingCategories = true;
     this.financialService.getAllCategories().subscribe({
       next: (cats) => {
@@ -230,6 +308,78 @@ export class QuickAddComponent implements OnInit {
       },
       error: () => { this.loadingCategories = false; }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.voiceSub.unsubscribe();
+    this.voiceService.stop();
+  }
+
+  toggleVoice(): void {
+    this.voiceError = null;
+    this.voiceTranscript = '';
+    this.voiceService.toggle();
+  }
+
+  private applyVoiceCommand(text: string): void {
+    const command = this.voiceService.parseCommand(text);
+    if (!command.type) return;
+
+    if (command.type === 'investment') {
+      this.activeTab = 'investment';
+      if (command.amount != null) {
+        this.invForm.patchValue({
+          initial_amount: command.amount,
+          current_amount: command.amount,
+        });
+      }
+      if (command.description) {
+        const guessedType = this.guessInvestmentType(command.description);
+        this.invForm.patchValue({
+          name: command.description,
+          type: guessedType,
+        });
+      }
+      if (command.date) {
+        this.invForm.patchValue({ purchase_date: command.date });
+      }
+    } else {
+      this.activeTab = command.type;
+      if (command.amount != null) {
+        this.form.patchValue({ amount: command.amount });
+      }
+      if (command.description) {
+        this.form.patchValue({ description: command.description });
+        const matched = this.guessCategory(command.description, command.type);
+        if (matched) {
+          this.form.patchValue({ category_id: String(matched.id) });
+        }
+      }
+      if (command.date) {
+        this.form.patchValue({ transaction_date: command.date });
+      }
+    }
+  }
+
+  private guessCategory(description: string, type: 'expense' | 'income'): Category | null {
+    const words = description.toLowerCase().split(/\s+/);
+    const candidates = this.allCategories.filter(c => c.type === type);
+    for (const word of words) {
+      const match = candidates.find(c => c.name.toLowerCase().includes(word) || word.includes(c.name.toLowerCase()));
+      if (match) return match;
+    }
+    return candidates[0] ?? null;
+  }
+
+  private guessInvestmentType(description: string): string {
+    const d = description.toLowerCase();
+    if (/(stock|share|equity)/.test(d)) return 'Stocks';
+    if (/(etf|index|fund)/.test(d)) return 'ETF';
+    if (/(crypto|bitcoin|ethereum|btc|eth)/.test(d)) return 'Crypto';
+    if (/(real estate|property|house|land)/.test(d)) return 'Real Estate';
+    if (/(bond|fixed income)/.test(d)) return 'Bonds';
+    if (/(savings|deposit)/.test(d)) return 'Savings Account';
+    return '';
   }
 
   filterCategories(): void {
@@ -302,5 +452,8 @@ export class QuickAddComponent implements OnInit {
     this.successMsg = '';
     this.invErrorMsg = '';
     this.invSuccessMsg = '';
+    this.voiceService.stop();
+    this.voiceTranscript = '';
+    this.voiceError = null;
   }
 }

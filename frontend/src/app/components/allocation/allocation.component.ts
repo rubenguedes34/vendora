@@ -27,7 +27,7 @@ const COLORS: Record<string, string> = {
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col sm:flex-row justify-between h-auto sm:h-16 py-3 sm:py-0 items-start sm:items-center gap-3">

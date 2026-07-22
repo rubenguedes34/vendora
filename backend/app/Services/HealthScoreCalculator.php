@@ -27,20 +27,22 @@ class HealthScoreCalculator
         $asOf ??= Carbon::today();
         $month = $asOf->format('Y-m');
 
-        $transactions = $user->transactions()
+        $lookbackStart = $asOf->copy()->subMonths(6)->startOfMonth();
+
+        $recentTransactions = $user->transactions()
             ->select(['type', 'transaction_date', 'amount', 'category_id'])
+            ->where('transaction_date', '>=', $lookbackStart)
             ->get();
 
-        $investments = $user->investments()
-            ->select(['current_amount'])
-            ->get();
+        $totalIncome = (float) $user->transactions()->where('type', 'income')->sum('amount');
+        $totalExpense = (float) $user->transactions()->where('type', 'expense')->sum('amount');
+        $investmentValue = (float) $user->investments()->sum('current_amount');
 
         $budgets = $user->budgets()
             ->where('month', $month)
             ->get(['category_id', 'amount', 'month']);
 
-        $maps = $this->buildMaps($transactions);
-        $investmentValue = (float) $investments->sum('current_amount');
+        $maps = $this->buildMaps($recentTransactions, $totalIncome, $totalExpense);
 
         return $this->evaluate($asOf, $maps, $budgets, $investmentValue, $user);
     }
@@ -48,14 +50,16 @@ class HealthScoreCalculator
     public function history(User $user, int $months = 6): array
     {
         $now = Carbon::today();
+        $lookbackStart = $now->copy()->subMonths($months)->startOfMonth();
 
-        $transactions = $user->transactions()
+        $recentTransactions = $user->transactions()
             ->select(['type', 'transaction_date', 'amount', 'category_id'])
+            ->where('transaction_date', '>=', $lookbackStart)
             ->get();
 
-        $investments = $user->investments()
-            ->select(['current_amount'])
-            ->get();
+        $totalIncome = (float) $user->transactions()->where('type', 'income')->sum('amount');
+        $totalExpense = (float) $user->transactions()->where('type', 'expense')->sum('amount');
+        $investmentValue = (float) $user->investments()->sum('current_amount');
 
         $startMonth = $now->copy()->subMonths($months - 1)->format('Y-m');
         $endMonth = $now->format('Y-m');
@@ -64,8 +68,7 @@ class HealthScoreCalculator
             ->whereBetween('month', [$startMonth, $endMonth])
             ->get(['category_id', 'amount', 'month']);
 
-        $maps = $this->buildMaps($transactions);
-        $investmentValue = (float) $investments->sum('current_amount');
+        $maps = $this->buildMaps($recentTransactions, $totalIncome, $totalExpense);
 
         $history = [];
         for ($i = $months - 1; $i >= 0; $i--) {
@@ -81,33 +84,74 @@ class HealthScoreCalculator
         return $history;
     }
 
-    private function buildMaps(Collection $transactions): array
+    public function both(User $user, ?Carbon $asOf = null, int $historyMonths = 6): array
+    {
+        $asOf ??= Carbon::today();
+        $month = $asOf->format('Y-m');
+        $historyStart = $asOf->copy()->subMonths($historyMonths)->startOfMonth();
+        $lookbackStart = $asOf->copy()->subMonths(6)->startOfMonth()->min($historyStart);
+
+        $recentTransactions = $user->transactions()
+            ->select(['type', 'transaction_date', 'amount', 'category_id'])
+            ->where('transaction_date', '>=', $lookbackStart)
+            ->get();
+
+        $totalIncome = (float) $user->transactions()->where('type', 'income')->sum('amount');
+        $totalExpense = (float) $user->transactions()->where('type', 'expense')->sum('amount');
+        $investmentValue = (float) $user->investments()->sum('current_amount');
+
+        $maps = $this->buildMaps($recentTransactions, $totalIncome, $totalExpense);
+
+        $startMonth = $asOf->copy()->subMonths($historyMonths - 1)->format('Y-m');
+        $endMonth = $month;
+
+        $budgets = $user->budgets()
+            ->whereBetween('month', [$startMonth, $endMonth])
+            ->get(['category_id', 'amount', 'month']);
+
+        $currentBudgets = $budgets->where('month', $month)->values();
+        $score = $this->evaluate($asOf, $maps, $currentBudgets, $investmentValue, $user);
+
+        $history = [];
+        for ($i = $historyMonths - 1; $i >= 0; $i--) {
+            $date = $asOf->copy()->subMonths($i);
+            $monthBudgets = $budgets->where('month', $date->format('Y-m'))->values();
+            $result = $this->evaluate($date, $maps, $monthBudgets, $investmentValue, $user);
+            $history[] = [
+                'month' => $date->format('M y'),
+                'score' => $result['overall_score'],
+            ];
+        }
+
+        return [
+            'score' => $score,
+            'history' => $history,
+        ];
+    }
+
+    private function buildMaps(Collection $transactions, float $totalIncome, float $totalExpense): array
     {
         $incomeByMonth = [];
         $expenseByMonth = [];
         $expenseByCategoryMonth = [];
-        $totalIncome = 0.0;
-        $totalExpense = 0.0;
 
         foreach ($transactions as $t) {
             $amount = (float) $t->amount;
             $month = $t->transaction_date ? $t->transaction_date->format('Y-m') : null;
 
+            if (!$month) {
+                continue;
+            }
+
             if ($t->type === 'income') {
-                $totalIncome += $amount;
-                if ($month) {
-                    $incomeByMonth[$month] = ($incomeByMonth[$month] ?? 0) + $amount;
-                }
+                $incomeByMonth[$month] = ($incomeByMonth[$month] ?? 0) + $amount;
                 continue;
             }
 
             if ($t->type === 'expense') {
-                $totalExpense += $amount;
-                if ($month) {
-                    $expenseByMonth[$month] = ($expenseByMonth[$month] ?? 0) + $amount;
-                    $categoryId = $t->category_id ?? 0;
-                    $expenseByCategoryMonth[$month][$categoryId] = ($expenseByCategoryMonth[$month][$categoryId] ?? 0) + $amount;
-                }
+                $expenseByMonth[$month] = ($expenseByMonth[$month] ?? 0) + $amount;
+                $categoryId = $t->category_id ?? 0;
+                $expenseByCategoryMonth[$month][$categoryId] = ($expenseByCategoryMonth[$month][$categoryId] ?? 0) + $amount;
             }
         }
 

@@ -26,7 +26,7 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">

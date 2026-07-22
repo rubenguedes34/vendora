@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -30,7 +30,7 @@ function allocationColor(type: string): string {
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
 
-      <main class="flex-1 overflow-auto pt-14 lg:pt-0">
+      <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
         <!-- Header -->
         <header class="bg-primary-700 text-white shadow-md">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -252,6 +252,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
     private authService: AuthService,
     private router: Router,
     public currencyService: CurrencyService,
+    private cd: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -271,13 +272,16 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
   load(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.financialService.getNetWorth().subscribe({
+    this.data = null;
+    this.needsRender = true;
+    this.financialService.refreshNetWorth().subscribe({
       next: (d) => {
         this.data = d;
         this.isLoading = false;
         this.needsRender = true;
+        this.cd.markForCheck();
       },
-      error: (e) => { this.errorMessage = e?.message || 'Failed to load net worth'; this.isLoading = false; }
+      error: (e) => { this.errorMessage = e?.message || 'Failed to load net worth'; this.isLoading = false; this.cd.markForCheck(); }
     });
   }
 

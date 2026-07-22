@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FinancialCacheService;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -32,6 +33,19 @@ class FinancialRecord extends Model
     public function getSavingsAttribute(): float
     {
         return (float) $this->monthly_income - (float) $this->monthly_expenses;
+    }
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saved(function (self $record): void {
+            FinancialCacheService::clearForUser($record->user);
+        });
+
+        static::deleted(function (self $record): void {
+            FinancialCacheService::clearForUser($record->user);
+        });
     }
 
     public function getSavingsGoalAmountAttribute(): float

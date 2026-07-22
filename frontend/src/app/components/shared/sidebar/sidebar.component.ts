@@ -32,7 +32,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
 
     <!-- Sidebar -->
     <aside
-      class="fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50 w-64 h-screen bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col transition-transform duration-300 lg:translate-x-0"
+      class="fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50 w-64 h-[100dvh] lg:h-screen bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col transition-transform duration-300 lg:translate-x-0"
       [class.translate-x-0]="mobileOpen"
       [class.-translate-x-full]="!mobileOpen">
 
