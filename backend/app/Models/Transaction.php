@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $notes
  * @property string|null $attachment_path
  * @property \Illuminate\Database\Eloquent\Collection<Tag> $tags
+ * @property-read User $user
  */
 class Transaction extends Model
 {

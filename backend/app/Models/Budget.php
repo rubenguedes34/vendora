@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $category_id
  * @property string $amount
  * @property string $month
+ * @property-read User $user
  */
 class Budget extends Model
 {

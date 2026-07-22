@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float|null $savings_goal
  * @property string|null $savings_goal_type
  * @property float $savings
+ * @property-read User $user
  */
 class FinancialRecord extends Model
 {

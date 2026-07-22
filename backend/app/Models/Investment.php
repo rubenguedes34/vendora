@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $units
  * @property string|null $price_per_unit
  * @property \Carbon\Carbon $purchase_date
+ * @property-read User $user
  */
 class Investment extends Model
 {

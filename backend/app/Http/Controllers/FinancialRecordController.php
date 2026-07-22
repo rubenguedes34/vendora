@@ -201,8 +201,8 @@ class FinancialRecordController extends Controller
                     ->selectRaw("SUM(initial_amount) as cost, SUM(current_amount) as value")
                     ->first();
 
-                $investmentValue = (float) $investmentSummary?->value ?? 0;
-                $investmentCost  = (float) $investmentSummary?->cost ?? 0;
+                $investmentValue = (float) $investmentSummary?->value;
+                $investmentCost  = (float) $investmentSummary?->cost;
                 $investGain      = round($investmentValue - $investmentCost, 2);
                 $investRoi       = $investmentCost > 0
                     ? round(($investGain / $investmentCost) * 100, 2)
