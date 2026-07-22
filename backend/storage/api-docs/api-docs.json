@@ -481,6 +481,33 @@
             }
         },
         "/api/budgets/{budget}": {
+            "delete": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Delete a budget",
+                "operationId": "50b5dbe95a64bb5096ad44800351c02b",
+                "parameters": [
+                    {
+                        "name": "budget",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Budget deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Budgets"
@@ -549,33 +576,6 @@
                 "responses": {
                     "200": {
                         "description": "Budget updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Budgets"
-                ],
-                "summary": "Delete a budget",
-                "operationId": "50b5dbe95a64bb5096ad44800351c02b",
-                "parameters": [
-                    {
-                        "name": "budget",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Budget deleted"
                     }
                 },
                 "security": [
@@ -689,6 +689,33 @@
             }
         },
         "/api/categories/{category}": {
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete a category",
+                "operationId": "d9ecd5c4a74c4d75339251863eedc08c",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Categories"
@@ -764,33 +791,6 @@
                 "responses": {
                     "200": {
                         "description": "Category updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Categories"
-                ],
-                "summary": "Delete a category",
-                "operationId": "d9ecd5c4a74c4d75339251863eedc08c",
-                "parameters": [
-                    {
-                        "name": "category",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Category deleted"
                     }
                 },
                 "security": [
@@ -1019,6 +1019,33 @@
             }
         },
         "/api/financial-records/{financial_record}": {
+            "delete": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Delete a financial record",
+                "operationId": "f73fdb46ffb4e63f9aa69a14ba86238c",
+                "parameters": [
+                    {
+                        "name": "financial_record",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Financial record deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Financial Records"
@@ -1093,33 +1120,6 @@
                 "responses": {
                     "200": {
                         "description": "Financial record updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Financial Records"
-                ],
-                "summary": "Delete a financial record",
-                "operationId": "f73fdb46ffb4e63f9aa69a14ba86238c",
-                "parameters": [
-                    {
-                        "name": "financial_record",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Financial record deleted"
                     }
                 },
                 "security": [
@@ -1204,6 +1204,33 @@
             }
         },
         "/api/investments/{investment}": {
+            "delete": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Delete an investment",
+                "operationId": "0a4739ecd1c8f3534ab210f341739a5d",
+                "parameters": [
+                    {
+                        "name": "investment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Investment deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Investments"
@@ -1281,33 +1308,6 @@
                 "responses": {
                     "200": {
                         "description": "Investment updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Investments"
-                ],
-                "summary": "Delete an investment",
-                "operationId": "0a4739ecd1c8f3534ab210f341739a5d",
-                "parameters": [
-                    {
-                        "name": "investment",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Investment deleted"
                     }
                 },
                 "security": [
@@ -1715,6 +1715,33 @@
             }
         },
         "/api/recurrent-transactions/{recurrent_transaction}": {
+            "delete": {
+                "tags": [
+                    "Recurrent Transactions"
+                ],
+                "summary": "Delete a recurrent transaction",
+                "operationId": "77219a7abd0c2b658fd24fdcd78096de",
+                "parameters": [
+                    {
+                        "name": "recurrent_transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recurrent transaction deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Recurrent Transactions"
@@ -1794,33 +1821,6 @@
                 "responses": {
                     "200": {
                         "description": "Recurrent transaction updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Recurrent Transactions"
-                ],
-                "summary": "Delete a recurrent transaction",
-                "operationId": "77219a7abd0c2b658fd24fdcd78096de",
-                "parameters": [
-                    {
-                        "name": "recurrent_transaction",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Recurrent transaction deleted"
                     }
                 },
                 "security": [
@@ -1980,6 +1980,33 @@
             }
         },
         "/api/tags/{tag}": {
+            "delete": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete a tag",
+                "operationId": "383a246a07edec1e79fc652a61402685",
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Tags"
@@ -2017,33 +2044,6 @@
                 "responses": {
                     "200": {
                         "description": "Tag updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Tags"
-                ],
-                "summary": "Delete a tag",
-                "operationId": "383a246a07edec1e79fc652a61402685",
-                "parameters": [
-                    {
-                        "name": "tag",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tag deleted"
                     }
                 },
                 "security": [
@@ -2178,33 +2178,6 @@
             }
         },
         "/api/transactions/{id}/attachment": {
-            "get": {
-                "tags": [
-                    "Transactions"
-                ],
-                "summary": "Serve a transaction attachment",
-                "operationId": "170cad65813c124100c539f98c957cdb",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Attachment file"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
             "delete": {
                 "tags": [
                     "Transactions"
@@ -2231,9 +2204,63 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Serve a transaction attachment",
+                "operationId": "170cad65813c124100c539f98c957cdb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment file"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/transactions/{transaction}": {
+            "delete": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Delete a transaction",
+                "operationId": "5ac55b483b75b2b80a812c542c974181",
+                "parameters": [
+                    {
+                        "name": "transaction",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "get": {
                 "tags": [
                     "Transactions"
@@ -2321,33 +2348,6 @@
                 "responses": {
                     "200": {
                         "description": "Transaction updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Transactions"
-                ],
-                "summary": "Delete a transaction",
-                "operationId": "5ac55b483b75b2b80a812c542c974181",
-                "parameters": [
-                    {
-                        "name": "transaction",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Transaction deleted"
                     }
                 },
                 "security": [
@@ -2569,40 +2569,28 @@
     },
     "tags": [
         {
+            "name": "Admin",
+            "description": "Admin panel endpoints"
+        },
+        {
             "name": "Auth",
             "description": "Authentication endpoints"
-        },
-        {
-            "name": "Setup",
-            "description": "Initial user setup"
-        },
-        {
-            "name": "Categories",
-            "description": "Category management"
-        },
-        {
-            "name": "Transactions",
-            "description": "Transaction management"
         },
         {
             "name": "Budgets",
             "description": "Budget management"
         },
         {
+            "name": "Categories",
+            "description": "Category management"
+        },
+        {
             "name": "Financial Records",
             "description": "Monthly financial records"
         },
         {
-            "name": "Recurrent Transactions",
-            "description": "Monthly recurrent transactions"
-        },
-        {
             "name": "Investments",
             "description": "Investment management"
-        },
-        {
-            "name": "Watchlist",
-            "description": "Market watchlist"
         },
         {
             "name": "Market Data",
@@ -2613,12 +2601,24 @@
             "description": "User notifications"
         },
         {
+            "name": "Recurrent Transactions",
+            "description": "Monthly recurrent transactions"
+        },
+        {
+            "name": "Setup",
+            "description": "Initial user setup"
+        },
+        {
             "name": "Tags",
             "description": "Transaction tags"
         },
         {
-            "name": "Admin",
-            "description": "Admin panel endpoints"
+            "name": "Transactions",
+            "description": "Transaction management"
+        },
+        {
+            "name": "Watchlist",
+            "description": "Market watchlist"
         }
     ]
 }
