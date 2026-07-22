@@ -39,12 +39,20 @@ describe('ThemePickerComponent', () => {
   });
 
   it('renders a button for each theme', () => {
-    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    const toggle = fixture.debugElement.query(By.css('button'));
+    toggle.nativeElement.click();
+    fixture.detectChanges();
+
+    const buttons = fixture.debugElement.queryAll(By.css('button[title]'));
     expect(buttons.length).toBe(themeService.themes.length);
   });
 
   it('updates the active theme and service when a swatch is clicked', () => {
-    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    const toggle = fixture.debugElement.query(By.css('button'));
+    toggle.nativeElement.click();
+    fixture.detectChanges();
+
+    const buttons = fixture.debugElement.queryAll(By.css('button[title]'));
     const firstTheme = component.themes[0];
     const target = component.themes[1];
 
