@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { environment } from '../../../../environments/environment';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
 import { QuickAddComponent } from '../quick-add/quick-add.component';
@@ -104,9 +105,8 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
           <span class="font-semibold">Health Score</span>
         </a>
 
-        <a *ngIf="canAccessAdmin" routerLink="/admin" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/admin')">
+        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_self" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -146,6 +146,7 @@ export class SidebarComponent implements OnInit {
   user: any = null;
   initials = '';
   mobileOpen = false;
+  adminUrl = environment.backendUrl + '/admin';
 
   get canAccessAdmin(): boolean {
     return this.user?.roles?.some((role: string) => ['admin', 'manager'].includes(role)) ?? false;

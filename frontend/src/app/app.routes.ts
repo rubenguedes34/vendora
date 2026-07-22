@@ -5,7 +5,6 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { AuthService } from './services/auth.service';
-import { adminGuard } from './guards/admin.guard';
 
 const homeGuard = () => {
   const auth = inject(AuthService);
@@ -36,5 +35,4 @@ export const routes: Routes = [
   { path: 'net-worth', canActivate: [authGuard], loadComponent: () => import('./components/net-worth/net-worth.component').then(m => m.NetWorthComponent) },
   { path: 'notifications', canActivate: [authGuard], loadComponent: () => import('./components/notifications/notifications.component').then(m => m.NotificationsComponent) },
   { path: 'health-score', canActivate: [authGuard], loadComponent: () => import('./components/health-score/health-score.component').then(m => m.HealthScoreComponent) },
-  { path: 'admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./components/admin/admin.component').then(m => m.AdminComponent) },
 ];
