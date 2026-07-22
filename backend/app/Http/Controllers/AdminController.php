@@ -118,9 +118,11 @@ class AdminController extends Controller
             ->join('categories', 'categories.id', '=', 'budgets.category_id')
             ->when($search, function ($query, $search) {
                 $term = "%{$search}%";
-                $query->whereHas('user', function ($q) use ($term) {
-                    $q->where('name', 'like', $term)->orWhere('email', 'like', $term);
-                })->orWhere('categories.name', 'like', $term);
+                $query->where(function ($q) use ($term) {
+                    $q->whereHas('user', function ($uq) use ($term) {
+                        $uq->where('name', 'like', $term)->orWhere('email', 'like', $term);
+                    })->orWhere('categories.name', 'like', $term);
+                });
             })
             ->when($year, function ($query, $year) {
                 $query->whereRaw("SUBSTRING(month, 1, 4) = ?", [$year]);
@@ -162,10 +164,12 @@ class AdminController extends Controller
             ->with('user:id,name,email')
             ->when($search, function ($query, $search) {
                 $term = "%{$search}%";
-                $query->where('name', 'like', $term)
-                    ->orWhereHas('user', function ($q) use ($term) {
-                        $q->where('name', 'like', $term)->orWhere('email', 'like', $term);
-                    });
+                $query->where(function ($q) use ($term) {
+                    $q->where('name', 'like', $term)
+                        ->orWhereHas('user', function ($uq) use ($term) {
+                            $uq->where('name', 'like', $term)->orWhere('email', 'like', $term);
+                        });
+                });
             })
             ->when($year, function ($query, $year) {
                 $query->whereYear('purchase_date', $year);
@@ -210,13 +214,15 @@ class AdminController extends Controller
             ->with('category:id,name,type,color', 'user:id,name,email')
             ->when($search, function ($query, $search) {
                 $term = "%{$search}%";
-                $query->where('description', 'like', $term)
-                    ->orWhereHas('user', function ($q) use ($term) {
-                        $q->where('name', 'like', $term)->orWhere('email', 'like', $term);
-                    })
-                    ->orWhereHas('category', function ($q) use ($term) {
-                        $q->where('name', 'like', $term);
-                    });
+                $query->where(function ($q) use ($term) {
+                    $q->where('description', 'like', $term)
+                        ->orWhereHas('user', function ($uq) use ($term) {
+                            $uq->where('name', 'like', $term)->orWhere('email', 'like', $term);
+                        })
+                        ->orWhereHas('category', function ($cq) use ($term) {
+                            $cq->where('name', 'like', $term);
+                        });
+                });
             })
             ->when($year, function ($query, $year) {
                 $query->whereYear('transaction_date', $year);
