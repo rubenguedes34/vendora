@@ -21,10 +21,6 @@ return new class extends Migration
             $table->index('category_id', 'transactions_category_id_index');
         });
 
-        Schema::table('investments', function (Blueprint $table) {
-            $table->index('user_id', 'investments_user_id_index');
-        });
-
         Schema::table('categories', function (Blueprint $table) {
             $table->index('user_id', 'categories_user_id_index');
         });
@@ -43,10 +39,6 @@ return new class extends Migration
         Schema::table('transactions', function (Blueprint $table) {
             $table->dropIndex('transactions_user_id_index');
             $table->dropIndex('transactions_category_id_index');
-        });
-
-        Schema::table('investments', function (Blueprint $table) {
-            $table->dropIndex('investments_user_id_index');
         });
 
         Schema::table('categories', function (Blueprint $table) {

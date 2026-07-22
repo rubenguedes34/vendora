@@ -12,12 +12,20 @@ if (! class_exists('NumberFormatter')) {
         private string $locale;
         private int $style;
 
+        /**
+         * @psalm-suppress UndefinedThisPropertyAssignment
+         * @psalm-suppress RedundantCondition
+         * @psalm-suppress TypeDoesNotContainNull
+         */
         public function __construct(?string $locale = null, int $style = self::DECIMAL, int $pattern = 0)
         {
             $this->locale = $locale ?? 'en';
             $this->style = $style;
         }
 
+        /**
+         * @psalm-suppress UndefinedThisPropertyFetch
+         */
         public function format(float|int $num): string
         {
             return match ($this->style) {
