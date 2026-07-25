@@ -5,6 +5,9 @@ namespace App\Providers\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Widgets\AdminStatsOverview;
+use App\Filament\Widgets\InvestmentsByTypeChart;
+use App\Filament\Widgets\LatestUsersTable;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -36,9 +39,11 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
+                AdminStatsOverview::class,
+                InvestmentsByTypeChart::class,
+                LatestUsersTable::class,
                 Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
