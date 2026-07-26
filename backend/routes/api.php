@@ -15,6 +15,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\WatchlistController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AiChatController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -76,6 +77,10 @@ Route::middleware('auth.custom')->group(function () {
     // Recurrent transactions
     Route::post('/recurrent-transactions/copy', [RecurrentTransactionController::class, 'copyToMonth']);
     Route::apiResource('recurrent-transactions', RecurrentTransactionController::class);
+
+    // AI support routes
+    Route::post('/ai/chat', [AiChatController::class, 'chat']);
+    Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
 
     // Admin routes
     Route::middleware('permission:access admin panel')->prefix('admin')->group(function () {

@@ -35,4 +35,5 @@ export const routes: Routes = [
   { path: 'net-worth', canActivate: [authGuard], loadComponent: () => import('./components/net-worth/net-worth.component').then(m => m.NetWorthComponent) },
   { path: 'notifications', canActivate: [authGuard], loadComponent: () => import('./components/notifications/notifications.component').then(m => m.NotificationsComponent) },
   { path: 'health-score', canActivate: [authGuard], loadComponent: () => import('./components/health-score/health-score.component').then(m => m.HealthScoreComponent) },
+  { path: 'ai-support', canActivate: [authGuard], loadComponent: () => import('./components/ai-support/ai-support.component').then(m => m.AiSupportComponent) },
 ];
