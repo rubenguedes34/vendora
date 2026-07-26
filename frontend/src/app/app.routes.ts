@@ -6,24 +6,42 @@ import { RegisterComponent } from './components/register/register.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { AuthService } from './services/auth.service';
 
+const needsSetup = (auth: AuthService): boolean => auth.getUserValue()?.needs_setup !== false;
+
 const homeGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isLoggedIn() ? router.parseUrl('/dashboard') : router.parseUrl('/login');
+  if (!auth.isLoggedIn()) return router.parseUrl('/login');
+  return needsSetup(auth) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
+};
+
+const guestGuard = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.isLoggedIn()) return true;
+  return needsSetup(auth) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
 };
 
 const authGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isLoggedIn() ? true : router.parseUrl('/login');
+  if (!auth.isLoggedIn()) return router.parseUrl('/login');
+  return needsSetup(auth) ? router.parseUrl('/setup') : true;
+};
+
+const setupGuard = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.isLoggedIn()) return router.parseUrl('/login');
+  return needsSetup(auth) ? true : router.parseUrl('/dashboard');
 };
 
 export const routes: Routes = [
   { path: '', canActivate: [homeGuard], component: LoginComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+  { path: 'login', canActivate: [guestGuard], component: LoginComponent },
+  { path: 'register', canActivate: [guestGuard], component: RegisterComponent },
   { path: 'auth/callback', component: AuthCallbackComponent },
-  { path: 'setup', loadComponent: () => import('./components/setup/setup.component').then(m => m.SetupComponent) },
+  { path: 'setup', canActivate: [setupGuard], loadComponent: () => import('./components/setup/setup.component').then(m => m.SetupComponent) },
   { path: 'dashboard', canActivate: [authGuard], loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent) },
   { path: 'transactions', canActivate: [authGuard], loadComponent: () => import('./components/transactions/transactions.component').then(m => m.TransactionsComponent) },
   { path: 'budgets', canActivate: [authGuard], loadComponent: () => import('./components/budget/budget.component').then(m => m.BudgetComponent) },
