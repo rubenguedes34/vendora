@@ -10,12 +10,15 @@ use App\Filament\Widgets\InvestmentsByTypeChart;
 use App\Filament\Widgets\LatestTransactionsTable;
 use App\Filament\Widgets\LatestUsersTable;
 use App\Filament\Widgets\RegistrationChart;
+use Filament\Facades\Filament;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use App\Models\User;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -63,6 +66,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): string => Blade::render("@include('filament.dashboard-return-link')")
+            );
     }
 }

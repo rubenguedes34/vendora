@@ -40,7 +40,7 @@ class AuthController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
+                'password' => 'required|string|min:8|max:72|confirmed',
             ]);
 
             $user = User::create([
@@ -103,8 +103,8 @@ class AuthController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|string|email',
-                'password' => 'required|string',
+                'email' => 'required|string|email|max:255',
+                'password' => 'required|string|max:72',
             ]);
 
             if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
@@ -225,8 +225,8 @@ class AuthController extends Controller
         $request->validate([
             'name'             => 'required|string|max:255',
             'email'            => 'required|email|max:255|unique:users,email,' . $user->id,
-            'monthly_income'   => 'nullable|numeric|min:0',
-            'monthly_expenses' => 'nullable|numeric|min:0',
+            'monthly_income'   => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
+            'monthly_expenses' => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
         ]);
 
         $user->update([
@@ -263,8 +263,8 @@ class AuthController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'current_password'  => 'required|string',
-            'password'          => 'required|string|min:8|confirmed',
+            'current_password'  => 'required|string|max:72',
+            'password'          => 'required|string|min:8|max:72|confirmed',
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {

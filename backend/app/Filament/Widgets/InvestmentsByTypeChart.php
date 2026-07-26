@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class InvestmentsByTypeChart extends ChartWidget
 {
-    protected static ?string $heading = 'Investments by Type';
+    protected ?string $heading = 'Investments by Type';
 
     protected int|string|array $columnSpan = 2;
 

@@ -18,9 +18,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiChatController;
 
 // Public routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/setup', [SetupController::class, 'store']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/setup', [SetupController::class, 'store'])->middleware('throttle:10,1');
 
 // Protected routes - using custom auth middleware
 Route::middleware('auth.custom')->group(function () {

@@ -40,11 +40,11 @@ class AdminStatsOverview extends BaseWidget
                 ->color('info'),
             Stat::make('Total Income', (float) Transaction::where('type', 'income')->sum('amount'))
                 ->description('All-time income')
-                ->descriptionIcon('heroicon-m-arrow-trend-up')
+                ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success'),
             Stat::make('Total Expenses', (float) Transaction::where('type', 'expense')->sum('amount'))
                 ->description('All-time expenses')
-                ->descriptionIcon('heroicon-m-arrow-trend-down')
+                ->descriptionIcon('heroicon-m-arrow-trending-down')
                 ->color('danger'),
             Stat::make('Total Budgeted', (float) Budget::sum('amount'))
                 ->description('All budgets')

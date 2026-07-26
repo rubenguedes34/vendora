@@ -31,6 +31,9 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <h2 class="text-xl font-semibold">Investments</h2>
+              <button (click)="toggleForm()" class="bg-white text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-50 transition-colors">
+                {{ showForm ? 'Close form' : '+ Add investment' }}
+              </button>
             </div>
           </div>
         </header>
@@ -151,7 +154,7 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
             </div>
 
             <!-- Add/Edit Form panel -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
+            <div *ngIf="showForm" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">{{ editingId ? 'Edit Investment' : 'Add Investment' }}</h3>
                 <button *ngIf="editingId" (click)="cancelEdit()" class="text-xs text-gray-400 hover:text-gray-600">✕ Cancel</button>
@@ -426,8 +429,18 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
             </div>
           </div>
 
-          <!-- ===== MARKET EXPLORER ===== -->
           <div class="mt-8">
+            <button (click)="toggleMarketExplorer()" class="w-full flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-4 text-left hover:border-purple-200 transition-colors">
+              <span>
+                <span class="block text-sm font-semibold text-gray-800">Market Explorer</span>
+                <span class="block text-xs text-gray-400 mt-0.5">Browse live crypto, stocks and your watchlist when you need it.</span>
+              </span>
+              <svg class="w-5 h-5 text-gray-400 transition-transform" [class.rotate-180]="showMarketExplorer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+
+          <!-- ===== MARKET EXPLORER ===== -->
+          <div *ngIf="showMarketExplorer" class="mt-4">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-bold text-gray-800">Market Explorer</h2>
               <span class="text-xs text-gray-400">CoinGecko · Finnhub</span>
@@ -684,6 +697,7 @@ export class InvestmentsComponent implements OnInit {
 
   // Market explorer
   marketTab: 'crypto' | 'stocks' | 'watchlist' = 'crypto';
+  showMarketExplorer = false;
 
   // Crypto
   coins: any[] = [];
@@ -799,8 +813,14 @@ export class InvestmentsComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadInvestments(true);
-    this.loadCrypto();
+    this.loadInvestments();
+  }
+
+  toggleMarketExplorer(): void {
+    this.showMarketExplorer = !this.showMarketExplorer;
+    if (this.showMarketExplorer && this.marketTab === 'crypto' && this.coins.length === 0) {
+      this.loadCrypto();
+    }
   }
 
   loadInvestments(forceRefresh = false): void {
@@ -811,7 +831,6 @@ export class InvestmentsComponent implements OnInit {
         this.investments = data;
         this.recalcTotals();
         this.isLoading = false;
-        this.autoRefreshPrices(data);
       },
       error: (err: any) => {
         this.isLoading = false;

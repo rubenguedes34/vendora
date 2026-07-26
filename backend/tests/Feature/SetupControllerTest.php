@@ -75,6 +75,21 @@ class SetupControllerTest extends TestCase
         ]);
     }
 
+    public function test_setup_rejects_invalid_amount_precision_and_range(): void
+    {
+        $user = User::factory()->create();
+        $token = TokenService::issue($user);
+
+        $response = $this->postJson('/api/setup', [
+            'token' => $token,
+            'monthly_income' => 100.999,
+            'monthly_expenses' => 100000000,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['monthly_income', 'monthly_expenses']);
+    }
+
     public function test_setup_validates_required_fields(): void
     {
         /** @var User $user */
