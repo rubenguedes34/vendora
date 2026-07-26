@@ -41,9 +41,7 @@ Vendora is a modern, intuitive financial ecosystem designed to help individuals 
 | `http://localhost:8000` | Laravel backend |
 | `http://localhost:8000/admin` | Filament admin panel |
 | `http://localhost:8000/api/documentation` | Swagger UI |
-| `http://localhost:8000/docs?api-docs.json` | OpenAPI JSON |
 
 ## 📝 Notes
 
-- The admin panel includes a persistent **Back to Dashboard** link that returns to the Angular dashboard.
 - AI chat falls back to FAQ-based answers when `OPENAI_API_KEY` is not set.
