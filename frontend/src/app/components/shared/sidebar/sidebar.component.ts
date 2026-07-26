@@ -105,7 +105,7 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
           <span class="font-semibold">Health Score</span>
         </a>
 
-        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_blank" rel="noopener noreferrer" (click)="openAdmin($event)"
+        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_blank" rel="noopener noreferrer" (click)="mobileOpen = false"
           class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors cursor-pointer"
           title="Open admin panel">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,12 +170,6 @@ export class SidebarComponent implements OnInit {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.mobileOpen = false;
-  }
-
-  openAdmin(event: MouseEvent): void {
-    event.preventDefault();
-    this.mobileOpen = false;
-    window.open(this.adminUrl, '_blank');
   }
 
   logout(): void {

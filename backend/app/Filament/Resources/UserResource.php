@@ -77,6 +77,7 @@ class UserResource extends Resource
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Roles')
                     ->badge()
                     ->separator(','),
                 Tables\Columns\TextColumn::make('created_at')
@@ -99,6 +100,7 @@ class UserResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('assignRole')
                         ->icon('heroicon-m-user-plus')
+                        ->label('Assign role')
                         ->form([
                             Forms\Components\Select::make('role')
                                 ->options(Role::pluck('name', 'name'))
@@ -108,6 +110,21 @@ class UserResource extends Resource
                             $role = Role::findByName($data['role'], 'web');
                             foreach ($records as $record) {
                                 $record->assignRole($role);
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('removeRole')
+                        ->icon('heroicon-m-user-minus')
+                        ->label('Remove role')
+                        ->form([
+                            Forms\Components\Select::make('role')
+                                ->options(Role::pluck('name', 'name'))
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data): void {
+                            $role = Role::findByName($data['role'], 'web');
+                            foreach ($records as $record) {
+                                $record->removeRole($role);
                             }
                         })
                         ->deselectRecordsAfterCompletion(),

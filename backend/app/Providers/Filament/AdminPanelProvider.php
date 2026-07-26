@@ -7,7 +7,9 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Widgets\AdminStatsOverview;
 use App\Filament\Widgets\InvestmentsByTypeChart;
+use App\Filament\Widgets\LatestTransactionsTable;
 use App\Filament\Widgets\LatestUsersTable;
+use App\Filament\Widgets\RegistrationChart;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -43,7 +45,9 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 AdminStatsOverview::class,
                 InvestmentsByTypeChart::class,
+                RegistrationChart::class,
                 LatestUsersTable::class,
+                LatestTransactionsTable::class,
                 Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([

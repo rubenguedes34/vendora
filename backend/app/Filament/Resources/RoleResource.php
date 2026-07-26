@@ -52,10 +52,16 @@ class RoleResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('guard_name')
+                    ->label('Guard')
                     ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('users_count')
+                    ->counts('users')
+                    ->label('Users')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('permissions_count')
                     ->counts('permissions')
+                    ->label('Permissions')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

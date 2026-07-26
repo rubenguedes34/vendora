@@ -49,7 +49,7 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
+                    ->label('User')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')

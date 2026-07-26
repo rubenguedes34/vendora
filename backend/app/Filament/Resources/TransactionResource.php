@@ -59,11 +59,11 @@ class TransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
+                    ->label('User')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->numeric()
+                    ->label('Category')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
