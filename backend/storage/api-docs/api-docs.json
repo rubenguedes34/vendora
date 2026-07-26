@@ -2465,98 +2465,6 @@
                     }
                 ]
             }
-        },
-        "/api/watchlist": {
-            "get": {
-                "tags": [
-                    "Watchlist"
-                ],
-                "summary": "List watchlist items",
-                "operationId": "21ad718f4ed8ca05100b48d0e94d4469",
-                "responses": {
-                    "200": {
-                        "description": "Array of watchlist items"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Watchlist"
-                ],
-                "summary": "Add a symbol to the watchlist",
-                "operationId": "0d4b76ac0e299d4bcb38458e2f8ad2d0",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "symbol"
-                                ],
-                                "properties": {
-                                    "symbol": {
-                                        "type": "string"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "type": {
-                                        "type": "string"
-                                    },
-                                    "exchange": {
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Added to watchlist"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/watchlist/{watchlist}": {
-            "delete": {
-                "tags": [
-                    "Watchlist"
-                ],
-                "summary": "Remove an item from the watchlist",
-                "operationId": "29fdfa5bb90c65a5ffd417338f8d5b83",
-                "parameters": [
-                    {
-                        "name": "watchlist",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Removed from watchlist"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
         }
     },
     "components": {
@@ -2615,10 +2523,6 @@
         {
             "name": "Transactions",
             "description": "Transaction management"
-        },
-        {
-            "name": "Watchlist",
-            "description": "Market watchlist"
         }
     ]
 }
