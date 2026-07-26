@@ -1,9 +1,10 @@
 @if (filament()->auth()->check())
     <a
         href="{{ config('app.frontend_url') }}/dashboard"
-        class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
+        class="group flex items-center gap-1.5 mr-6 pr-6 border-r border-gray-700/40 text-xs font-medium text-gray-400 hover:text-white transition-colors"
+        title="Back to Vendora Dashboard"
     >
-        <x-filament::icon icon="heroicon-m-arrow-left" class="w-5 h-5" />
-        Back to Dashboard
+        <x-filament::icon icon="heroicon-m-arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        <span class="hidden sm:inline">Back to Dashboard</span>
     </a>
 @endif

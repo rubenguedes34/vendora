@@ -11,14 +11,13 @@ use App\Filament\Widgets\LatestTransactionsTable;
 use App\Filament\Widgets\LatestUsersTable;
 use App\Filament\Widgets\RegistrationChart;
 use Filament\Facades\Filament;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use App\Models\User;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -47,11 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 AdminStatsOverview::class,
-                InvestmentsByTypeChart::class,
-                RegistrationChart::class,
                 LatestUsersTable::class,
-                LatestTransactionsTable::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -67,9 +62,11 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->renderHook(
-                PanelsRenderHook::TOPBAR_START,
-                fn (): string => Blade::render("@include('filament.dashboard-return-link')")
-            );
+            ->navigationItems([
+                NavigationItem::make('Back to Dashboard')
+                    ->icon('heroicon-o-arrow-left')
+                    ->url(config('app.frontend_url') . '/dashboard', false)
+                    ->sort(-1000),
+            ]);
     }
 }

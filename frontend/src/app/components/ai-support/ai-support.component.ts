@@ -1,7 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
+import { timeout } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 interface Faq {
@@ -17,17 +20,29 @@ interface ChatMessage {
 @Component({
   selector: 'app-ai-support',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="p-6 max-w-4xl mx-auto">
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Support</h1>
-      <p class="text-gray-600 mb-6">Ask anything about Vendora or browse the FAQs below.</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Support</h1>
+          <p class="text-gray-600">Ask anything about Vendora or browse the FAQs below.</p>
+        </div>
+        <a routerLink="/dashboard"
+           class="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- FAQ list -->
         <div class="bg-white rounded-lg shadow p-4">
           <h2 class="text-lg font-semibold text-gray-800 mb-4">Frequently Asked Questions</h2>
           <div *ngIf="faqsLoading" class="text-gray-500">Loading FAQs...</div>
+          <div *ngIf="faqsError" class="text-red-600 text-sm bg-red-50 p-2 rounded">{{ faqsError }}</div>
           <div *ngIf="faqs.length" class="space-y-3">
             <div *ngFor="let faq of faqs" class="border rounded-md p-3 hover:bg-gray-50">
               <button (click)="useFaq(faq)" class="text-left font-medium text-primary-600 hover:underline w-full">
@@ -81,9 +96,11 @@ interface ChatMessage {
 })
 export class AiSupportComponent implements OnInit {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   faqs: Faq[] = [];
   faqsLoading = true;
+  faqsError = '';
   messages: ChatMessage[] = [
     { role: 'assistant', text: 'Hi! I am your Vendora AI assistant. How can I help you today?' }
   ];
@@ -91,17 +108,35 @@ export class AiSupportComponent implements OnInit {
   loading = false;
   error = '';
 
+  private headers(): HttpHeaders {
+    const token = this.authService.getTokenValue();
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
+  }
+
   ngOnInit(): void {
-    this.http.get<{ data: Faq[] }>(`${environment.apiUrl}/ai/faqs`).subscribe({
-      next: (res) => {
-        this.faqs = res.data;
-        this.faqsLoading = false;
-      },
-      error: () => {
-        this.faqs = [];
-        this.faqsLoading = false;
-      }
-    });
+    this.http.get<{ data: Faq[] }>(`${environment.apiUrl}/ai/faqs`, { headers: this.headers() })
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res) => {
+          this.faqs = res.data;
+          this.faqsLoading = false;
+        },
+        error: (err) => {
+          this.faqs = [];
+          this.faqsLoading = false;
+          if (err.name === 'TimeoutError' || err.status === 0) {
+            this.faqsError = 'Could not reach the backend. Make sure php artisan serve is running at ' + environment.backendUrl + '.';
+          } else if (err.status === 401) {
+            this.faqsError = 'Your session has expired. Please log in again.';
+          } else {
+            this.faqsError = err.error?.message || 'Could not load FAQs. Please try again.';
+          }
+        }
+      });
   }
 
   useFaq(faq: Faq): void {
@@ -117,15 +152,23 @@ export class AiSupportComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.http.post<{ message: string }>(`${environment.apiUrl}/ai/chat`, { message: text }).subscribe({
-      next: (res) => {
-        this.messages.push({ role: 'assistant', text: res.message });
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Could not get a response from the AI support service. Please try again.';
-        this.loading = false;
-      }
-    });
+    this.http.post<{ message: string }>(`${environment.apiUrl}/ai/chat`, { message: text }, { headers: this.headers() })
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res) => {
+          this.messages.push({ role: 'assistant', text: res.message });
+          this.loading = false;
+        },
+        error: (err) => {
+          if (err.name === 'TimeoutError' || err.status === 0) {
+            this.error = 'Could not reach the backend. Make sure php artisan serve is running at ' + environment.backendUrl + '.';
+          } else if (err.status === 401) {
+            this.error = 'Your session has expired. Please log in again.';
+          } else {
+            this.error = err.error?.message || 'Could not get a response from the AI support service. Please try again.';
+          }
+          this.loading = false;
+        }
+      });
   }
 }
