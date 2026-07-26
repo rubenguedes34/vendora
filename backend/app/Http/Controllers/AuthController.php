@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
+use Spatie\Permission\Models\Role;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\FinancialRecord;
@@ -47,6 +48,9 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+
+            Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+            $user->assignRole('user');
 
             $this->seedDefaultCategories($user);
 
@@ -111,6 +115,11 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
+            if ($user->isBlacklisted()) {
+                Auth::logout();
+                return response()->json(['message' => 'Your account has been suspended.'], 403);
+            }
+
             $currentYear = date('Y');
             $currentMonth = date('n');
 
@@ -139,6 +148,8 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'roles' => $user->getRoleNames()->values(),
+                    'blacklisted_at' => $user->blacklisted_at,
                     'monthly_income' => $financialRecord?->monthly_income ?? null,
                     'monthly_expenses' => $financialRecord?->monthly_expenses ?? null,
                     'current_year' => $currentYear,
@@ -190,6 +201,23 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/user/profile",
+     *     tags={"Auth"},
+     *     summary="Update user profile",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="monthly_income", type="number"),
+     *             @OA\Property(property="monthly_expenses", type="number")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Profile updated")
+     * )
+     */
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -214,6 +242,22 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/user/password",
+     *     tags={"Auth"},
+     *     summary="Update user password",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"current_password","password","password_confirmation"},
+     *             @OA\Property(property="current_password", type="string"),
+     *             @OA\Property(property="password", type="string", minLength=8),
+     *             @OA\Property(property="password_confirmation", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Password updated")
+     * )
+     */
     public function updatePassword(Request $request)
     {
         $user = $request->user();
@@ -258,6 +302,11 @@ class AuthController extends Controller
             $user = User::where('email', $googleUser->email)->first();
             $isNewUser = false;
 
+            if ($user && $user->isBlacklisted()) {
+                $frontendUrl = config('app.frontend_url');
+                return redirect($frontendUrl . '/login?error=' . urlencode('Your account has been suspended.'));
+            }
+
             if (!$user) {
                 $user = User::create([
                     'name' => $googleUser->name ?? $googleUser->email,
@@ -267,6 +316,8 @@ class AuthController extends Controller
                 ]);
                 // email_verified_at is not mass assignable, so set it directly.
                 $user->forceFill(['email_verified_at' => now()])->save();
+                Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+                $user->assignRole('user');
                 $this->seedDefaultCategories($user);
                 $isNewUser = true;
             } else {
@@ -303,6 +354,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'roles' => $user->getRoleNames()->values(),
+                'blacklisted_at' => $user->blacklisted_at,
                 'monthly_income' => $financialRecord?->monthly_income ?? null,
                 'monthly_expenses' => $financialRecord?->monthly_expenses ?? null,
                 'current_year' => $currentYear,

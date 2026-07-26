@@ -17,6 +17,16 @@ class MarketDataController extends Controller
         return str_contains($symbol, '-USD') || str_contains($symbol, '-EUR') || str_contains($symbol, '-BTC');
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/market/quote",
+     *     tags={"Market Data"},
+     *     summary="Get live quote for a symbol",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="symbol", in="query", required=true, @OA\Schema(type="string", example="AAPL")),
+     *     @OA\Response(response=200, description="Quote data")
+     * )
+     */
     // GET /market/quote?symbol=AAPL  or  BTC-USD
     public function quote(Request $request)
     {
@@ -28,6 +38,16 @@ class MarketDataController extends Controller
             : $this->quoteFromFinnhub($symbol);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/market/search",
+     *     tags={"Market Data"},
+     *     summary="Search for market symbols",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="q", in="query", required=true, @OA\Schema(type="string", example="apple")),
+     *     @OA\Response(response=200, description="Search results")
+     * )
+     */
     // GET /market/search?q=apple
     public function search(Request $request)
     {
@@ -66,6 +86,17 @@ class MarketDataController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/market/candle",
+     *     tags={"Market Data"},
+     *     summary="Get candle/sparkline data for a symbol",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="symbol", in="query", required=true, @OA\Schema(type="string", example="AAPL")),
+     *     @OA\Parameter(name="days", in="query", required=false, @OA\Schema(type="integer", example=7)),
+     *     @OA\Response(response=200, description="Sparkline data")
+     * )
+     */
     // GET /market/candle?symbol=AAPL&days=7
     public function candle(Request $request)
     {

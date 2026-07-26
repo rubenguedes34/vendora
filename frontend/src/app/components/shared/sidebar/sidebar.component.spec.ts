@@ -120,6 +120,26 @@ describe('SidebarComponent', () => {
     expect(component.mobileOpen).toBeFalsy();
   });
 
+  it('shows admin link for users with admin or manager roles', async () => {
+    component.user = { id: 1, name: 'John Doe', email: 'john@example.com', roles: ['manager'] };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const adminLink = fixture.debugElement.query(By.css('a[title="Open admin panel"]'));
+    expect(adminLink).toBeTruthy();
+    expect(adminLink.nativeElement.getAttribute('href')).toBe('http://localhost:8000/admin');
+  });
+
+  it('opens admin link in a new tab via window.open', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    component.user = { id: 1, name: 'John Doe', email: 'john@example.com', roles: ['admin'] };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const adminLink = fixture.debugElement.query(By.css('a[title="Open admin panel"]'));
+    adminLink.nativeElement.click();
+    expect(openSpy).toHaveBeenCalledWith('http://localhost:8000/admin', '_blank');
+    openSpy.mockRestore();
+  });
+
   // ── isActive ──────────────────────────────────────────────────────────────
 
   it('isActive returns true for current route', async () => {

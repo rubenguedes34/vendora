@@ -8,6 +8,8 @@ interface User {
   id: number;
   name: string;
   email: string;
+  roles?: string[];
+  blacklisted_at?: string | null;
   monthly_income?: number;
   monthly_expenses?: number;
   savings_goal?: number;

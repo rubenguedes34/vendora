@@ -83,6 +83,25 @@ class FinancialRecordController extends Controller
         return response()->json($records);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/financial-records",
+     *     tags={"Financial Records"},
+     *     summary="Create or update a financial record",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"year","month","monthly_income","monthly_expenses"},
+     *             @OA\Property(property="year", type="integer"),
+     *             @OA\Property(property="month", type="integer"),
+     *             @OA\Property(property="monthly_income", type="number"),
+     *             @OA\Property(property="monthly_expenses", type="number"),
+     *             @OA\Property(property="savings_goal", type="number"),
+     *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Financial record saved")
+     * )
+     */
     public function store(Request $request)
     {
         try {
@@ -124,12 +143,40 @@ class FinancialRecordController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/{financial_record}",
+     *     tags={"Financial Records"},
+     *     summary="Get a single financial record",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Financial record object")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $record = $request->user()->financialRecords()->findOrFail($id);
         return response()->json($record);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/financial-records/{financial_record}",
+     *     tags={"Financial Records"},
+     *     summary="Update a financial record",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="monthly_income", type="number"),
+     *             @OA\Property(property="monthly_expenses", type="number"),
+     *             @OA\Property(property="savings_goal", type="number"),
+     *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Financial record updated")
+     * )
+     */
     public function update(Request $request, $id)
     {
         try {
@@ -167,6 +214,16 @@ class FinancialRecordController extends Controller
         }
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/financial-records/{financial_record}",
+     *     tags={"Financial Records"},
+     *     summary="Delete a financial record",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Financial record deleted")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $record = $request->user()->financialRecords()->findOrFail($id);
@@ -175,6 +232,15 @@ class FinancialRecordController extends Controller
         return response()->json(['message' => 'Financial record deleted']);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/net-worth",
+     *     tags={"Financial Records"},
+     *     summary="Get net worth overview",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Net worth data")
+     * )
+     */
     public function netWorth(Request $request)
     {
         $user = $request->user();
@@ -321,6 +387,19 @@ class FinancialRecordController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/allocation",
+     *     tags={"Financial Records"},
+     *     summary="Get investment allocation breakdown",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="account", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="date_from", in="query", required=false, @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="date_to", in="query", required=false, @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Allocation data")
+     * )
+     */
     public function allocation(Request $request)
     {
         $request->validate([
@@ -374,6 +453,15 @@ class FinancialRecordController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/health-score",
+     *     tags={"Financial Records"},
+     *     summary="Get financial health score",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Health score data")
+     * )
+     */
     public function healthScore(Request $request, HealthScoreCalculator $calculator)
     {
         $user = $request->user();
