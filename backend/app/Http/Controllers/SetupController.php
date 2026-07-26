@@ -65,10 +65,11 @@ class SetupController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'monthly_income' => $request->monthly_income,
-                'monthly_expenses' => $request->monthly_expenses,
+                'monthly_income' => $user->monthly_income,
+                'monthly_expenses' => $user->monthly_expenses,
                 'current_year' => $currentYear,
                 'current_month' => $currentMonth,
+                'needs_setup' => false,
             ];
 
             return response()->json([

@@ -6,34 +6,47 @@ import { RegisterComponent } from './components/register/register.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { AuthService } from './services/auth.service';
 
-const needsSetup = (auth: AuthService): boolean => auth.getUserValue()?.needs_setup !== false;
+const userNeedsSetup = (user: any): boolean => {
+  if (!user) return false;
+  if (user.needs_setup === false) return false;
+  if (user.needs_setup === true) return true;
+  return user.monthly_income == null || user.monthly_expenses == null;
+};
 
 const homeGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (!auth.isLoggedIn()) return router.parseUrl('/login');
-  return needsSetup(auth) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
+  const token = auth.getTokenValue();
+  const user = auth.getUserValue();
+  if (!token || !user) return router.parseUrl('/login');
+  return userNeedsSetup(user) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
 };
 
 const guestGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (!auth.isLoggedIn()) return true;
-  return needsSetup(auth) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
+  const token = auth.getTokenValue();
+  const user = auth.getUserValue();
+  if (!token || !user) return true;
+  return userNeedsSetup(user) ? router.parseUrl('/setup') : router.parseUrl('/dashboard');
 };
 
 const authGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (!auth.isLoggedIn()) return router.parseUrl('/login');
-  return needsSetup(auth) ? router.parseUrl('/setup') : true;
+  const token = auth.getTokenValue();
+  const user = auth.getUserValue();
+  if (!token || !user) return router.parseUrl('/login');
+  return userNeedsSetup(user) ? router.parseUrl('/setup') : true;
 };
 
 const setupGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (!auth.isLoggedIn()) return router.parseUrl('/login');
-  return needsSetup(auth) ? true : router.parseUrl('/dashboard');
+  const token = auth.getTokenValue();
+  const user = auth.getUserValue();
+  if (!token || !user) return router.parseUrl('/login');
+  return userNeedsSetup(user) ? true : router.parseUrl('/dashboard');
 };
 
 export const routes: Routes = [

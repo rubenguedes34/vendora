@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-setup',
@@ -107,11 +108,7 @@ export class SetupComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const user = this.authService.getUserValue();
-    if (!user) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    // Route guard ensures a valid logged-in user reaches this page.
   }
 
   onSubmit(): void {
@@ -126,16 +123,23 @@ export class SetupComponent implements OnInit {
     this.http.post(`${environment.apiUrl}/setup`, {
       token,
       ...this.setupForm.value,
-    }).subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        this.authService.setUser(response.user);
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Setup failed. Please try again.';
-      }
-    });
+    }).pipe(timeout(10000))
+      .subscribe({
+        next: (response: any) => {
+          this.isLoading = false;
+          this.authService.setUser(response.user);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          if (error.name === 'TimeoutError' || error.status === 0) {
+            this.errorMessage = 'Could not reach the backend. Make sure php artisan serve is running at ' + environment.backendUrl + '.';
+          } else if (error instanceof HttpErrorResponse && error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else {
+            this.errorMessage = error.message || 'Setup failed. Please try again.';
+          }
+        }
+      });
   }
 }
