@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -8,7 +8,6 @@ import { CurrencyService } from '../../services/currency.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
-import { WatchlistComponent } from '../watchlist/watchlist.component';
 import { environment } from '../../../environments/environment';
 
 const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
@@ -21,7 +20,7 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe, WatchlistComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   template: `
     <div class="min-h-screen bg-gray-100 flex">
       <app-sidebar></app-sidebar>
@@ -433,7 +432,7 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
             <button (click)="toggleMarketExplorer()" class="w-full flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-4 text-left hover:border-purple-200 transition-colors">
               <span>
                 <span class="block text-sm font-semibold text-gray-800">Market Explorer</span>
-                <span class="block text-xs text-gray-400 mt-0.5">Browse live crypto, stocks and your watchlist when you need it.</span>
+                <span class="block text-xs text-gray-400 mt-0.5">Browse live crypto and stocks when you need it.</span>
               </span>
               <svg class="w-5 h-5 text-gray-400 transition-transform" [class.rotate-180]="showMarketExplorer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
@@ -467,16 +466,6 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
                   [class.w-full]="marketTab === 'stocks'"
                   [class.w-0]="marketTab !== 'stocks'"
                   [class.group-hover:w-full]="marketTab !== 'stocks'"></span>
-              </button>
-              <button (click)="marketTab = 'watchlist'"
-                class="group relative px-3 sm:px-4 py-3 text-sm font-medium tracking-wide transition-colors"
-                [class.text-gray-900]="marketTab === 'watchlist'"
-                [class.text-gray-400]="marketTab !== 'watchlist'">
-                <span class="relative z-10">Watchlist</span>
-                <span class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
-                  [class.w-full]="marketTab === 'watchlist'"
-                  [class.w-0]="marketTab !== 'watchlist'"
-                  [class.group-hover:w-full]="marketTab !== 'watchlist'"></span>
               </button>
             </div>
 
@@ -654,10 +643,6 @@ const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '
               </div>
             </div>
 
-            <!-- WATCHLIST TAB -->
-            <div *ngIf="marketTab === 'watchlist'">
-              <app-watchlist [embedded]="true"></app-watchlist>
-            </div>
           </div>
           <!-- ===== END MARKET EXPLORER ===== -->
 
@@ -696,7 +681,7 @@ export class InvestmentsComponent implements OnInit {
   quoteError = '';
 
   // Market explorer
-  marketTab: 'crypto' | 'stocks' | 'watchlist' = 'crypto';
+  marketTab: 'crypto' | 'stocks' = 'crypto';
   showMarketExplorer = false;
 
   // Crypto
@@ -756,10 +741,12 @@ export class InvestmentsComponent implements OnInit {
           patch.current_amount = (patch.units * data.price).toFixed(2);
         }
         this.investmentForm.patchValue(patch);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.fetchingPrice = false;
         this.quoteError = err?.error?.error || 'Could not fetch price for ' + asset.symbol;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -782,7 +769,8 @@ export class InvestmentsComponent implements OnInit {
     private authService: AuthService,
     private http: HttpClient,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private cdr: ChangeDetectorRef
   ) {
     this.investmentForm = this.fb.group({
       name: ['', Validators.required],
@@ -831,11 +819,13 @@ export class InvestmentsComponent implements OnInit {
         this.investments = data;
         this.recalcTotals();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.isLoading = false;
         const status = err?.status ? ' (HTTP ' + err.status + ')' : '';
         this.loadError = (err?.message || err?.error?.message || JSON.stringify(err) || 'Failed to load investments') + status;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -861,6 +851,7 @@ export class InvestmentsComponent implements OnInit {
               inv.current_amount = newCurrent;
               inv.price_per_unit = data.price;
               this.recalcTotals();
+              this.cdr.detectChanges();
             }
           });
         }
@@ -957,10 +948,10 @@ export class InvestmentsComponent implements OnInit {
           current_amount: newCurrent,
         }).subscribe({
           next: () => this.loadInvestments(true),
-          error: () => { this.refreshingId = null; }
+          error: () => { this.refreshingId = null; this.cdr.detectChanges(); }
         });
       },
-      error: () => { this.refreshingId = null; }
+      error: () => { this.refreshingId = null; this.cdr.detectChanges(); }
     });
   }
 
@@ -1060,7 +1051,7 @@ export class InvestmentsComponent implements OnInit {
 
     obs.subscribe({
       next: () => { this.isSaving = false; this.loadInvestments(true); this.cancelEdit(); },
-      error: (err: any) => { this.isSaving = false; this.errorMessage = err.message || 'Failed to save investment'; }
+      error: (err: any) => { this.isSaving = false; this.errorMessage = err.message || 'Failed to save investment'; this.cdr.detectChanges(); }
     });
   }
 
@@ -1086,7 +1077,7 @@ export class InvestmentsComponent implements OnInit {
     if (!confirm('Delete this investment?')) return;
     this.financialService.deleteInvestment(id).subscribe({
       next: () => this.loadInvestments(true),
-      error: (err: any) => this.errorMessage = err.message || 'Failed to delete'
+      error: (err: any) => { this.errorMessage = err.message || 'Failed to delete'; this.cdr.detectChanges(); }
     });
   }
 
@@ -1118,10 +1109,11 @@ export class InvestmentsComponent implements OnInit {
         }
       }
     ).subscribe({
-      next: (data) => { this.coins = data; this.cryptoLoading = false; },
+      next: (data) => { this.coins = data; this.cryptoLoading = false; this.cdr.detectChanges(); },
       error: () => {
         this.cryptoLoading = false;
         this.cryptoError = 'Failed to load crypto data. CoinGecko may be rate-limiting — try again in a minute.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -1182,8 +1174,9 @@ export class InvestmentsComponent implements OnInit {
         next: (results) => {
           this.stockSearchResults = results || [];
           this.showStockDropdown = this.stockSearchResults.length > 0;
+          this.cdr.detectChanges();
         },
-        error: () => { this.stockSearchResults = []; }
+        error: () => { this.stockSearchResults = []; this.cdr.detectChanges(); }
       });
     }, 350);
   }
@@ -1210,10 +1203,11 @@ export class InvestmentsComponent implements OnInit {
       headers,
       params: { symbol: this.stockSearch.toUpperCase() }
     }).subscribe({
-      next: (data) => { this.stockQuote = data; this.stockLoading = false; },
+      next: (data) => { this.stockQuote = data; this.stockLoading = false; this.cdr.detectChanges(); },
       error: (err) => {
         this.stockLoading = false;
         this.stockError = err?.error?.error || ('"' + this.stockSearch + '" not found. Try a valid ticker like AAPL or VOO.');
+        this.cdr.detectChanges();
       }
     });
   }

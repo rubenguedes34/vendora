@@ -58,6 +58,9 @@ export class TransactionService {
 
   private handleError(error: any): any {
     if (error.status === 401) return { message: 'Session expired. Please log in again.' };
+    if (error.name === 'TimeoutError' || error.status === 0) {
+      return { message: 'Could not reach the backend. Make sure php artisan serve is running.' };
+    }
     return error.error || { message: 'An error occurred. Please try again.' };
   }
 
@@ -85,7 +88,10 @@ export class TransactionService {
       if (filters.date_to)                          parts.push(`date_to=${filters.date_to}`);
       if (filters.amount_min != null)               parts.push(`amount_min=${filters.amount_min}`);
       if (filters.amount_max != null)               parts.push(`amount_max=${filters.amount_max}`);
-      if (filters.tag_ids && filters.tag_ids.length) parts.push(`tag_ids=${filters.tag_ids.join(',')}`);
+      if (filters.tag_ids) {
+        const tagIds = Array.isArray(filters.tag_ids) ? filters.tag_ids : String(filters.tag_ids).split(',').map(s => s.trim());
+        if (tagIds.length) parts.push(`tag_ids=${tagIds.join(',')}`);
+      }
       if (filters.page)                             parts.push(`page=${filters.page}`);
       if (filters.per_page)                         parts.push(`per_page=${filters.per_page}`);
       if (parts.length) params = '?' + parts.join('&');

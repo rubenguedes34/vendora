@@ -35,6 +35,5 @@ use OpenApi\Annotations as OA;
  * @OA\Tag(name="Setup", description="Initial user setup")
  * @OA\Tag(name="Tags", description="Transaction tags")
  * @OA\Tag(name="Transactions", description="Transaction management")
- * @OA\Tag(name="Watchlist", description="Market watchlist")
  */
 class SwaggerInfo {}

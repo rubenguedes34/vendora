@@ -12,7 +12,6 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\MarketDataController;
 use App\Http\Controllers\RecurrentTransactionController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\WatchlistController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiChatController;
@@ -55,9 +54,6 @@ Route::middleware('auth.custom')->group(function () {
 
     // Investments
     Route::apiResource('investments', InvestmentController::class);
-
-    // Watchlist
-    Route::apiResource('watchlist', WatchlistController::class)->except(['show', 'update']);
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);

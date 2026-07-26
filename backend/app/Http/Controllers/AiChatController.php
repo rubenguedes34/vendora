@@ -65,8 +65,8 @@ class AiChatController extends Controller
             ],
             [
                 'question' => 'How do I track my investments?',
-                'answer' => 'Use the Investments page to add holdings manually. You can record the symbol, quantity, initial amount, and current value. The Watchlist and Market > Quote pages help you look up live prices.',
-                'keywords' => ['investment', 'invest', 'stock', 'holding', 'portfolio', 'watchlist'],
+                'answer' => 'Use the Investments page to add holdings manually. You can record the symbol, quantity, initial amount, and current value. The Market > Quote page helps you look up live prices.',
+                'keywords' => ['investment', 'invest', 'stock', 'holding', 'portfolio'],
             ],
             [
                 'question' => 'What are recurring transactions?',

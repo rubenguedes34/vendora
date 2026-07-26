@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -318,6 +318,10 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <!-- Transactions List -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-100">
             <div class="p-6">
+              <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center">
+                {{ errorMessage }}
+              </div>
+
               <div *ngIf="isLoading" class="text-gray-400 text-center py-10">
                 <svg class="w-8 h-8 mx-auto mb-2 animate-spin text-primary-400" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -555,7 +559,8 @@ export class TransactionsComponent implements OnInit {
     private financialService: FinancialService,
     private authService: AuthService,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private cdr: ChangeDetectorRef
   ) {
     this.transactionForm = this.fb.group({
       description: ['', Validators.required],
@@ -605,14 +610,14 @@ export class TransactionsComponent implements OnInit {
       this.filterSearch      = f.filterSearch      ?? '';
       this.filterNotesSearch = f.filterNotesSearch ?? '';
       this.filterType        = f.filterType        ?? '';
-      this.filterCategoryId  = f.filterCategoryId  ?? undefined;
+      this.filterCategoryId  = f.filterCategoryId ? +f.filterCategoryId : undefined;
       this.filterDateFrom    = f.filterDateFrom    ?? '';
       this.filterDateTo      = f.filterDateTo      ?? '';
-      this.filterAmountMin   = f.filterAmountMin   ?? undefined;
-      this.filterAmountMax   = f.filterAmountMax   ?? undefined;
-      this.filterTagIds      = f.filterTagIds      ?? [];
-      this.currentPage       = f.currentPage       ?? 1;
-      this.perPage           = f.perPage           ?? 20;
+      this.filterAmountMin   = f.filterAmountMin != null ? +f.filterAmountMin : undefined;
+      this.filterAmountMax   = f.filterAmountMax != null ? +f.filterAmountMax : undefined;
+      this.filterTagIds      = Array.isArray(f.filterTagIds) ? f.filterTagIds : [];
+      this.currentPage       = f.currentPage ? +f.currentPage : 1;
+      this.perPage           = f.perPage ? +f.perPage : 20;
     } catch { /* ignore corrupt state */ }
   }
 
@@ -708,29 +713,35 @@ export class TransactionsComponent implements OnInit {
 
   loadTransactions(): void {
     this.isLoading = true;
-    this.transactionService.getTransactions({
-      search:        this.filterSearch       || undefined,
-      notes_search:  this.filterNotesSearch  || undefined,
-      type:          this.filterType         || undefined,
-      category_id:   this.filterCategoryId,
-      date_from:     this.filterDateFrom     || undefined,
-      date_to:       this.filterDateTo       || undefined,
-      amount_min:    this.filterAmountMin,
-      amount_max:    this.filterAmountMax,
-      tag_ids:       this.filterTagIds.length ? this.filterTagIds : undefined,
-      page:          this.currentPage,
-      per_page:      this.perPage,
-    }).subscribe({
-      next: (response) => {
-        this.transactions = response.data;
-        this.currentPage   = response.current_page;
-        this.totalItems    = response.total;
-        this.totalPages    = response.last_page;
-        this.perPage       = response.per_page;
-        this.isLoading     = false;
-      },
-      error: (error) => { this.errorMessage = error.message || 'Failed to load transactions'; this.isLoading = false; }
-    });
+    try {
+      this.transactionService.getTransactions({
+        search:        this.filterSearch       || undefined,
+        notes_search:  this.filterNotesSearch  || undefined,
+        type:          this.filterType         || undefined,
+        category_id:   this.filterCategoryId,
+        date_from:     this.filterDateFrom     || undefined,
+        date_to:       this.filterDateTo       || undefined,
+        amount_min:    this.filterAmountMin,
+        amount_max:    this.filterAmountMax,
+        tag_ids:       this.filterTagIds.length ? this.filterTagIds : undefined,
+        page:          this.currentPage,
+        per_page:      this.perPage,
+      }).subscribe({
+        next: (response) => {
+          this.transactions = response.data;
+          this.currentPage   = response.current_page;
+          this.totalItems    = response.total;
+          this.totalPages    = response.last_page;
+          this.perPage       = response.per_page;
+          this.isLoading     = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => { this.errorMessage = error.message || 'Failed to load transactions'; this.isLoading = false; this.cdr.detectChanges(); }
+      });
+    } catch (err: any) {
+      this.errorMessage = err?.message || 'Failed to load transactions';
+      this.isLoading = false;
+    }
   }
 
   onFileSelected(event: Event): void {
