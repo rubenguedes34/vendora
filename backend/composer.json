@@ -9,7 +9,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.5",
+        "php": "^8.4",
         "darkaonline/l5-swagger": "^11.1",
         "doctrine/annotations": "^2.0",
         "filament/filament": "^5.7",
@@ -88,13 +88,13 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
-        "platform-check": false,
+        "platform-check": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
         },
         "platform": {
-            "php": "8.5.4"
+            "php": "8.4.1"
         }
     },
     "minimum-stability": "stable",
