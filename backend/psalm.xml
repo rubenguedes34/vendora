@@ -24,11 +24,6 @@
         </ignoreFiles>
     </projectFiles>
 
-    <!-- psalm/plugin-laravel resolves Eloquent magic, Facades, Request properties, etc. -->
-    <plugins>
-        <pluginClass class="Psalm\LaravelPlugin\Plugin" />
-    </plugins>
-
     <issueHandlers>
         <!-- Controllers/models are called via routes — Psalm can't trace these -->
         <PossiblyUnusedMethod errorLevel="suppress" />

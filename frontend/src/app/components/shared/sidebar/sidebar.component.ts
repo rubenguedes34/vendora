@@ -105,15 +105,25 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
           <span class="font-semibold">Health Score</span>
         </a>
 
-        <a *ngIf="canAccessAdmin" [href]="adminUrl" target="_blank" rel="noopener noreferrer" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors cursor-pointer"
+        <a routerLink="/ai-support" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/ai-support')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span class="font-semibold">AI Support</span>
+        </a>
+
+        <button *ngIf="canAccessAdmin" type="button" (click)="openAdmin()"
+          class="w-full flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors cursor-pointer"
           title="Open admin panel">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
           <span class="font-semibold">Admin</span>
-        </a>
+        </button>
       </nav>
 
       <div class="p-4 border-t border-primary-600 space-y-2">
@@ -165,6 +175,11 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  openAdmin(): void {
+    this.mobileOpen = false;
+    window.location.assign(this.adminUrl);
   }
 
   @HostListener('document:keydown.escape')

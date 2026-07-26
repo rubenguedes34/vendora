@@ -192,46 +192,36 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <!-- Filter Panel -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
             <!-- Filter header -->
-            <div class="flex items-center justify-between px-4 py-3 cursor-pointer select-none" (click)="filtersOpen = !filtersOpen">
-              <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+            <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
+              <div class="relative flex-1">
+                <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
                 </svg>
-                <span class="text-sm font-medium text-gray-700">Filters</span>
-                <span *ngIf="activeFilterCount > 0"
-                  class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary-600 text-white text-xs font-bold">
-                  {{ activeFilterCount }}
-                </span>
+                <input type="search" placeholder="Search transactions…"
+                  [value]="filterSearch"
+                  (input)="onSearchInput($event)"
+                  class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
               </div>
-              <div class="flex items-center gap-3">
-                <span class="text-xs text-gray-400">{{ totalItems }} result{{ totalItems !== 1 ? 's' : '' }}</span>
-                <button *ngIf="hasActiveFilters()" (click)="$event.stopPropagation(); clearFilters()"
-                  class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">Clear all</button>
-                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
-                  [class.rotate-180]="filtersOpen"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
+              <div class="flex items-center justify-between gap-3 shrink-0">
+                <button type="button" (click)="filtersOpen = !filtersOpen; saveFilters()"
+                  class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                  </svg>
+                  Filters
+                  <span *ngIf="activeFilterCount > 0" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary-600 text-white text-xs font-bold">{{ activeFilterCount }}</span>
+                  <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" [class.rotate-180]="filtersOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <button *ngIf="hasActiveFilters()" (click)="clearFilters()" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors">Clear</button>
+                <span class="text-xs text-gray-400 whitespace-nowrap">{{ totalItems }} result{{ totalItems !== 1 ? 's' : '' }}</span>
               </div>
             </div>
 
             <!-- Filter body -->
             <div *ngIf="filtersOpen" class="px-4 pb-4 border-t border-gray-50">
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
-
-                <!-- Search (title + notes) -->
-                <div>
-                  <label class="block text-xs font-medium text-gray-500 mb-1">Search title</label>
-                  <div class="relative">
-                    <svg class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
-                    </svg>
-                    <input type="text" placeholder="Description…"
-                      [value]="filterSearch"
-                      (input)="onSearchInput($event)"
-                      class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
-                  </div>
-                </div>
 
                 <!-- Notes search -->
                 <div>
@@ -504,7 +494,7 @@ export class TransactionsComponent implements OnInit {
   isSaving = false;
   errorMessage = '';
 
-  filtersOpen = true;
+  filtersOpen = false;
 
   filterSearch = '';
   filterNotesSearch = '';
@@ -589,7 +579,7 @@ export class TransactionsComponent implements OnInit {
     this.loadTransactions();
   }
 
-  private saveFilters(): void {
+  saveFilters(): void {
     sessionStorage.setItem('txFilters', JSON.stringify({
       filtersOpen:      this.filtersOpen,
       filterSearch:     this.filterSearch,
@@ -611,7 +601,7 @@ export class TransactionsComponent implements OnInit {
       const raw = sessionStorage.getItem('txFilters');
       if (!raw) return;
       const f = JSON.parse(raw);
-      this.filtersOpen       = f.filtersOpen      ?? true;
+      this.filtersOpen       = f.filtersOpen      ?? false;
       this.filterSearch      = f.filterSearch      ?? '';
       this.filterNotesSearch = f.filterNotesSearch ?? '';
       this.filterType        = f.filterType        ?? '';

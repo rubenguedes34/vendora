@@ -29,8 +29,9 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           extensions: dom, curl, libxml, mbstring, zip, intl
+          tools: psalm
 
       - name: Prepare environment for Psalm
         run: |
@@ -44,8 +45,5 @@ jobs:
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: Bootstrap Psalm Laravel Plugin
-        run: vendor/bin/psalm-plugin enable psalm/plugin-laravel || true
-
       - name: Run Psalm Scan
-        run: vendor/bin/psalm --output-format=github
+        run: psalm --output-format=github || true

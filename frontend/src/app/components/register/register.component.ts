@@ -36,13 +36,13 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="text"
                   formControlName="name"
+                  maxlength="255"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
                   placeholder="Enter your name"
                 />
               </div>
-              <div *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.invalid" class="text-red-500 text-sm mt-1">
-                Name is required
-              </div>
+              <p *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.hasError('required')" class="text-red-500 text-sm mt-1">Name is required.</p>
+              <p *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.hasError('maxlength')" class="text-red-500 text-sm mt-1">Name cannot exceed 255 characters.</p>
             </div>
 
             <div class="mb-5">
@@ -56,13 +56,14 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="email"
                   formControlName="email"
+                  maxlength="255"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
                   placeholder="Enter your email"
                 />
               </div>
-              <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="text-red-500 text-sm mt-1">
-                Valid email is required
-              </div>
+              <p *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required')" class="text-red-500 text-sm mt-1">Email is required.</p>
+              <p *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email')" class="text-red-500 text-sm mt-1">Enter a valid email address.</p>
+              <p *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('maxlength')" class="text-red-500 text-sm mt-1">Email cannot exceed 255 characters.</p>
             </div>
 
             <div class="mb-5">
@@ -76,13 +77,15 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="password"
                   formControlName="password"
+                  minlength="8"
+                  maxlength="72"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
-                  placeholder="Enter your password (min 8 characters)"
+                  placeholder="Enter your password (8–72 characters)"
                 />
               </div>
-              <div *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" class="text-red-500 text-sm mt-1">
-                Password must be at least 8 characters
-              </div>
+              <p *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required')" class="text-red-500 text-sm mt-1">Password is required.</p>
+              <p *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength')" class="text-red-500 text-sm mt-1">Password must be at least 8 characters.</p>
+              <p *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('maxlength')" class="text-red-500 text-sm mt-1">Password cannot exceed 72 characters.</p>
             </div>
 
             <div class="mb-6">
@@ -96,6 +99,7 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="password"
                   formControlName="password_confirmation"
+                  maxlength="72"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
                   placeholder="Confirm your password"
                 />
@@ -162,10 +166,10 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.registerForm = this.fb.group({
-      name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      password_confirmation: ['', Validators.required],
+      name: ['', [Validators.required, Validators.maxLength(255)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+      password_confirmation: ['', [Validators.required, Validators.maxLength(72)]],
     }, { validator: this.passwordMatchValidator });
   }
 

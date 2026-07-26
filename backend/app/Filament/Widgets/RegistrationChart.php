@@ -8,14 +8,20 @@ use Illuminate\Support\Facades\DB;
 
 class RegistrationChart extends ChartWidget
 {
-    protected static ?string $heading = 'User Registrations';
+    protected ?string $heading = 'User Registrations';
 
     protected int|string|array $columnSpan = 2;
 
     protected function getData(): array
     {
+        $monthExpression = match (DB::connection()->getDriverName()) {
+            'mysql', 'mariadb' => "DATE_FORMAT(created_at, '%Y-%m')",
+            'pgsql' => "TO_CHAR(created_at, 'YYYY-MM')",
+            default => "strftime('%Y-%m', created_at)",
+        };
+
         $data = User::query()
-            ->select(DB::raw("strftime('%Y-%m', created_at) as month"), DB::raw('COUNT(*) as count'))
+            ->select(DB::raw("{$monthExpression} as month"), DB::raw('COUNT(*) as count'))
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('count', 'month')

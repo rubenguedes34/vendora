@@ -36,13 +36,14 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="email"
                   formControlName="email"
+                  maxlength="255"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
                   placeholder="Enter your email"
                 />
               </div>
-              <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="text-red-500 text-sm mt-1">
-                Email is required
-              </div>
+              <p *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('required')" class="text-red-500 text-sm mt-1">Email is required.</p>
+              <p *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('email')" class="text-red-500 text-sm mt-1">Enter a valid email address.</p>
+              <p *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('maxlength')" class="text-red-500 text-sm mt-1">Email cannot exceed 255 characters.</p>
             </div>
 
             <div class="mb-6">
@@ -56,13 +57,13 @@ import { environment } from '../../../environments/environment';
                 <input
                   type="password"
                   formControlName="password"
+                  maxlength="72"
                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
                   placeholder="Enter your password"
                 />
               </div>
-              <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-red-500 text-sm mt-1">
-                Password is required
-              </div>
+              <p *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')" class="text-red-500 text-sm mt-1">Password is required.</p>
+              <p *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('maxlength')" class="text-red-500 text-sm mt-1">Password cannot exceed 72 characters.</p>
             </div>
 
             <button
@@ -121,8 +122,8 @@ export class LoginComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+      password: ['', [Validators.required, Validators.maxLength(72)]]
     });
   }
 

@@ -28,6 +28,19 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
+    public function test_register_rejects_a_password_longer_than_72_characters(): void
+    {
+        $response = $this->postJson('/api/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => str_repeat('a', 73),
+            'password_confirmation' => str_repeat('a', 73),
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+    }
+
     public function test_register_marks_user_as_needing_setup(): void
     {
         $response = $this->postJson('/api/register', [

@@ -30,9 +30,9 @@ class SetupController extends Controller
     {
         try {
             $request->validate([
-                'token' => 'required|string',
-                'monthly_income' => 'required|numeric|min:0',
-                'monthly_expenses' => 'required|numeric|min:0',
+                'token' => 'required|string|max:4096',
+                'monthly_income' => 'required|numeric|min:0|max:99999999.99|decimal:0,2',
+                'monthly_expenses' => 'required|numeric|min:0|max:99999999.99|decimal:0,2',
             ]);
 
             $user = TokenService::verify($request->token);
