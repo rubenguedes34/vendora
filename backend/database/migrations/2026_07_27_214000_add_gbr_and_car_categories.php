@@ -20,5 +20,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        Category::whereIn('name', ['Car', 'GBR'])
+            ->where('type', 'expense')
+            ->delete();
     }
 };
