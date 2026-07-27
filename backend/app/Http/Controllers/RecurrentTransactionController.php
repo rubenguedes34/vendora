@@ -57,10 +57,7 @@ class RecurrentTransactionController extends Controller
             'day_of_month' => 'required|integer|between:1,28',
         ]);
 
-        $category = Category::findOrFail($request->category_id);
-        if ($category->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Invalid category'], 403);
-        }
+        Category::findOrFail($request->category_id);
 
         $item = $request->user()->recurrentTransactions()->create($request->all());
 
@@ -115,10 +112,7 @@ class RecurrentTransactionController extends Controller
         ]);
 
         if ($request->has('category_id')) {
-            $category = Category::findOrFail($request->category_id);
-            if ($category->user_id !== $request->user()->id) {
-                return response()->json(['message' => 'Invalid category'], 403);
-            }
+            Category::findOrFail($request->category_id);
         }
 
         $item->update($request->all());

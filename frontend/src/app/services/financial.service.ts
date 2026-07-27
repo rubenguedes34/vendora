@@ -86,7 +86,6 @@ export interface PortfolioAllocation {
 
 export interface Category {
   id: number;
-  user_id: number;
   name: string;
   icon?: string;
   color?: string;
@@ -223,26 +222,6 @@ export class FinancialService {
     ).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
-    );
-  }
-
-  createCategory(data: { name: string; type: 'income' | 'expense' | 'savings'; icon?: string }): Observable<Category> {
-    return this.http.post<Category>(`${this.apiUrl}/categories`, data, {
-      headers: this.getHeaders()
-    }).pipe(
-      timeout(5000),
-      catchError(error => throwError(() => this.handleError(error))),
-      tap(() => this.clearCategoryCache())
-    );
-  }
-
-  deleteCategory(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/categories/${id}`, {
-      headers: this.getHeaders()
-    }).pipe(
-      timeout(5000),
-      catchError(error => throwError(() => this.handleError(error))),
-      tap(() => this.clearCategoryCache())
     );
   }
 

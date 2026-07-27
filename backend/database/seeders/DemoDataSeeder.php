@@ -45,7 +45,7 @@ class DemoDataSeeder extends Seeder
 
         foreach ($defs as $d) {
             $cats[$d['name']] = Category::firstOrCreate(
-                ['user_id' => $user->id, 'name' => $d['name'], 'type' => $d['type']],
+                ['name' => $d['name'], 'type' => $d['type']],
                 ['icon' => $d['icon'], 'color' => $d['color']]
             );
         }

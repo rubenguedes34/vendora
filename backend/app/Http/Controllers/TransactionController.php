@@ -123,10 +123,7 @@ class TransactionController extends Controller
         ]);
 
         // Verify category belongs to user
-        $category = Category::findOrFail($request->category_id);
-        if ($category->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Invalid category'], 403);
-        }
+        Category::findOrFail($request->category_id);
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
@@ -211,10 +208,7 @@ class TransactionController extends Controller
         ]);
 
         if ($request->has('category_id')) {
-            $category = Category::findOrFail($request->category_id);
-            if ($category->user_id !== $request->user()->id) {
-                return response()->json(['message' => 'Invalid category'], 403);
-            }
+            Category::findOrFail($request->category_id);
         }
 
         $data = $request->only([

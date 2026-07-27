@@ -91,11 +91,10 @@ const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Sa
           <select formControlName="category_id"
             class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white">
             <option value="">Select category</option>
-            <option *ngFor="let c of filteredCategories" [value]="c.id">{{ c.icon || '' }} {{ c.name }}</option>
+            <option *ngFor="let c of filteredCategories" [value]="c.id">{{ selectIcon(c.icon) }} {{ c.name }}</option>
           </select>
           <p *ngIf="filteredCategories.length === 0 && !loadingCategories" class="text-xs text-orange-500 mt-1">
-            No {{ activeTab }} categories yet —
-            <a href="/budgets" (click)="close()" class="underline font-medium">add one in Budgets</a>
+            No {{ activeTab }} categories are available.
           </p>
         </div>
 
@@ -359,6 +358,10 @@ export class QuickAddComponent implements OnInit, OnDestroy {
         this.form.patchValue({ transaction_date: command.date });
       }
     }
+  }
+
+  selectIcon(icon?: string): string {
+    return icon?.startsWith('http://') || icon?.startsWith('https://') ? '' : icon || '';
   }
 
   private guessCategory(description: string, type: 'expense' | 'income'): Category | null {

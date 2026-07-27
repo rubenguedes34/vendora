@@ -25,7 +25,7 @@ class TransactionControllerTest extends TestCase
         $user = User::factory()->create();
         $this->user = $user;
         $this->token = TokenService::issue($this->user);
-        $this->category = $this->user->categories()->create([
+        $this->category = Category::create([
             'name' => 'Salary',
             'type' => 'income',
         ]);
@@ -78,19 +78,18 @@ class TransactionControllerTest extends TestCase
             ->assertJsonValidationErrors(['category_id', 'description', 'amount', 'type', 'transaction_date']);
     }
 
-    public function test_store_rejects_category_belonging_to_another_user(): void
+    public function test_store_accepts_a_global_category(): void
     {
-        $other = User::factory()->create();
-        $otherCategory = $other->categories()->create(['name' => 'Other', 'type' => 'expense']);
+        $category = Category::create(['name' => 'Other', 'type' => 'expense']);
 
         $this->postJson('/api/transactions', [
-            'category_id' => $otherCategory->id,
-            'description' => 'Hack attempt',
+            'category_id' => $category->id,
+            'description' => 'Shared category transaction',
             'amount' => 100,
             'type' => 'expense',
             'transaction_date' => '2025-07-01',
         ], $this->authHeader())
-            ->assertStatus(403);
+            ->assertStatus(201);
     }
 
     public function test_update_modifies_transaction(): void
@@ -129,7 +128,7 @@ class TransactionControllerTest extends TestCase
     public function test_cannot_access_another_users_transaction(): void
     {
         $other = User::factory()->create();
-        $otherCategory = $other->categories()->create(['name' => 'Other', 'type' => 'expense']);
+        $otherCategory = Category::create(['name' => 'Other', 'type' => 'expense']);
         $tx = $other->transactions()->create([
             'category_id' => $otherCategory->id,
             'description' => 'Private',

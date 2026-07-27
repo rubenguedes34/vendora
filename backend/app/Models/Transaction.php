@@ -48,10 +48,12 @@ class Transaction extends Model
 
         static::saved(function (self $transaction): void {
             FinancialCacheService::clearForUser($transaction->user);
+            FinancialRecord::syncFromTransactions($transaction->user, $transaction->transaction_date->year, $transaction->transaction_date->month);
         });
 
         static::deleted(function (self $transaction): void {
             FinancialCacheService::clearForUser($transaction->user);
+            FinancialRecord::syncFromTransactions($transaction->user, $transaction->transaction_date->year, $transaction->transaction_date->month);
         });
     }
 

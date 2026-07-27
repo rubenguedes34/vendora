@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
- * @property int $user_id
  * @property string $name
  * @property string $type
  * @property string|null $icon
@@ -19,7 +18,6 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'name',
         'icon',
         'color',
@@ -29,11 +27,6 @@ class Category extends Model
     protected $casts = [
         'type' => 'string',
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function transactions()
     {

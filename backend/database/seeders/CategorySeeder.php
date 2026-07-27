@@ -13,14 +13,6 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Get admin user (or first user) to assign default categories
-        $user = \App\Models\User::first();
-        
-        if (!$user) {
-            $this->command->warn('No users found. Please create a user first.');
-            return;
-        }
-
         // Default expense categories
         $defaultCategories = [
             [
@@ -106,7 +98,6 @@ class CategorySeeder extends Seeder
         foreach ($defaultCategories as $category) {
             Category::firstOrCreate(
                 [
-                    'user_id' => $user->id,
                     'name' => $category['name'],
                     'type' => $category['type']
                 ],

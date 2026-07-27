@@ -229,6 +229,30 @@ function allocationColor(type: string): string {
               </div>
             </div>
 
+            <!-- Monthly values -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mt-5">
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">Monthly Values</h3>
+              <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left">
+                  <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                    <tr>
+                      <th class="px-3 py-2">Month</th>
+                      <th class="px-3 py-2 text-right">Net Worth</th>
+                      <th class="px-3 py-2 text-right">Cash</th>
+                      <th class="px-3 py-2 text-right">Invested</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let h of data.history" class="border-b border-gray-100 last:border-0">
+                      <td class="px-3 py-2 text-gray-700">{{ h.label }}</td>
+                      <td class="px-3 py-2 text-right font-medium" [class.text-primary-600]="h.net_worth >= 0" [class.text-red-500]="h.net_worth < 0">{{ h.net_worth | currencySymbol }}</td>
+                      <td class="px-3 py-2 text-right font-medium" [class.text-teal-600]="h.cash >= 0" [class.text-red-500]="h.cash < 0">{{ h.cash | currencySymbol }}</td>
+                      <td class="px-3 py-2 text-right font-medium text-violet-600">{{ h.investments | currencySymbol }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </ng-container>
         </div>
       </main>

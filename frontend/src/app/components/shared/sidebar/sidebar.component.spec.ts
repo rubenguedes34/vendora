@@ -120,12 +120,9 @@ describe('SidebarComponent', () => {
     expect(component.mobileOpen).toBeFalsy();
   });
 
-  it('shows the admin button for users with admin or manager roles', async () => {
-    component.user = { id: 1, name: 'John Doe', email: 'john@example.com', roles: ['manager'] };
-    fixture.detectChanges();
-    await fixture.whenStable();
-    const adminButton = fixture.debugElement.query(By.css('button[title="Open admin panel"]'));
-    expect(adminButton).toBeTruthy();
+  it('allows admin access for users with admin or manager roles', () => {
+    userSubject.next({ id: 1, name: 'John Doe', email: 'john@example.com', roles: ['manager'] });
+    expect(component.canAccessAdmin).toBeTruthy();
   });
 
   // ── isActive ──────────────────────────────────────────────────────────────

@@ -52,7 +52,7 @@ class AuthController extends Controller
             Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
             $user->assignRole('user');
 
-            $this->seedDefaultCategories($user);
+            $this->seedDefaultCategories();
 
             $token = TokenService::issue($user);
 
@@ -318,7 +318,7 @@ class AuthController extends Controller
                 $user->forceFill(['email_verified_at' => now()])->save();
                 Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
                 $user->assignRole('user');
-                $this->seedDefaultCategories($user);
+                $this->seedDefaultCategories();
                 $isNewUser = true;
             } else {
                 if (empty($user->google_id)) {
@@ -372,7 +372,7 @@ class AuthController extends Controller
         }
     }
 
-    private function seedDefaultCategories(User $user): void
+    private function seedDefaultCategories(): void
     {
         $defaults = [
             ['name' => 'Salary',         'type' => 'income',  'icon' => '💰', 'color' => '#10B981'],
@@ -391,7 +391,7 @@ class AuthController extends Controller
         ];
 
         foreach ($defaults as $cat) {
-            $user->categories()->firstOrCreate(
+            Category::firstOrCreate(
                 ['name' => $cat['name'], 'type' => $cat['type']],
                 ['icon' => $cat['icon'], 'color' => $cat['color']]
             );

@@ -2,23 +2,27 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CategoryResource\Pages;
-use App\Filament\Resources\CategoryResource\RelationManagers;
-use App\Models\Category;
+use App\Filament\Resources\PermissionResource\Pages;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Spatie\Permission\Models\Permission;
 
-class CategoryResource extends Resource
+class PermissionResource extends Resource
 {
-    protected static ?string $model = Category::class;
+    protected static ?string $model = Permission::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-tag';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-lock-closed';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Access';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('manage users') ?? false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -26,18 +30,10 @@ class CategoryResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->unique(ignoreRecord: true)
                     ->maxLength(255),
-                Forms\Components\Select::make('type')
-                    ->options([
-                        'income' => 'Income',
-                        'expense' => 'Expense',
-                        'savings' => 'Savings',
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('icon')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('color')
-                    ->maxLength(255),
+                Forms\Components\Hidden::make('guard_name')
+                    ->default('web'),
             ]);
     }
 
@@ -46,13 +42,12 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('icon')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('color')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('guard_name')
+                    ->label('Guard')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -62,6 +57,7 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 //
             ])
@@ -72,8 +68,7 @@ class CategoryResource extends Resource
                 Actions\BulkActionGroup::make([
                     Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('id', 'desc');
+            ]);
     }
 
     public static function getRelations(): array
@@ -86,9 +81,9 @@ class CategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCategories::route('/'),
-            'create' => Pages\CreateCategory::route('/create'),
-            'edit' => Pages\EditCategory::route('/{record}/edit'),
+            'index' => Pages\ListPermissions::route('/'),
+            'create' => Pages\CreatePermission::route('/create'),
+            'edit' => Pages\EditPermission::route('/{record}/edit'),
         ];
     }
 }

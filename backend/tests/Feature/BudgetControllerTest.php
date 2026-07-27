@@ -23,7 +23,7 @@ class BudgetControllerTest extends TestCase
         $user = User::factory()->create();
         $this->user = $user;
         $this->token = TokenService::issue($this->user);
-        $this->category = $this->user->categories()->create([
+        $this->category = Category::create([
             'name' => 'Groceries',
             'type' => 'expense',
         ]);
@@ -76,22 +76,21 @@ class BudgetControllerTest extends TestCase
             ->assertJsonValidationErrors(['category_id', 'amount', 'month']);
     }
 
-    public function test_store_rejects_category_belonging_to_another_user(): void
+    public function test_store_accepts_a_global_category(): void
     {
-        $other = User::factory()->create();
-        $otherCat = $other->categories()->create(['name' => 'Other', 'type' => 'expense']);
+        $category = Category::create(['name' => 'Other', 'type' => 'expense']);
 
         $this->postJson('/api/budgets', [
-            'category_id' => $otherCat->id,
+            'category_id' => $category->id,
             'amount' => 100,
             'month' => '2025-07',
         ], $this->authHeader())
-            ->assertStatus(403);
+            ->assertStatus(201);
     }
 
     public function test_summary_returns_totals(): void
     {
-        $income = $this->user->categories()->create(['name' => 'Salary', 'type' => 'income']);
+        $income = Category::create(['name' => 'Salary', 'type' => 'income']);
         $this->user->budgets()->create(['category_id' => $income->id, 'amount' => 4000, 'month' => '2025-07']);
         $this->user->budgets()->create(['category_id' => $this->category->id, 'amount' => 500, 'month' => '2025-07']);
 
@@ -117,7 +116,7 @@ class BudgetControllerTest extends TestCase
     public function test_cannot_delete_another_users_budget(): void
     {
         $other = User::factory()->create();
-        $otherCat = $other->categories()->create(['name' => 'Other', 'type' => 'expense']);
+        $otherCat = Category::create(['name' => 'Other', 'type' => 'expense']);
         $budget = $other->budgets()->create([
             'category_id' => $otherCat->id,
             'amount' => 100,

@@ -224,7 +224,10 @@ export class RecurrentTransactionsComponent implements OnInit {
 
   loadRecurrent(): void {
     this.http.get<RecurrentTransaction[]>(`${this.apiUrl}/recurrent-transactions`, { headers: this.headers() }).subscribe({
-      next: data => this.recurrentList = data,
+      next: data => {
+        this.recurrentList = data;
+        this.errorMessage = '';
+      },
       error: err => this.errorMessage = err.error?.message || 'Failed to load recurrent transactions'
     });
   }
@@ -234,13 +237,21 @@ export class RecurrentTransactionsComponent implements OnInit {
     const payload = this.form.value;
 
     if (this.editing) {
-      this.http.put(`${this.apiUrl}/recurrent-transactions/${this.editing.id}`, payload, { headers: this.headers() }).subscribe({
-        next: () => { this.loadRecurrent(); this.cancelEdit(); },
+      this.http.put<RecurrentTransaction>(`${this.apiUrl}/recurrent-transactions/${this.editing.id}`, payload, { headers: this.headers() }).subscribe({
+        next: (item) => {
+          this.recurrentList = this.recurrentList.map(i => i.id === item.id ? item : i);
+          this.cancelEdit();
+          this.errorMessage = '';
+        },
         error: err => this.errorMessage = err.error?.message || 'Failed to update'
       });
     } else {
-      this.http.post(`${this.apiUrl}/recurrent-transactions`, payload, { headers: this.headers() }).subscribe({
-        next: () => { this.loadRecurrent(); this.form.reset({ type: 'expense' }); },
+      this.http.post<RecurrentTransaction>(`${this.apiUrl}/recurrent-transactions`, payload, { headers: this.headers() }).subscribe({
+        next: (item) => {
+          this.recurrentList = [...this.recurrentList, item];
+          this.form.reset({ type: 'expense' });
+          this.errorMessage = '';
+        },
         error: err => this.errorMessage = err.error?.message || 'Failed to add'
       });
     }

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Services\TokenService;
+use Spatie\Permission\Models\Permission;
 
 class FinancialRecordControllerTest extends TestCase
 {
@@ -38,6 +39,11 @@ class FinancialRecordControllerTest extends TestCase
 
     public function test_health_score_returns_score_and_history(): void
     {
+        $this->user->givePermissionTo(Permission::firstOrCreate([
+            'name' => 'view health score',
+            'guard_name' => 'web',
+        ]));
+
         $response = $this->getJson('/api/financial-records/health-score', $this->authHeader())
             ->assertStatus(200)
             ->assertJsonStructure([

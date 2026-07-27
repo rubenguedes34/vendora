@@ -15,6 +15,9 @@ class RoleSeeder extends Seeder
             'access admin panel',
             'manage users',
             'view metrics',
+            'view investments',
+            'use ai support',
+            'view health score',
         ];
 
         foreach ($permissions as $permission) {
@@ -23,13 +26,19 @@ class RoleSeeder extends Seeder
 
         /** @var Role $admin */
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions($permissions);
+        $admin->syncPermissions(Permission::all()->pluck('name')->toArray());
 
         /** @var Role $manager */
         $manager = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
         $manager->syncPermissions(['access admin panel', 'view metrics']);
 
-        Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        /** @var Role $userRole */
+        $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        $userRole->syncPermissions([
+            'view investments',
+            'use ai support',
+            'view health score',
+        ]);
 
         $firstUser = User::orderBy('id')->first();
         if ($firstUser && ! $firstUser->hasAnyRole(['admin', 'manager'])) {

@@ -103,7 +103,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
               <div *ngFor="let category of incomeCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg leading-none">{{ category.icon || '💰' }}</span>
+                    <img *ngIf="isImageIcon(category.icon); else incomeIcon" [src]="category.icon" [alt]="category.name" class="w-5 h-5 object-contain" />
+                    <ng-template #incomeIcon><span class="text-lg leading-none">{{ category.icon || '💰' }}</span></ng-template>
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#10B981'"></span>
                     <span class="font-medium text-gray-800">{{ category.name }}</span>
                   </div>
@@ -112,15 +113,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
                     <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
-                    <button (click)="deleteCategory(category, 'income')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
-              </div>
-              <div class="mt-4 flex items-center gap-2">
-                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
-                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
-                <button (click)="addCategory('income')" [disabled]="!newCategoryName.trim()"
-                  class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
               </div>
             </div>
 
@@ -130,7 +124,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
               <div *ngFor="let category of expenseCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg leading-none">{{ category.icon || '📦' }}</span>
+                    <img *ngIf="isImageIcon(category.icon); else expenseIcon" [src]="category.icon" [alt]="category.name" class="w-5 h-5 object-contain" />
+                    <ng-template #expenseIcon><span class="text-lg leading-none">{{ category.icon || '📦' }}</span></ng-template>
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#EF4444'"></span>
                     <span class="font-medium text-gray-800">{{ category.name }}</span>
                   </div>
@@ -139,15 +134,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
                     <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
-                    <button (click)="deleteCategory(category, 'expenses')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
-              </div>
-              <div class="mt-4 flex items-center gap-2">
-                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
-                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
-                <button (click)="addCategory('expense')" [disabled]="!newCategoryName.trim()"
-                  class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
               </div>
             </div>
 
@@ -171,7 +159,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
               <div *ngFor="let category of savingsCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg leading-none">{{ category.icon || '🏦' }}</span>
+                    <img *ngIf="isImageIcon(category.icon); else savingsIcon" [src]="category.icon" [alt]="category.name" class="w-5 h-5 object-contain" />
+                    <ng-template #savingsIcon><span class="text-lg leading-none">{{ category.icon || '🏦' }}</span></ng-template>
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background]="category.color || '#10B981'"></span>
                     <span class="font-medium text-gray-800">{{ category.name }}</span>
                   </div>
@@ -180,15 +169,8 @@ import { RecurrentTransactionsComponent } from '../recurrent-transactions/recurr
                       class="w-28 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       placeholder="0.00" min="0" step="0.01" />
                     <span class="text-gray-500 text-sm">{{ currencyService.symbol }}</span>
-                    <button (click)="deleteCategory(category, 'savings')" class="text-red-400 hover:text-red-600 text-sm ml-1" title="Remove">✕</button>
                   </div>
                 </div>
-              </div>
-              <div class="mt-4 flex items-center gap-2">
-                <input type="text" [(ngModel)]="newCategoryName" placeholder="New category name"
-                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
-                <button (click)="addCategory('savings')" [disabled]="!newCategoryName.trim()"
-                  class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">+ Add</button>
               </div>
             </div>
 
@@ -318,7 +300,6 @@ export class BudgetComponent implements OnInit {
 
   isSaving = false;
   errorMessage = '';
-  newCategoryName = '';
 
   comparison: BudgetComparison[] = [];
   comparisonLoading = false;
@@ -366,6 +347,10 @@ export class BudgetComponent implements OnInit {
   loadSavingsGoal(): void {
     this.savingsGoalValue = this.user.savings_goal || 0;
     this.savingsGoalType = this.user.savings_goal_type || 'fixed';
+  }
+
+  isImageIcon(icon?: string): boolean {
+    return Boolean(icon?.startsWith('http://') || icon?.startsWith('https://'));
   }
 
   calculateSavingsGoalAmount(): number {
@@ -433,33 +418,6 @@ export class BudgetComponent implements OnInit {
         this.isSaving = false;
         this.goBack();
       }
-    });
-  }
-
-  addCategory(type: 'income' | 'expense' | 'savings'): void {
-    const name = this.newCategoryName.trim();
-    if (!name) return;
-    this.financialService.createCategory({ name, type }).subscribe({
-      next: (cat) => {
-        this.newCategoryName = '';
-        if (type === 'income') { this.incomeCategories = [...this.incomeCategories, cat]; }
-        else if (type === 'expense') { this.expenseCategories = [...this.expenseCategories, cat]; }
-        else { this.savingsCategories = [...this.savingsCategories, cat]; }
-        this.categoryBudgets[cat.id] = 0;
-      },
-      error: (err) => this.errorMessage = err.message || 'Failed to add category',
-    });
-  }
-
-  deleteCategory(category: Category, section: 'income' | 'expenses' | 'savings'): void {
-    if (!confirm(`Delete category "${category.name}"?`)) return;
-    this.financialService.deleteCategory(category.id).subscribe({
-      next: () => {
-        if (section === 'income') { this.incomeCategories = this.incomeCategories.filter(c => c.id !== category.id); }
-        else if (section === 'expenses') { this.expenseCategories = this.expenseCategories.filter(c => c.id !== category.id); }
-        else { this.savingsCategories = this.savingsCategories.filter(c => c.id !== category.id); }
-      },
-      error: (err) => this.errorMessage = err.message || 'Failed to delete category',
     });
   }
 

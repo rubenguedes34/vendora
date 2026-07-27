@@ -49,6 +49,36 @@ class FinancialRecord extends Model
         });
     }
 
+    public static function syncFromTransactions(User $user, int $year, int $month): void
+    {
+        $start = now()->setDate($year, $month, 1)->startOfMonth();
+        $end = now()->setDate($year, $month, 1)->endOfMonth();
+
+        $monthlyIncome = (float) $user->transactions()
+            ->where('type', 'income')
+            ->whereBetween('transaction_date', [$start, $end])
+            ->sum('amount');
+
+        $monthlyExpenses = (float) $user->transactions()
+            ->where('type', 'expense')
+            ->whereBetween('transaction_date', [$start, $end])
+            ->sum('amount');
+
+        $record = $user->financialRecords()->firstOrNew(['year' => $year, 'month' => $month]);
+        $record->user_id = $user->id;
+        $record->monthly_income = $monthlyIncome;
+        $record->monthly_expenses = $monthlyExpenses;
+
+        if (is_null($record->savings_goal)) {
+            $record->savings_goal = 0;
+        }
+        if (is_null($record->savings_goal_type)) {
+            $record->savings_goal_type = 'fixed';
+        }
+
+        $record->save();
+    }
+
     public function getSavingsGoalAmountAttribute(): float
     {
         if ($this->savings_goal_type === 'percentage') {

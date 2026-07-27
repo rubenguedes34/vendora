@@ -342,7 +342,8 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 <div class="flex items-center gap-3 flex-1 min-w-0">
                   <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                     [style.background]="transaction.category?.color ? transaction.category.color + '22' : '#e5e7eb'">
-                    <span class="text-base">{{ transaction.category?.icon || '💳' }}</span>
+                    <img *ngIf="isImageIcon(transaction.category?.icon); else transactionIcon" [src]="transaction.category?.icon" [alt]="transaction.category?.name || 'Category'" class="w-5 h-5 object-contain" />
+                    <ng-template #transactionIcon><span class="text-base">{{ transaction.category?.icon || '💳' }}</span></ng-template>
                   </div>
                   <div class="min-w-0">
                     <p class="font-medium text-gray-800 truncate">{{ transaction.description }}</p>
@@ -699,6 +700,10 @@ export class TransactionsComponent implements OnInit {
     this.perPage           = 20;
     sessionStorage.removeItem('txFilters');
     this.loadTransactions();
+  }
+
+  isImageIcon(icon?: string): boolean {
+    return Boolean(icon?.startsWith('http://') || icon?.startsWith('https://'));
   }
 
   loadCategories(): void {

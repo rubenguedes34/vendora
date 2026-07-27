@@ -23,7 +23,7 @@ class RecurrentTransactionControllerTest extends TestCase
         $user = User::factory()->create();
         $this->user = $user;
         $this->token = TokenService::issue($this->user);
-        $this->category = $this->user->categories()->create([
+        $this->category = Category::create([
             'name' => 'Rent',
             'type' => 'expense',
         ]);
@@ -85,19 +85,18 @@ class RecurrentTransactionControllerTest extends TestCase
             ->assertJsonValidationErrors(['day_of_month']);
     }
 
-    public function test_store_rejects_category_belonging_to_another_user(): void
+    public function test_store_accepts_a_global_category(): void
     {
-        $other = User::factory()->create();
-        $otherCat = $other->categories()->create(['name' => 'Other', 'type' => 'expense']);
+        $category = Category::create(['name' => 'Other', 'type' => 'expense']);
 
         $this->postJson('/api/recurrent-transactions', [
-            'description' => 'Hack',
+            'description' => 'Shared category transaction',
             'amount' => 100,
             'type' => 'expense',
-            'category_id' => $otherCat->id,
+            'category_id' => $category->id,
             'day_of_month' => 5,
         ], $this->authHeader())
-            ->assertStatus(403);
+            ->assertStatus(201);
     }
 
     public function test_update_modifies_recurrent_transaction(): void

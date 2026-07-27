@@ -18,10 +18,10 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $categories = $request->user()
-            ->categories()
-            ->with(['budgets' => function ($query) {
-                $query->where('month', date('Y-m'));
+        $categories = Category::query()
+            ->with(['budgets' => function ($query) use ($request) {
+                $query->where('user_id', $request->user()->id)
+                    ->where('month', date('Y-m'));
             }])
             ->orderBy('name')
             ->get();
@@ -48,16 +48,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'icon' => 'nullable|string|max:50',
-            'color' => 'nullable|string|max:20',
-            'type' => 'required|in:income,expense,savings',
-        ]);
-
-        $category = $request->user()->categories()->create($request->all());
-
-        return response()->json($category, 201);
+        abort(404);
     }
 
     /**
@@ -72,7 +63,7 @@ class CategoryController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $category = $request->user()->categories()->findOrFail($id);
+        $category = Category::findOrFail($id);
         return response()->json($category);
     }
 
@@ -96,18 +87,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $category = $request->user()->categories()->findOrFail($id);
-
-        $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'icon' => 'nullable|string|max:50',
-            'color' => 'nullable|string|max:20',
-            'type' => 'sometimes|required|in:income,expense,savings',
-        ]);
-
-        $category->update($request->all());
-
-        return response()->json($category);
+        abort(404);
     }
 
     /**
@@ -122,10 +102,7 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $category = $request->user()->categories()->findOrFail($id);
-        $category->delete();
-
-        return response()->json(['message' => 'Category deleted']);
+        abort(404);
     }
 
     /**
@@ -146,11 +123,11 @@ class CategoryController extends Controller
             return response()->json(['message' => 'Invalid category type'], 400);
         }
 
-        $categories = $request->user()
-            ->categories()
+        $categories = Category::query()
             ->where('type', $type)
-            ->with(['budgets' => function ($query) {
-                $query->where('month', date('Y-m'));
+            ->with(['budgets' => function ($query) use ($request) {
+                $query->where('user_id', $request->user()->id)
+                    ->where('month', date('Y-m'));
             }])
             ->orderBy('name')
             ->get();

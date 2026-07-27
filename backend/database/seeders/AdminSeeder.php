@@ -21,6 +21,9 @@ class AdminSeeder extends Seeder
             'access admin panel',
             'manage users',
             'view metrics',
+            'view investments',
+            'use ai support',
+            'view health score',
         ];
 
         foreach ($permissions as $permission) {
@@ -29,7 +32,7 @@ class AdminSeeder extends Seeder
 
         /** @var Role $admin */
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions($permissions);
+        $admin->syncPermissions(Permission::all()->pluck('name')->toArray());
 
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
 

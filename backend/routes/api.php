@@ -29,7 +29,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::put('/user/password', [AuthController::class, 'updatePassword']);
 
     // Categories
-    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
     Route::get('/categories-by-type/{type}', [CategoryController::class, 'byType']);
 
     // Transactions
@@ -49,11 +49,11 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/financial-records/year/{year}', [FinancialRecordController::class, 'byYear']);
     Route::get('/financial-records/net-worth', [FinancialRecordController::class, 'netWorth']);
     Route::get('/financial-records/allocation', [FinancialRecordController::class, 'allocation']);
-    Route::get('/financial-records/health-score', [FinancialRecordController::class, 'healthScore']);
+    Route::get('/financial-records/health-score', [FinancialRecordController::class, 'healthScore'])->middleware('permission:view health score');
     Route::apiResource('financial-records', FinancialRecordController::class);
 
     // Investments
-    Route::apiResource('investments', InvestmentController::class);
+    Route::apiResource('investments', InvestmentController::class)->middleware('permission:view investments');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -75,8 +75,10 @@ Route::middleware('auth.custom')->group(function () {
     Route::apiResource('recurrent-transactions', RecurrentTransactionController::class);
 
     // AI support routes
-    Route::post('/ai/chat', [AiChatController::class, 'chat']);
-    Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
+    Route::middleware('permission:use ai support')->group(function () {
+        Route::post('/ai/chat', [AiChatController::class, 'chat']);
+        Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
+    });
 
     // Admin routes
     Route::middleware('permission:access admin panel')->prefix('admin')->group(function () {

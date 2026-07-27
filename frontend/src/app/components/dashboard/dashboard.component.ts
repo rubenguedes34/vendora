@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener }
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FinancialService, FinancialRecord, NetWorth } from '../../services/financial.service';
+import { FinancialService, FinancialRecord } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
@@ -26,7 +26,9 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
                 <p class="text-primary-200 text-xs">Welcome back, {{ user?.name }}!</p>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-sm text-primary-200 hidden sm:block">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</span>
+                <input type="month" [value]="selectedMonth" (change)="onMonthChange($any($event.target).value)"
+                  class="bg-primary-600 text-white text-sm rounded-lg px-3 py-1.5 border border-primary-500 focus:outline-none focus:ring-2 focus:ring-white/40" />
+                <span class="text-sm text-primary-200 hidden sm:block">{{ monthNames[overviewMonth - 1] }} {{ overviewYear }}</span>
 
                 <!-- Notification Bell -->
                 <div class="relative alerts-panel-wrapper">
@@ -177,57 +179,63 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Income</h3>
-              <p class="text-2xl font-bold text-blue-600">{{ monthlyIncome | currencySymbol }}</p>
+              <p class="text-2xl font-bold text-blue-600">{{ overviewIncome | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-red-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Expenses</h3>
-              <p class="text-2xl font-bold text-red-600">{{ monthlyExpenses | currencySymbol }}</p>
+              <p class="text-2xl font-bold text-red-600">{{ overviewExpenses | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-green-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Savings</h3>
-              <p class="text-2xl font-bold text-green-600">{{ monthlySavings | currencySymbol }}</p>
+              <p class="text-2xl font-bold text-green-600">{{ overviewSavings | currencySymbol }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-primary-500">
               <h3 class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Balance</h3>
-              <p class="text-2xl font-bold text-primary-600">{{ totalBalance | currencySymbol }}</p>
+              <p class="text-2xl font-bold text-primary-600">{{ overviewBalance | currencySymbol }}</p>
             </div>
           </div>
 
-          <!-- Net Worth Widget -->
+          <!-- Monthly Balance Breakdown -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-50 flex items-start justify-between">
-              <div>
-                <h3 class="text-base font-semibold text-gray-800">Net Worth</h3>
-                <p class="text-xs text-gray-400">All-time: cash balance + investment portfolio</p>
-              </div>
-              <a routerLink="/investments" class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors mt-0.5">View investments →</a>
+            <div class="px-6 py-4 border-b border-gray-50">
+              <h3 class="text-base font-semibold text-gray-800">Monthly Balance</h3>
+              <p class="text-xs text-gray-400">Income, expenses and balance for each month of {{ overviewYear }}</p>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 items-stretch">
-              <div class="px-4 md:px-6 py-4 flex flex-col">
-                <p class="text-xs text-gray-400 mb-1">Net Worth</p>
-                <p class="text-2xl font-bold leading-tight" [class]="netWorth.net_worth >= 0 ? 'text-primary-600' : 'text-red-600'">
-                  {{ netWorth.net_worth | currencySymbol }}
-                </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+              <!-- Month list -->
+              <div class="space-y-2">
+                <div *ngFor="let m of monthBreakdown"
+                  class="flex items-center justify-between p-3 rounded-lg transition-colors"
+                  [class.bg-primary-50]="m.month === overviewMonth"
+                  [class.border]="m.month === overviewMonth"
+                  [class.border-primary-200]="m.month === overviewMonth">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-bold shrink-0">
+                      {{ monthNames[m.month - 1].slice(0, 3) }}
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-800 truncate">{{ monthNames[m.month - 1] }}</p>
+                      <p class="text-xs text-gray-500">
+                        Balance
+                        <span [class.text-green-600]="m.balance >= 0" [class.text-red-600]="m.balance < 0">
+                          {{ m.balance | currencySymbol }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-xs text-gray-400">In <span class="font-semibold text-gray-700">{{ m.income | currencySymbol }}</span></p>
+                    <p class="text-xs text-gray-400">Out <span class="font-semibold text-gray-700">{{ m.expenses | currencySymbol }}</span></p>
+                  </div>
+                </div>
+                <div *ngIf="monthBreakdown.length === 0" class="text-gray-300 text-center py-8 text-sm">No monthly data yet</div>
               </div>
-              <div class="px-4 md:px-6 py-4 flex flex-col">
-                <p class="text-xs text-gray-400 mb-1">Cash Balance</p>
-                <p class="text-xl font-semibold leading-tight" [class]="netWorth.cash_balance >= 0 ? 'text-blue-600' : 'text-red-600'">
-                  {{ netWorth.cash_balance | currencySymbol }}
-                </p>
-                <p class="text-xs text-gray-400 mt-0.5">income − expenses</p>
-              </div>
-              <div class="px-4 md:px-6 py-4 flex flex-col">
-                <p class="text-xs text-gray-400 mb-1">Investments</p>
-                <p class="text-xl font-semibold text-purple-600 leading-tight">{{ netWorth.investment_value | currencySymbol }}</p>
-                <p class="text-xs mt-0.5" [class]="netWorth.investment_gain >= 0 ? 'text-green-500' : 'text-red-500'">
-                  {{ netWorth.investment_gain >= 0 ? '+' : '' }}{{ netWorth.investment_gain | currencySymbol }} gain
-                </p>
-              </div>
-              <div class="px-4 md:px-6 py-4 flex flex-col">
-                <p class="text-xs text-gray-400 mb-1">Investment ROI</p>
-                <p class="text-xl font-semibold leading-tight" [class]="netWorth.investment_roi >= 0 ? 'text-green-600' : 'text-red-600'">
-                  {{ netWorth.investment_roi >= 0 ? '+' : '' }}{{ netWorth.investment_roi.toFixed(2) }}%
-                </p>
+              <!-- Balance trend chart -->
+              <div class="flex flex-col">
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Balance trend</h4>
+                <div style="height: 220px">
+                  <canvas #monthlyBalanceChart></canvas>
+                </div>
               </div>
             </div>
           </div>
@@ -235,12 +243,12 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           <!-- Charts row -->
           <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
 
-            <!-- Area chart: Income vs Expenses (spans 3 cols) -->
+            <!-- Bar chart: Income vs Expenses (spans 3 cols) -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="text-base font-semibold text-gray-800">Income vs Expenses</h3>
-                  <p class="text-xs text-gray-400">{{ currentYear }} overview</p>
+                  <p class="text-xs text-gray-400">{{ overviewYear }} overview</p>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-gray-500">
                   <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span>Income</span>
@@ -256,15 +264,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-base font-semibold text-gray-800">Monthly Snapshot</h3>
-                <div class="flex items-center gap-1">
-                  <button (click)="prevMonth()" class="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                  </button>
-                  <span class="text-xs font-medium text-gray-600 w-24 text-center">{{ monthNames[overviewMonth-1].slice(0,3) }} {{ overviewYear }}</span>
-                  <button (click)="nextMonth()" class="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                  </button>
-                </div>
+                <span class="text-xs font-medium text-gray-600">{{ monthNames[overviewMonth-1].slice(0,3) }} {{ overviewYear }}</span>
               </div>
               <div class="relative flex items-center justify-center" style="height:170px">
                 <canvas #categoryChart></canvas>
@@ -340,10 +340,6 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   user: any = null;
-  totalBalance = 0;
-  monthlyIncome = 0;
-  monthlyExpenses = 0;
-  monthlySavings = 0;
   currentYear = new Date().getFullYear();
   currentMonth = new Date().getMonth() + 1;
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -354,16 +350,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   overviewIncome = 0;
   overviewExpenses = 0;
   overviewSavings = 0;
+  selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
+
+  monthBreakdown: { month: number; income: number; expenses: number; balance: number }[] = [];
 
   userInitials = '';
+
+  get overviewBalance(): number { return this.overviewIncome - this.overviewExpenses; }
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
   @ViewChild('categoryChart') categoryChart!: ElementRef;
   @ViewChild('categoryBreakdownChart') categoryBreakdownChart!: ElementRef;
+  @ViewChild('monthlyBalanceChart') monthlyBalanceChart!: ElementRef;
 
   private incomeExpenseChartInstance: any;
   private categoryChartInstance: any;
   private categoryBreakdownChartInstance: any;
+  private monthlyBalanceChartInstance: any;
 
   expensesByCategory: { category: string; color: string; total: number }[] = [];
   private maxExpense = 0;
@@ -378,14 +381,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   daysRemaining = 0;
   savingsRate = 0;
 
-  netWorth: NetWorth = {
-    net_worth: 0, cash_balance: 0,
-    investment_value: 0, investment_cost: 0,
-    investment_gain: 0, investment_roi: 0,
-    total_income: 0, total_expenses: 0,
-    monthly_change: 0, yearly_change: 0,
-    history: [], allocation: [],
-  };
 
   constructor(
     private authService: AuthService,
@@ -399,6 +394,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.user = user;
       if (user?.current_year) this.currentYear = user.current_year;
       if (user?.current_month) this.currentMonth = user.current_month;
+      this.overviewYear = this.currentYear;
+      this.overviewMonth = this.currentMonth;
+      this.selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
       const name: string = user?.name || '';
       this.userInitials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
     });
@@ -414,26 +412,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   loadDashboardData(): void {
     this.financialService.getCurrentRecord().subscribe({
       next: (record) => {
-        this.monthlyIncome = parseFloat(String(record.monthly_income || 0));
-        this.monthlyExpenses = parseFloat(String(record.monthly_expenses || 0));
-        this.monthlySavings = parseFloat(String(record.savings || 0));
-        this.totalBalance = this.monthlyIncome - this.monthlyExpenses;
         this.updateOverviewFromRecord(record);
         this.updateChartsWithRealData();
-        this.computeAlerts();
+        this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
       },
       error: () => this.updateChartsWithRealData()
     });
 
     this.loadExpensesByCategory();
-    this.loadNetWorth();
 
-    this.financialService.getYearRecords(this.currentYear).subscribe({
+    this.financialService.getYearRecords(this.overviewYear).subscribe({
       next: (records) => {
         this.yearlyRecords = records;
+        this.updateMonthBreakdown();
         this.updateChartsWithRealData();
       },
-      error: () => { this.yearlyRecords = []; }
+      error: () => { this.yearlyRecords = []; this.updateMonthBreakdown(); }
     });
   }
 
@@ -444,41 +438,40 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.updateOverviewChart();
   }
 
-  computeAlerts(): void {
+  computeAlerts(year: number, month: number, income: number, expenses: number, savings: number): void {
     const alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
     const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const dayOfMonth = now.getDate();
+    const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const dayOfMonth = isCurrent ? now.getDate() : daysInMonth;
     this.daysRemaining = daysInMonth - dayOfMonth;
 
-    const income = this.monthlyIncome;
-    const expenses = this.monthlyExpenses;
-    const savings = this.monthlySavings;
+    const monthName = this.monthNames[month - 1];
 
     this.dailyAvgSpend = dayOfMonth > 0 ? expenses / dayOfMonth : 0;
     this.projectedBalance = income - expenses - (this.dailyAvgSpend * this.daysRemaining);
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
-      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned this month.` });
+      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned in ${monthName}.` });
     } else if (expenses > income * 0.9) {
-      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income.` });
+      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income in ${monthName}.` });
     }
 
     if (this.savingsRate < 10 && income > 0) {
-      alerts.push({ type: 'warning', title: 'Low savings rate', message: `You're saving ${this.savingsRate.toFixed(1)}% of income. Target is at least 20%.` });
+      alerts.push({ type: 'warning', title: 'Low savings rate', message: `You're saving ${this.savingsRate.toFixed(1)}% of income in ${monthName}. Target is at least 20%.` });
     }
 
     if (this.projectedBalance < 0) {
-      alerts.push({ type: 'danger', title: 'Negative month projected', message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end the month ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
+      alerts.push({ type: 'danger', title: `Negative ${monthName} projection`, message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end ${monthName} ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
     } else if (this.projectedBalance < income * 0.1) {
-      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end-of-month balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.` });
+      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end of ${monthName} balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.` });
     } else {
-      alerts.push({ type: 'info', title: 'On track this month', message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of month.` });
+      alerts.push({ type: 'info', title: `On track in ${monthName}`, message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of ${monthName}.` });
     }
 
-    if (this.daysRemaining <= 7 && expenses > income * 0.8) {
-      alerts.push({ type: 'warning', title: 'Month ending soon', message: `${this.daysRemaining} days left. Watch your spending to stay positive.` });
+    if (isCurrent && this.daysRemaining <= 7 && expenses > income * 0.8) {
+      alerts.push({ type: 'warning', title: 'Month ending soon', message: `${this.daysRemaining} days left in ${monthName}. Watch your spending to stay positive.` });
     }
 
     this.alerts = alerts;
@@ -527,10 +520,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  loadNetWorth(): void {
-    this.financialService.getNetWorth().subscribe({
-      next: (data) => { this.netWorth = data; },
-      error: () => {}
+  updateMonthBreakdown(): void {
+    this.monthBreakdown = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const record = this.yearlyRecords.find(r => r.year === this.overviewYear && r.month === month);
+      const income = parseFloat(String(record?.monthly_income || 0));
+      const expenses = parseFloat(String(record?.monthly_expenses || 0));
+      return { month, income, expenses, balance: income - expenses };
     });
   }
 
@@ -552,31 +548,58 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   prevMonth(): void {
-    if (this.overviewMonth === 1) { this.overviewMonth = 12; this.overviewYear--; }
-    else { this.overviewMonth--; }
+    let year = this.overviewYear;
+    let month = this.overviewMonth - 1;
+    if (month < 1) { month = 12; year--; }
+    this.setMonth(year, month);
+  }
+
+  nextMonth(): void {
+    let year = this.overviewYear;
+    let month = this.overviewMonth + 1;
+    if (month > 12) { month = 1; year++; }
+    this.setMonth(year, month);
+  }
+
+  setMonth(year: number, month: number): void {
+    this.overviewYear = year;
+    this.overviewMonth = month;
+    this.selectedMonth = `${year}-${String(month).padStart(2, '0')}`;
     this.loadOverviewMonth();
     this.loadExpensesByCategory();
   }
 
-  nextMonth(): void {
-    if (this.overviewMonth === 12) { this.overviewMonth = 1; this.overviewYear++; }
-    else { this.overviewMonth++; }
-    this.loadOverviewMonth();
-    this.loadExpensesByCategory();
+  onMonthChange(monthStr: string): void {
+    if (!monthStr) return;
+    const [year, month] = monthStr.split('-').map(Number);
+    this.setMonth(year, month);
   }
 
   loadOverviewMonth(): void {
     const record = this.yearlyRecords.find(r => r.year === this.overviewYear && r.month === this.overviewMonth);
     if (record) {
+      this.updateMonthBreakdown();
       this.updateOverviewFromRecord(record);
+      this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+      this.updateChartsWithRealData();
     } else {
       this.financialService.getYearRecords(this.overviewYear).subscribe({
         next: (records) => {
+          this.yearlyRecords = records;
+          this.updateMonthBreakdown();
           const r = records.find(rec => rec.month === this.overviewMonth);
           if (r) { this.updateOverviewFromRecord(r); }
           else { this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart(); }
+          this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+          this.updateChartsWithRealData();
         },
-        error: () => { this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart(); }
+        error: () => {
+          this.yearlyRecords = [];
+          this.updateMonthBreakdown();
+          this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart();
+          this.computeAlerts(this.overviewYear, this.overviewMonth, 0, 0, 0);
+          this.updateChartsWithRealData();
+        }
       });
     }
   }
@@ -587,14 +610,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   updateChartsWithRealData(): void {
     if (this.incomeExpenseChartInstance && this.yearlyRecords.length > 0) {
-      const labels = this.yearlyRecords.map(r => this.monthNames[r.month - 1].slice(0, 3));
+      const labels = this.monthNames.map(m => m.slice(0, 3));
       this.incomeExpenseChartInstance.data.labels = labels;
-      this.incomeExpenseChartInstance.data.datasets[0].data = this.yearlyRecords.map(r => parseFloat(String(r.monthly_income)) || 0);
-      this.incomeExpenseChartInstance.data.datasets[1].data = this.yearlyRecords.map(r => parseFloat(String(r.monthly_expenses)) || 0);
-      this.incomeExpenseChartInstance.data.datasets[2].data = this.yearlyRecords.map(r => parseFloat(String(r.savings)) || 0);
+      this.incomeExpenseChartInstance.data.datasets[0].data = this.monthBreakdown.map(m => m.income);
+      this.incomeExpenseChartInstance.data.datasets[1].data = this.monthBreakdown.map(m => m.expenses);
+      this.incomeExpenseChartInstance.data.datasets[2].data = this.monthBreakdown.map(m => Math.max(0, m.balance));
       this.incomeExpenseChartInstance.update();
     }
     this.updateOverviewChart();
+    this.updateMonthlyBalanceChart();
   }
 
   updateOverviewChart(): void {
@@ -611,46 +635,46 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.initIncomeExpenseChart();
       this.initCategoryChart();
       this.initCategoryBreakdownChart();
+      this.initMonthlyBalanceChart();
     }, 200);
   }
 
   initIncomeExpenseChart(): void {
     if (!this.incomeExpenseChart?.nativeElement) return;
-    const canvas = this.incomeExpenseChart.nativeElement;
-    const ctx = canvas.getContext('2d');
-
-    const mkGradient = (r: number, g: number, b: number) => {
-      const grad = ctx.createLinearGradient(0, 0, 0, 220);
-      grad.addColorStop(0, `rgba(${r},${g},${b},0.35)`);
-      grad.addColorStop(1, `rgba(${r},${g},${b},0.01)`);
-      return grad;
-    };
+    const ctx = this.incomeExpenseChart.nativeElement.getContext('2d');
+    const symbol = this.currencyService.symbol;
 
     this.incomeExpenseChartInstance = new (window as any).Chart(ctx, {
-      type: 'line',
+      type: 'bar',
       data: {
-        labels: this.yearlyRecords.map(r => this.monthNames[r.month - 1].slice(0, 3)),
+        labels: this.monthNames.map(m => m.slice(0, 3)),
         datasets: [
           {
             label: 'Income',
-            data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_income)) || 0),
-            borderColor: '#2dd4bf', backgroundColor: mkGradient(45,212,191),
-            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#2dd4bf',
-            tension: 0.4, fill: true
+            data: this.monthBreakdown.map(m => m.income),
+            backgroundColor: '#2dd4bf',
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8
           },
           {
             label: 'Expenses',
-            data: this.yearlyRecords.map(r => parseFloat(String(r.monthly_expenses)) || 0),
-            borderColor: '#f87171', backgroundColor: mkGradient(248,113,113),
-            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#f87171',
-            tension: 0.4, fill: true
+            data: this.monthBreakdown.map(m => m.expenses),
+            backgroundColor: '#f87171',
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8
           },
           {
-            label: 'Savings',
-            data: this.yearlyRecords.map(r => parseFloat(String(r.savings)) || 0),
-            borderColor: '#818cf8', backgroundColor: mkGradient(129,140,248),
-            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#818cf8',
-            tension: 0.4, fill: true
+            label: 'Balance',
+            data: this.monthBreakdown.map(m => Math.max(0, m.balance)),
+            backgroundColor: '#818cf8',
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8
           }
         ]
       },
@@ -659,19 +683,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { display: false },
+          legend: { display: true, labels: { usePointStyle: true, boxWidth: 8, padding: 10, font: { size: 11 }, color: '#6b7280' } },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
             titleColor: '#e5e7eb', bodyColor: '#d1d5db',
             padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: any) => ` ${c.dataset.label}: €${c.parsed.y.toFixed(2)}` }
+            callbacks: { label: (c: any) => ` ${c.dataset.label}: ${symbol}${c.parsed.y.toFixed(2)}` }
           }
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
           y: {
             beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' },
-            ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: any) => '€' + v }
+            ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: any) => symbol + v }
           }
         }
       }
@@ -753,5 +777,55 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.categoryBreakdownChartInstance.data.datasets[0].data = this.expensesByCategory.map(e => e.total);
     this.categoryBreakdownChartInstance.data.datasets[0].backgroundColor = this.expensesByCategory.map(e => e.color);
     this.categoryBreakdownChartInstance.update();
+  }
+
+  initMonthlyBalanceChart(): void {
+    if (!this.monthlyBalanceChart?.nativeElement) return;
+    const ctx = this.monthlyBalanceChart.nativeElement.getContext('2d');
+    const symbol = this.currencyService.symbol;
+    const data = this.monthBreakdown.map(m => m.balance);
+    const colors = this.monthBreakdown.map(m => m.balance >= 0 ? '#10b981' : '#ef4444');
+
+    this.monthlyBalanceChartInstance = new (window as any).Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: this.monthNames.map(m => m.slice(0, 3)),
+        datasets: [{
+          label: 'Balance',
+          data,
+          backgroundColor: colors,
+          borderRadius: 6,
+          borderSkipped: false,
+          barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(17,24,39,0.85)',
+            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
+            padding: 10, cornerRadius: 8,
+            callbacks: { label: (c: any) => ` Balance: ${symbol}${c.parsed.y.toFixed(2)}` }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+          y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: any) => symbol + v } }
+        }
+      }
+    });
+  }
+
+  updateMonthlyBalanceChart(): void {
+    if (!this.monthlyBalanceChartInstance) {
+      this.initMonthlyBalanceChart();
+      return;
+    }
+    this.monthlyBalanceChartInstance.data.datasets[0].data = this.monthBreakdown.map(m => m.balance);
+    this.monthlyBalanceChartInstance.data.datasets[0].backgroundColor = this.monthBreakdown.map(m => m.balance >= 0 ? '#10b981' : '#ef4444');
+    this.monthlyBalanceChartInstance.update();
   }
 }
