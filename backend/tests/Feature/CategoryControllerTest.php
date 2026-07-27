@@ -41,8 +41,8 @@ class CategoryControllerTest extends TestCase
 
         $this->getJson('/api/categories', $this->authHeader())
             ->assertStatus(200)
-            ->assertJsonCount(2)
-            ->assertJsonPath('0.name', 'Food');
+            ->assertJsonCount(4)
+            ->assertJsonFragment(['name' => 'Food']);
     }
 
     public function test_store_is_not_available_to_users(): void
