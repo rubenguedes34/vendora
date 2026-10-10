@@ -20,6 +20,10 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    // The model policy describes what a user may do through the API; panel
+    // access keeps being decided by the admin permissions alone.
+    protected static bool $shouldSkipAuthorization = true;
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Access';

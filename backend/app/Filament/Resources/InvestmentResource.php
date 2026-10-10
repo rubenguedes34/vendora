@@ -18,6 +18,10 @@ class InvestmentResource extends Resource
 {
     protected static ?string $model = Investment::class;
 
+    // The model policy describes what a user may do through the API; panel
+    // access keeps being decided by the admin permissions alone.
+    protected static bool $shouldSkipAuthorization = true;
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-chart-pie';
 
     public static function form(Schema $schema): Schema

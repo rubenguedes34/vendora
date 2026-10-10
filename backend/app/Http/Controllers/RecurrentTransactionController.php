@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\RecurrentTransaction\CopyToMonthRequest;
+use App\Http\Requests\RecurrentTransaction\StoreRecurrentTransactionRequest;
+use App\Http\Requests\RecurrentTransaction\UpdateRecurrentTransactionRequest;
 use App\Models\Category;
+use App\Models\RecurrentTransaction;
 
 class RecurrentTransactionController extends Controller
 {
@@ -45,16 +49,9 @@ class RecurrentTransactionController extends Controller
      *     @OA\Response(response=201, description="Created")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreRecurrentTransactionRequest $request)
     {
-        $data = $request->validate([
-            'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0.01',
-            'type' => 'required|in:income,expense',
-            'category_id' => 'required|exists:categories,id',
-            'day_of_month' => 'required|integer|between:1,28',
-            'is_active' => 'sometimes|boolean',
-        ]);
+        $data = $request->validated();
 
         Category::assertMatchesTransactionType($data['category_id'], $data['type']);
 
@@ -73,9 +70,11 @@ class RecurrentTransactionController extends Controller
      *     @OA\Response(response=200, description="Recurrent transaction object")
      * )
      */
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $item = $request->user()->recurrentTransactions()->with('category')->findOrFail($id);
+        $item = RecurrentTransaction::with('category')->findOrFail($id);
+        $this->authorize('view', $item);
+
         return response()->json($item);
     }
 
@@ -98,18 +97,10 @@ class RecurrentTransactionController extends Controller
      *     @OA\Response(response=200, description="Recurrent transaction updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateRecurrentTransactionRequest $request)
     {
-        $item = $request->user()->recurrentTransactions()->findOrFail($id);
-
-        $data = $request->validate([
-            'description' => 'sometimes|required|string|max:255',
-            'amount' => 'sometimes|required|numeric|min:0.01',
-            'type' => 'sometimes|required|in:income,expense',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'day_of_month' => 'sometimes|required|integer|between:1,28',
-            'is_active' => 'sometimes|boolean',
-        ]);
+        $item = $request->record();
+        $data = $request->validated();
 
         Category::assertMatchesTransactionType(
             $data['category_id'] ?? $item->category_id,
@@ -131,9 +122,11 @@ class RecurrentTransactionController extends Controller
      *     @OA\Response(response=200, description="Recurrent transaction deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $item = $request->user()->recurrentTransactions()->findOrFail($id);
+        $item = RecurrentTransaction::findOrFail($id);
+        $this->authorize('delete', $item);
+
         $item->delete();
 
         return response()->json(['message' => 'Recurrent transaction deleted']);
@@ -153,12 +146,8 @@ class RecurrentTransactionController extends Controller
      *     @OA\Response(response=200, description="Number of transactions created")
      * )
      */
-    public function copyToMonth(Request $request)
+    public function copyToMonth(CopyToMonthRequest $request)
     {
-        $request->validate([
-            'month' => 'required|date_format:Y-m',
-        ]);
-
         [$year, $month] = explode('-', $request->month);
         $year = (int) $year;
         $month = (int) $month;

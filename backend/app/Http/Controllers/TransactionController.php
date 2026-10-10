@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\Transaction\ExpensesByCategoryRequest;
+use App\Http\Requests\Transaction\ExportTransactionRequest;
+use App\Http\Requests\Transaction\IndexTransactionRequest;
+use App\Http\Requests\Transaction\StoreTransactionRequest;
+use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\Tag;
@@ -22,22 +26,8 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Array of transactions")
      * )
      */
-    public function index(Request $request)
+    public function index(IndexTransactionRequest $request)
     {
-        $request->validate([
-            'search'       => 'nullable|string|max:100',
-            'notes_search' => 'nullable|string|max:100',
-            'type'         => 'nullable|in:income,expense',
-            'category_id'  => 'nullable|integer|exists:categories,id',
-            'date_from'    => 'nullable|date',
-            'date_to'      => 'nullable|date|after_or_equal:date_from',
-            'amount_min'   => 'nullable|numeric|min:0',
-            'amount_max'   => 'nullable|numeric|min:0',
-            'tag_ids'      => 'nullable|string',
-            'per_page'     => 'nullable|integer|in:10,20,50,100',
-            'page'         => 'nullable|integer|min:1',
-        ]);
-
         $query = $this->filteredQuery($request);
 
         $perPage = $request->integer('per_page', 20);
@@ -64,23 +54,8 @@ class TransactionController extends Controller
      *     @OA\Response(response=201, description="Transaction created")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreTransactionRequest $request)
     {
-        $request->validate([
-            'category_id'  => 'required|exists:categories,id',
-            'description'  => 'required|string|max:255',
-            'amount'       => 'required|numeric|min:0',
-            'type'         => 'required|in:income,expense',
-            'transaction_date' => 'required|date',
-            'notes'        => 'nullable|string|max:1000',
-            'tag_ids'      => 'nullable|array',
-            'tag_ids.*'    => [
-                'integer',
-                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
-            ],
-            'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ]);
-
         Category::assertMatchesTransactionType($request->category_id, $request->type);
 
         $attachmentPath = null;
@@ -119,9 +94,11 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Transaction object")
      * )
      */
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $transaction = $request->user()->transactions()->with(['category', 'tags'])->findOrFail($id);
+        $transaction = Transaction::with(['category', 'tags'])->findOrFail($id);
+        $this->authorize('view', $transaction);
+
         return response()->json($transaction);
     }
 
@@ -146,24 +123,9 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Transaction updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateTransactionRequest $request)
     {
-        $transaction = $request->user()->transactions()->findOrFail($id);
-
-        $request->validate([
-            'category_id'  => 'sometimes|required|exists:categories,id',
-            'description'  => 'sometimes|required|string|max:255',
-            'amount'       => 'sometimes|required|numeric|min:0',
-            'type'         => 'sometimes|required|in:income,expense',
-            'transaction_date' => 'sometimes|required|date',
-            'notes'        => 'nullable|string|max:1000',
-            'tag_ids'      => 'nullable|array',
-            'tag_ids.*'    => [
-                'integer',
-                Rule::exists('tags', 'id')->where('user_id', $request->user()->id),
-            ],
-            'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ]);
+        $transaction = $request->record();
 
         if ($request->hasAny(['category_id', 'type'])) {
             Category::assertMatchesTransactionType(
@@ -207,9 +169,10 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Transaction deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $transaction = $request->user()->transactions()->findOrFail($id);
+        $transaction = Transaction::findOrFail($id);
+        $this->authorize('delete', $transaction);
 
         if ($transaction->attachment_path) {
             Storage::delete($transaction->attachment_path);
@@ -230,9 +193,10 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Attachment file")
      * )
      */
-    public function serveAttachment(Request $request, $id)
+    public function serveAttachment($id)
     {
-        $transaction = $request->user()->transactions()->findOrFail($id);
+        $transaction = Transaction::findOrFail($id);
+        $this->authorize('view', $transaction);
 
         if (!$transaction->attachment_path || !Storage::exists($transaction->attachment_path)) {
             return response()->json(['message' => 'Attachment not found'], 404);
@@ -254,9 +218,10 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Attachment deleted")
      * )
      */
-    public function deleteAttachment(Request $request, $id)
+    public function deleteAttachment($id)
     {
-        $transaction = $request->user()->transactions()->findOrFail($id);
+        $transaction = Transaction::findOrFail($id);
+        $this->authorize('update', $transaction);
 
         if (!$transaction->attachment_path) {
             return response()->json(['message' => 'No attachment to delete'], 404);
@@ -348,20 +313,8 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="CSV file")
      * )
      */
-    public function export(Request $request)
+    public function export(ExportTransactionRequest $request)
     {
-        $request->validate([
-            'search'       => 'nullable|string|max:100',
-            'notes_search' => 'nullable|string|max:100',
-            'type'         => 'nullable|in:income,expense',
-            'category_id'  => 'nullable|integer|exists:categories,id',
-            'date_from'    => 'nullable|date',
-            'date_to'      => 'nullable|date|after_or_equal:date_from',
-            'amount_min'   => 'nullable|numeric|min:0',
-            'amount_max'   => 'nullable|numeric|min:0',
-            'tag_ids'      => 'nullable|string',
-        ]);
-
         $query = $this->filteredQuery($request);
 
         $transactions = $query->get();
@@ -399,10 +352,8 @@ class TransactionController extends Controller
      *     @OA\Response(response=200, description="Expenses by category")
      * )
      */
-    public function expensesByCategory(Request $request)
+    public function expensesByCategory(ExpensesByCategoryRequest $request)
     {
-        $request->validate(['month' => ['nullable', 'regex:/^\d{4}-\d{2}$/']]);
-
         $month = $request->query('month', date('Y-m'));
 
         [$year, $mon] = explode('-', $month);

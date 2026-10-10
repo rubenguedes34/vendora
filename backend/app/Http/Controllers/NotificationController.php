@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Services\NotificationGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -65,9 +66,11 @@ class NotificationController extends Controller
      *     @OA\Response(response=200, description="Notification marked as read")
      * )
      */
-    public function markAsRead(Request $request, $id)
+    public function markAsRead($id)
     {
-        $notification = $request->user()->appNotifications()->findOrFail($id);
+        $notification = Notification::findOrFail($id);
+        $this->authorize('update', $notification);
+
         $notification->markAsRead();
         return response()->json($notification);
     }
@@ -100,9 +103,11 @@ class NotificationController extends Controller
      *     @OA\Response(response=200, description="Notification deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $notification = $request->user()->appNotifications()->findOrFail($id);
+        $notification = Notification::findOrFail($id);
+        $this->authorize('delete', $notification);
+
         $notification->delete();
         return response()->json(['message' => 'Notification deleted']);
     }

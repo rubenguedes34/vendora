@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Setup\StoreSetupRequest;
 use App\Models\FinancialRecord;
 use App\Services\TokenService;
 
@@ -26,15 +25,9 @@ class SetupController extends Controller
      *     @OA\Response(response=401, description="Invalid token")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreSetupRequest $request)
     {
         try {
-            $request->validate([
-                'token' => 'required|string|max:4096',
-                'monthly_income' => 'required|numeric|min:0|max:99999999.99|decimal:0,2',
-                'monthly_expenses' => 'required|numeric|min:0|max:99999999.99|decimal:0,2',
-            ]);
-
             $user = TokenService::verify($request->token);
 
             if (!$user) {
@@ -76,8 +69,6 @@ class SetupController extends Controller
                 'message' => 'Setup completed successfully',
                 'user' => $userData,
             ]);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             Log::error('Setup failed', ['exception' => $e]);
             return response()->json([
