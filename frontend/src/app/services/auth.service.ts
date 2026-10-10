@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subject, throwError, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { ApiError, ApiErrorMessage, MessageResponse } from '../models/api';
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
@@ -72,8 +73,8 @@ export class AuthService {
     );
   }
 
-  logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
+  logout(): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/logout`, {}).pipe(
       timeout(10000),
       catchError(error => throwError(() => this.handleError(error)))
     );
@@ -86,7 +87,7 @@ export class AuthService {
     );
   }
 
-  private handleError(error: any): any {
+  private handleError(error: ApiError): ApiErrorMessage {
     if (error.name === 'TimeoutError') {
       return { message: 'Request timeout. Please check your connection and try again.' };
     }

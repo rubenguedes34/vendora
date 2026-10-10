@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { timeout } from 'rxjs/operators';
+import { User } from '../../services/auth.service';
 
 @Component({
   selector: 'app-setup',
@@ -120,12 +121,12 @@ export class SetupComponent implements OnInit {
     const token = this.authService.getTokenValue();
     const user = this.authService.getUserValue();
 
-    this.http.post(`${environment.apiUrl}/setup`, {
+    this.http.post<{ message: string; user: User }>(`${environment.apiUrl}/setup`, {
       token,
       ...this.setupForm.value,
     }).pipe(timeout(10000))
       .subscribe({
-        next: (response: any) => {
+        next: (response) => {
           this.isLoading = false;
           this.authService.setUser(response.user);
           this.router.navigate(['/dashboard']);

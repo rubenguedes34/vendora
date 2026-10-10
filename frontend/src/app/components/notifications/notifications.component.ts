@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -96,6 +97,8 @@ const COLORS: Record<string, string> = {
   `
 })
 export class NotificationsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   notifications: AppNotification[] = [];
   unreadCount = 0;
   loading = false;
@@ -111,8 +114,8 @@ export class NotificationsComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; }
-    this.notificationService.notifications$.subscribe(n => this.notifications = n);
-    this.notificationService.unreadCount$.subscribe(c => this.unreadCount = c);
+    this.notificationService.notifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(n => this.notifications = n);
+    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => this.unreadCount = c);
     this.load();
   }
 

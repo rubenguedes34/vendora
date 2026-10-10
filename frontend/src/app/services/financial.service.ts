@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, timeout } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
+import { ApiError, ApiErrorMessage, MessageResponse } from '../models/api';
+import { HealthScore } from '../models/health-score';
 
 export interface FinancialRecord {
   id?: number;
@@ -111,7 +113,7 @@ export class FinancialService {
   private allCategoriesCache: Observable<Category[]> | null = null;
   private investmentsCache: Observable<any[]> | null = null;
   private netWorthCache: Observable<NetWorth> | null = null;
-  private healthScoreCache: Observable<any> | null = null;
+  private healthScoreCache: Observable<HealthScore> | null = null;
 
   constructor(
     private http: HttpClient,
@@ -145,9 +147,7 @@ export class FinancialService {
 
   getAllCategories(): Observable<Category[]> {
     if (!this.allCategoriesCache) {
-      this.allCategoriesCache = this.http.get<Category[]>(`${this.apiUrl}/categories`, {
-        headers: this.getHeaders()
-      }).pipe(
+      this.allCategoriesCache = this.http.get<Category[]>(`${this.apiUrl}/categories`).pipe(
         timeout(5000),
         catchError(error => throwError(() => this.handleError(error))),
         shareReplay(1)
@@ -156,15 +156,7 @@ export class FinancialService {
     return this.allCategoriesCache;
   }
 
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getTokenValue();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
-  private handleError(error: any): any {
+  private handleError(error: ApiError): ApiErrorMessage {
     if (error.name === 'TimeoutError') {
       return { message: 'Request timeout. Please check your connection and try again.' };
     }
@@ -180,36 +172,28 @@ export class FinancialService {
   }
 
   getCurrentRecord(): Observable<FinancialRecord> {
-    return this.http.get<FinancialRecord>(`${this.apiUrl}/financial-records/current`, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.get<FinancialRecord>(`${this.apiUrl}/financial-records/current`).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   getYearRecords(year: number): Observable<FinancialRecord[]> {
-    return this.http.get<FinancialRecord[]>(`${this.apiUrl}/financial-records/year/${year}`, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.get<FinancialRecord[]>(`${this.apiUrl}/financial-records/year/${year}`).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   saveRecord(record: Partial<FinancialRecord>): Observable<FinancialRecord> {
-    return this.http.post<FinancialRecord>(`${this.apiUrl}/financial-records`, record, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.post<FinancialRecord>(`${this.apiUrl}/financial-records`, record).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   updateRecord(id: number, record: Partial<FinancialRecord>): Observable<FinancialRecord> {
-    return this.http.put<FinancialRecord>(`${this.apiUrl}/financial-records/${id}`, record, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.put<FinancialRecord>(`${this.apiUrl}/financial-records/${id}`, record).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
@@ -217,8 +201,7 @@ export class FinancialService {
 
   getExpensesByCategory(month: string): Observable<{ category: string; color: string; total: number }[]> {
     return this.http.get<{ category: string; color: string; total: number }[]>(
-      `${this.apiUrl}/transactions/expenses-by-category?month=${month}`,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/transactions/expenses-by-category?month=${month}`
     ).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
@@ -227,9 +210,7 @@ export class FinancialService {
 
   getCategoriesByType(type: 'income' | 'expense' | 'savings'): Observable<Category[]> {
     if (!this.categoryCache.has(type)) {
-      const req = this.http.get<Category[]>(`${this.apiUrl}/categories-by-type/${type}`, {
-        headers: this.getHeaders()
-      }).pipe(
+      const req = this.http.get<Category[]>(`${this.apiUrl}/categories-by-type/${type}`).pipe(
         timeout(5000),
         catchError(error => throwError(() => this.handleError(error))),
         shareReplay(1)
@@ -244,8 +225,6 @@ export class FinancialService {
       category_id: categoryId,
       amount: amount,
       month: month
-    }, {
-      headers: this.getHeaders()
     }).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
@@ -257,9 +236,7 @@ export class FinancialService {
       ? `${this.apiUrl}/budgets/summary/${month}`
       : `${this.apiUrl}/budgets/summary`;
 
-    return this.http.get<BudgetSummary>(url, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.get<BudgetSummary>(url).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
@@ -270,9 +247,7 @@ export class FinancialService {
       ? `${this.apiUrl}/budgets/comparison/${month}`
       : `${this.apiUrl}/budgets/comparison`;
 
-    return this.http.get<BudgetComparison[]>(url, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.get<BudgetComparison[]>(url).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
@@ -280,9 +255,7 @@ export class FinancialService {
 
   getNetWorth(): Observable<NetWorth> {
     if (!this.netWorthCache) {
-      this.netWorthCache = this.http.get<NetWorth>(`${this.apiUrl}/financial-records/net-worth`, {
-        headers: this.getHeaders()
-      }).pipe(
+      this.netWorthCache = this.http.get<NetWorth>(`${this.apiUrl}/financial-records/net-worth`).pipe(
         timeout(8000),
         catchError(error => {
           this.netWorthCache = null;
@@ -299,11 +272,9 @@ export class FinancialService {
     return this.getNetWorth();
   }
 
-  getHealthScore(): Observable<any> {
+  getHealthScore(): Observable<HealthScore> {
     if (!this.healthScoreCache) {
-      this.healthScoreCache = this.http.get<any>(`${this.apiUrl}/financial-records/health-score`, {
-        headers: this.getHeaders()
-      }).pipe(
+      this.healthScoreCache = this.http.get<HealthScore>(`${this.apiUrl}/financial-records/health-score`).pipe(
         timeout(10000),
         catchError(error => {
           this.healthScoreCache = null;
@@ -315,7 +286,7 @@ export class FinancialService {
     return this.healthScoreCache;
   }
 
-  refreshHealthScore(): Observable<any> {
+  refreshHealthScore(): Observable<HealthScore> {
     this.clearHealthScoreCache();
     return this.getHealthScore();
   }
@@ -328,9 +299,7 @@ export class FinancialService {
     if (filters?.type)      parts.push(`type=${encodeURIComponent(filters.type)}`);
     const qs = parts.length ? '?' + parts.join('&') : '';
 
-    return this.http.get<PortfolioAllocation>(`${this.apiUrl}/financial-records/allocation${qs}`, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.get<PortfolioAllocation>(`${this.apiUrl}/financial-records/allocation${qs}`).pipe(
       timeout(8000),
       catchError(error => throwError(() => this.handleError(error)))
     );
@@ -340,9 +309,7 @@ export class FinancialService {
     if (!forceRefresh && this.investmentsCache) {
       return this.investmentsCache;
     }
-    this.investmentsCache = this.http.get<any[]>(`${this.apiUrl}/investments`, {
-      headers: this.getHeaders()
-    }).pipe(
+    this.investmentsCache = this.http.get<any[]>(`${this.apiUrl}/investments`).pipe(
       timeout(8000),
       catchError(error => {
         this.investmentsCache = null;
@@ -354,27 +321,21 @@ export class FinancialService {
   }
 
   createInvestment(data: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/investments`, data, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/investments`, data).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
   updateInvestment(id: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/investments/${id}`, data, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.put<any>(`${this.apiUrl}/investments/${id}`, data).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );
   }
 
-  deleteInvestment(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/investments/${id}`, {
-      headers: this.getHeaders()
-    }).pipe(
+  deleteInvestment(id: number): Observable<MessageResponse> {
+    return this.http.delete<MessageResponse>(`${this.apiUrl}/investments/${id}`).pipe(
       timeout(5000),
       catchError(error => throwError(() => this.handleError(error)))
     );

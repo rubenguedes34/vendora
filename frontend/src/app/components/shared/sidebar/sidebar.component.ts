@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -6,6 +7,7 @@ import { environment } from '../../../../environments/environment';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
 import { QuickAddComponent } from '../quick-add/quick-add.component';
+import { User } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -154,7 +156,9 @@ import { QuickAddComponent } from '../quick-add/quick-add.component';
   `
 })
 export class SidebarComponent implements OnInit {
-  user: any = null;
+  private readonly destroyRef = inject(DestroyRef);
+
+  user: User | null = null;
   initials = '';
   mobileOpen = false;
   adminUrl = environment.backendUrl + '/admin';
@@ -166,7 +170,7 @@ export class SidebarComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
-    this.authService.getUserObservable().subscribe(u => {
+    this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => {
       this.user = u;
       const name: string = u?.name || '';
       this.initials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
