@@ -85,6 +85,8 @@ Route::middleware('auth.custom')->group(function () {
 
     // Admin routes
     Route::middleware('permission:access admin panel')->prefix('admin')->group(function () {
+        Route::post('/panel-link', [AuthController::class, 'adminPanelLink'])->middleware('throttle:10,1');
+
         Route::middleware('permission:view metrics')->group(function () {
             Route::get('/dashboard-metrics', [AdminController::class, 'dashboardMetrics']);
             Route::get('/budgets-metrics', [AdminController::class, 'budgetsMetrics']);
