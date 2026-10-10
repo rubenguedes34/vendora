@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, ChangeDetectorRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -18,6 +18,7 @@ import { CartesianTooltipItem, ChartInstance, RadialTooltipItem, chartConstructo
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   user: User | null = null;
   currentYear = new Date().getFullYear();
@@ -67,7 +68,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private financialService: FinancialService,
     private router: Router,
     public currencyService: CurrencyService
-  ) {}
+  ) {
+    this.destroyRef.onDestroy(() => {
+      this.incomeExpenseChartInstance?.destroy();
+      this.categoryChartInstance?.destroy();
+      this.categoryBreakdownChartInstance?.destroy();
+      this.monthlyBalanceChartInstance?.destroy();
+    });
+  }
 
   ngOnInit(): void {
     this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
@@ -79,6 +87,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
       const name: string = user?.name || '';
       this.userInitials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+      this.cdr.markForCheck();
     });
 
     if (!this.authService.isLoggedIn()) {
@@ -95,8 +104,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.updateOverviewFromRecord(record);
         this.updateChartsWithRealData();
         this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+        this.cdr.markForCheck();
       },
-      error: () => this.updateChartsWithRealData()
+      error: () => { this.updateChartsWithRealData(); this.cdr.markForCheck(); }
     });
 
     this.loadExpensesByCategory();
@@ -106,8 +116,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.yearlyRecords = records;
         this.updateMonthBreakdown();
         this.updateChartsWithRealData();
+        this.cdr.markForCheck();
       },
-      error: () => { this.yearlyRecords = []; this.updateMonthBreakdown(); }
+      error: () => { this.yearlyRecords = []; this.updateMonthBreakdown(); this.cdr.markForCheck(); }
     });
   }
 
@@ -195,8 +206,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.expensesByCategory = data;
         this.maxExpense = data.length ? Math.max(...data.map(d => d.total)) : 1;
         this.updateCategoryBreakdownChart();
+        this.cdr.markForCheck();
       },
-      error: () => { this.expensesByCategory = []; }
+      error: () => { this.expensesByCategory = []; this.cdr.markForCheck(); }
     });
   }
 
@@ -272,6 +284,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           else { this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart(); }
           this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
           this.updateChartsWithRealData();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.yearlyRecords = [];
@@ -279,6 +292,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart();
           this.computeAlerts(this.overviewYear, this.overviewMonth, 0, 0, 0);
           this.updateChartsWithRealData();
+          this.cdr.markForCheck();
         }
       });
     }
@@ -321,6 +335,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initIncomeExpenseChart(): void {
     if (!this.incomeExpenseChart?.nativeElement) return;
+    this.incomeExpenseChartInstance?.destroy();
     const ctx = this.incomeExpenseChart.nativeElement.getContext('2d');
     const symbol = this.currencyService.symbol;
 
@@ -384,6 +399,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initCategoryChart(): void {
     if (!this.categoryChart?.nativeElement) return;
+    this.categoryChartInstance?.destroy();
     const ctx = this.categoryChart.nativeElement.getContext('2d');
     this.categoryChartInstance = new (chartConstructor())(ctx, {
       type: 'doughnut',
@@ -417,6 +433,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initCategoryBreakdownChart(): void {
     if (!this.categoryBreakdownChart?.nativeElement) return;
+    this.categoryBreakdownChartInstance?.destroy();
     const ctx = this.categoryBreakdownChart.nativeElement.getContext('2d');
     this.categoryBreakdownChartInstance = new (chartConstructor())(ctx, {
       type: 'doughnut',
@@ -461,6 +478,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initMonthlyBalanceChart(): void {
     if (!this.monthlyBalanceChart?.nativeElement) return;
+    this.monthlyBalanceChartInstance?.destroy();
     const ctx = this.monthlyBalanceChart.nativeElement.getContext('2d');
     const symbol = this.currencyService.symbol;
     const data = this.monthBreakdown.map(m => m.balance);
