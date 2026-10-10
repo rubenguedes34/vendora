@@ -11,6 +11,11 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Spatie\Permission\Models\Role;
+use App\Http\Requests\Auth\ExchangeGoogleCodeRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdatePasswordRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Models\User;
 use App\Models\FinancialRecord;
 use App\Services\TokenService;
@@ -38,15 +43,9 @@ class AuthController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|max:72|confirmed',
-            ]);
-
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -78,8 +77,6 @@ class AuthController extends Controller
                 ],
                 'token' => $token,
             ], 201);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             Log::error('Registration failed', ['exception' => $e]);
             return response()->json([
@@ -103,14 +100,9 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Invalid credentials")
      * )
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $request->validate([
-                'email' => 'required|string|email|max:255',
-                'password' => 'required|string|max:72',
-            ]);
-
             if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
                 return response()->json([
                     'message' => 'Invalid credentials',
@@ -162,8 +154,6 @@ class AuthController extends Controller
                 ],
                 'token' => $token,
             ]);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             Log::error('Login failed', ['exception' => $e]);
             return response()->json([
@@ -222,17 +212,9 @@ class AuthController extends Controller
      *     @OA\Response(response=200, description="Profile updated")
      * )
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request)
     {
         $user = $request->user();
-
-        $request->validate([
-            'name'             => 'required|string|max:255',
-            'email'            => 'required|email|max:255|unique:users,email,' . $user->id,
-            'monthly_income'   => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
-            'monthly_expenses' => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
-            'current_password' => 'nullable|string|max:72',
-        ]);
 
         // Changing the login email is sensitive, so it needs the current password.
         if ($request->email !== $user->email
@@ -271,14 +253,9 @@ class AuthController extends Controller
      *     @OA\Response(response=200, description="Password updated")
      * )
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(UpdatePasswordRequest $request)
     {
         $user = $request->user();
-
-        $request->validate([
-            'current_password'  => 'required|string|max:72',
-            'password'          => 'required|string|min:8|max:72|confirmed',
-        ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json(['message' => 'Current password is incorrect.'], 422);
@@ -411,10 +388,8 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Invalid or expired code")
      * )
      */
-    public function exchangeGoogleCode(Request $request)
+    public function exchangeGoogleCode(ExchangeGoogleCodeRequest $request)
     {
-        $request->validate(['code' => 'required|string|size:64']);
-
         $payload = Cache::pull(self::GOOGLE_CODE_PREFIX . hash('sha256', $request->code));
         $user = $payload ? User::find($payload['user_id']) : null;
 

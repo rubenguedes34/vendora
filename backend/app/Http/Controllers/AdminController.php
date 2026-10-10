@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\AuthorizesWithJsonDenial;
+use App\Http\Requests\Admin\BudgetsMetricsRequest;
+use App\Http\Requests\Admin\InvestmentsMetricsRequest;
+use App\Http\Requests\Admin\ListUsersRequest;
+use App\Http\Requests\Admin\TransactionsMetricsRequest;
+use App\Http\Requests\Admin\UpdateUserRoleRequest;
 use App\Models\Budget;
 use App\Models\Investment;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TokenService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
+    use AuthorizesWithJsonDenial;
+
     /**
      * @OA\Get(
      *     path="/api/admin/dashboard-metrics",
@@ -65,9 +72,8 @@ class AdminController extends Controller
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function users(Request $request): \Illuminate\Http\JsonResponse
+    public function users(ListUsersRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['search' => 'nullable|string|max:100']);
         $search = $request->query('search');
 
         $users = User::query()
@@ -102,16 +108,8 @@ class AdminController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function updateRole(Request $request, User $user): \Illuminate\Http\JsonResponse
+    public function updateRole(UpdateUserRoleRequest $request, User $user): \Illuminate\Http\JsonResponse
     {
-        if ($request->user()->id === $user->id) {
-            return response()->json(['message' => 'You cannot change your own role.'], 422);
-        }
-
-        $request->validate([
-            'role' => 'required|string|in:admin,manager,user',
-        ]);
-
         if ($request->role !== 'admin' && $this->isLastAdmin($user)) {
             return response()->json(['message' => 'You cannot demote the last admin.'], 422);
         }
@@ -136,11 +134,9 @@ class AdminController extends Controller
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function toggleBlacklist(Request $request, User $user): \Illuminate\Http\JsonResponse
+    public function toggleBlacklist(User $user): \Illuminate\Http\JsonResponse
     {
-        if ($request->user()->id === $user->id) {
-            return response()->json(['message' => 'You cannot blacklist yourself.'], 422);
-        }
+        $this->authorizeOrJson('toggleBlacklist', $user);
 
         $user->blacklisted_at = $user->isBlacklisted() ? null : now();
         $user->save();
@@ -167,11 +163,9 @@ class AdminController extends Controller
      *     @OA\Response(response=422, description="Cannot delete self")
      * )
      */
-    public function destroyUser(Request $request, User $user): \Illuminate\Http\JsonResponse
+    public function destroyUser(User $user): \Illuminate\Http\JsonResponse
     {
-        if ($request->user()->id === $user->id) {
-            return response()->json(['message' => 'You cannot delete your own account.'], 422);
-        }
+        $this->authorizeOrJson('delete', $user);
 
         if ($this->isLastAdmin($user)) {
             return response()->json(['message' => 'You cannot delete the last admin.'], 422);
@@ -210,14 +204,8 @@ class AdminController extends Controller
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function budgetsMetrics(Request $request): \Illuminate\Http\JsonResponse
+    public function budgetsMetrics(BudgetsMetricsRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'year' => 'nullable|digits:4',
-            'month' => 'nullable|date_format:Y-m',
-            'search' => 'nullable|string|max:100',
-        ]);
-
         $year = $request->query('year');
         $month = $request->query('month');
         $search = $request->query('search');
@@ -277,14 +265,8 @@ class AdminController extends Controller
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function investmentsMetrics(Request $request): \Illuminate\Http\JsonResponse
+    public function investmentsMetrics(InvestmentsMetricsRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'year' => 'nullable|digits:4',
-            'type' => 'nullable|string|max:50',
-            'search' => 'nullable|string|max:100',
-        ]);
-
         $year = $request->query('year');
         $type = $request->query('type');
         $search = $request->query('search');
@@ -346,15 +328,8 @@ class AdminController extends Controller
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function transactionsMetrics(Request $request): \Illuminate\Http\JsonResponse
+    public function transactionsMetrics(TransactionsMetricsRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'year' => 'nullable|digits:4',
-            'month' => 'nullable|integer|between:1,12',
-            'type' => 'nullable|in:income,expense',
-            'search' => 'nullable|string|max:100',
-        ]);
-
         $year = $request->query('year');
         $month = $request->query('month');
         $type = $request->query('type');

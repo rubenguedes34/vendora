@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\Tag\StoreTagRequest;
+use App\Http\Requests\Tag\UpdateTagRequest;
 use App\Models\Tag;
 
 class TagController extends Controller
@@ -37,13 +39,8 @@ class TagController extends Controller
      *     @OA\Response(response=201, description="Tag created")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreTagRequest $request)
     {
-        $request->validate([
-            'name'  => 'required|string|max:50',
-            'color' => 'nullable|string|max:20',
-        ]);
-
         $tag = $request->user()->tags()->firstOrCreate(
             ['name' => $request->name],
             ['color' => $request->input('color', '#6366f1')]
@@ -68,14 +65,9 @@ class TagController extends Controller
      *     @OA\Response(response=200, description="Tag updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateTagRequest $request)
     {
-        $tag = $request->user()->tags()->findOrFail($id);
-
-        $request->validate([
-            'name'  => 'sometimes|required|string|max:50',
-            'color' => 'nullable|string|max:20',
-        ]);
+        $tag = $request->record();
 
         $tag->update($request->only(['name', 'color']));
 
@@ -92,9 +84,11 @@ class TagController extends Controller
      *     @OA\Response(response=200, description="Tag deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $tag = $request->user()->tags()->findOrFail($id);
+        $tag = Tag::findOrFail($id);
+        $this->authorize('delete', $tag);
+
         $tag->delete();
 
         return response()->json(['message' => 'Tag deleted']);

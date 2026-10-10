@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\FinancialRecord\AllocationRequest;
+use App\Http\Requests\FinancialRecord\StoreFinancialRecordRequest;
+use App\Http\Requests\FinancialRecord\UpdateFinancialRecordRequest;
 use App\Models\FinancialRecord;
 use App\Services\HealthScoreCalculator;
 
@@ -105,18 +107,9 @@ class FinancialRecordController extends Controller
      *     @OA\Response(response=201, description="Financial record saved")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreFinancialRecordRequest $request)
     {
         try {
-            $request->validate([
-                'year' => 'required|integer|between:2000,2100',
-                'month' => 'required|integer|between:1,12',
-                'monthly_income' => 'required|numeric|min:0',
-                'monthly_expenses' => 'required|numeric|min:0',
-                'savings_goal' => 'nullable|numeric|min:0',
-                'savings_goal_type' => 'nullable|in:percentage,fixed',
-            ]);
-
             $record = $request->user()->financialRecords()->updateOrCreate(
                 [
                     'year' => $request->year,
@@ -137,8 +130,6 @@ class FinancialRecordController extends Controller
             ]);
 
             return response()->json($record, 201);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             Log::error('Saving financial record failed', ['exception' => $e]);
             return response()->json([
@@ -157,9 +148,11 @@ class FinancialRecordController extends Controller
      *     @OA\Response(response=200, description="Financial record object")
      * )
      */
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $record = $request->user()->financialRecords()->findOrFail($id);
+        $record = FinancialRecord::findOrFail($id);
+        $this->authorize('view', $record);
+
         return response()->json($record);
     }
 
@@ -181,18 +174,11 @@ class FinancialRecordController extends Controller
      *     @OA\Response(response=200, description="Financial record updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateFinancialRecordRequest $request)
     {
-        $record = $request->user()->financialRecords()->findOrFail($id);
+        $record = $request->record();
 
         try {
-            $request->validate([
-                'monthly_income' => 'sometimes|required|numeric|min:0',
-                'monthly_expenses' => 'sometimes|required|numeric|min:0',
-                'savings_goal' => 'sometimes|nullable|numeric|min:0',
-                'savings_goal_type' => 'sometimes|nullable|in:percentage,fixed',
-            ]);
-
             $record->update($request->only([
                 'monthly_income',
                 'monthly_expenses',
@@ -209,8 +195,6 @@ class FinancialRecordController extends Controller
             }
 
             return response()->json($record);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             Log::error('Updating financial record failed', ['exception' => $e]);
             return response()->json([
@@ -229,9 +213,11 @@ class FinancialRecordController extends Controller
      *     @OA\Response(response=200, description="Financial record deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $record = $request->user()->financialRecords()->findOrFail($id);
+        $record = FinancialRecord::findOrFail($id);
+        $this->authorize('delete', $record);
+
         $record->delete();
 
         return response()->json(['message' => 'Financial record deleted']);
@@ -411,15 +397,8 @@ class FinancialRecordController extends Controller
      *     @OA\Response(response=200, description="Allocation data")
      * )
      */
-    public function allocation(Request $request)
+    public function allocation(AllocationRequest $request)
     {
-        $request->validate([
-            'account'    => 'nullable|string|max:100',
-            'date_from'  => 'nullable|date',
-            'date_to'    => 'nullable|date|after_or_equal:date_from',
-            'type'       => 'nullable|string|max:50',
-        ]);
-
         $user = $request->user();
 
         $query = $user->investments();

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Ai\Agents\SupportAgent;
+use App\Http\Requests\Ai\ChatRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Enums\Lab;
 use App\Models\Faq;
@@ -12,12 +12,8 @@ use Throwable;
 
 class AiChatController extends Controller
 {
-    public function chat(Request $request): JsonResponse
+    public function chat(ChatRequest $request): JsonResponse
     {
-        $request->validate([
-            'message' => ['required', 'string', 'max:2000'],
-        ]);
-
         $message = $request->input('message');
 
         if (empty(config('ai.providers.openai.key'))) {

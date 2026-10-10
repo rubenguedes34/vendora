@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\Market\CandleRequest;
+use App\Http\Requests\Market\QuoteRequest;
+use App\Http\Requests\Market\SearchRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -12,9 +14,6 @@ class MarketDataController extends Controller
     {
         return (string) config('services.finnhub.key', '');
     }
-
-    // Symbols are interpolated into provider URLs, so only ticker characters are allowed.
-    private const SYMBOL_RULES = ['required', 'string', 'max:20', 'regex:/^[A-Za-z0-9.\-=^]+$/'];
 
     /**
      * Cache successful provider responses briefly so repeated lookups do not
@@ -51,9 +50,8 @@ class MarketDataController extends Controller
      * )
      */
     // GET /market/quote?symbol=AAPL  or  BTC-USD
-    public function quote(Request $request)
+    public function quote(QuoteRequest $request)
     {
-        $request->validate(['symbol' => self::SYMBOL_RULES]);
         $symbol = strtoupper(trim($request->symbol));
 
         return $this->cached("market:quote:{$symbol}", 60, fn () => $this->isCrypto($symbol)
@@ -72,9 +70,8 @@ class MarketDataController extends Controller
      * )
      */
     // GET /market/search?q=apple
-    public function search(Request $request)
+    public function search(SearchRequest $request)
     {
-        $request->validate(['q' => 'required|string|max:60']);
         $q   = trim($request->q);
         $key = $this->finnhubKey();
 
@@ -121,12 +118,8 @@ class MarketDataController extends Controller
      * )
      */
     // GET /market/candle?symbol=AAPL&days=7
-    public function candle(Request $request)
+    public function candle(CandleRequest $request)
     {
-        $request->validate([
-            'symbol' => self::SYMBOL_RULES,
-            'days'   => 'nullable|integer|between:1,365',
-        ]);
         $symbol = strtoupper(trim($request->symbol));
         $days   = $request->integer('days', 7);
         $key    = $this->finnhubKey();

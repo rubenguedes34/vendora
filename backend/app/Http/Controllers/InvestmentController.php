@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\Investment\StoreInvestmentRequest;
+use App\Http\Requests\Investment\UpdateInvestmentRequest;
 use App\Models\Investment;
 
 class InvestmentController extends Controller
@@ -45,19 +47,9 @@ class InvestmentController extends Controller
      *     @OA\Response(response=201, description="Investment created")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreInvestmentRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:50',
-            'account' => 'nullable|string|max:100',
-            'initial_amount' => 'required|numeric|min:0',
-            'current_amount' => 'required|numeric|min:0',
-            'purchase_date' => 'required|date',
-            'ticker_symbol' => 'nullable|string|max:20',
-            'units' => 'nullable|numeric|min:0',
-            'price_per_unit' => 'nullable|numeric|min:0',
-        ]);
+        $data = $request->validated();
 
         $investment = $request->user()->investments()->create($data);
 
@@ -74,9 +66,11 @@ class InvestmentController extends Controller
      *     @OA\Response(response=200, description="Investment object")
      * )
      */
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $investment = $request->user()->investments()->findOrFail($id);
+        $investment = Investment::findOrFail($id);
+        $this->authorize('view', $investment);
+
         return response()->json($investment);
     }
 
@@ -100,21 +94,10 @@ class InvestmentController extends Controller
      *     @OA\Response(response=200, description="Investment updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateInvestmentRequest $request)
     {
-        $investment = $request->user()->investments()->findOrFail($id);
-
-        $data = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|max:50',
-            'account' => 'nullable|string|max:100',
-            'initial_amount' => 'sometimes|required|numeric|min:0',
-            'current_amount' => 'sometimes|required|numeric|min:0',
-            'purchase_date' => 'sometimes|required|date',
-            'ticker_symbol' => 'nullable|string|max:20',
-            'units' => 'nullable|numeric|min:0',
-            'price_per_unit' => 'nullable|numeric|min:0',
-        ]);
+        $investment = $request->record();
+        $data = $request->validated();
 
         $investment->update($data);
 
@@ -131,9 +114,11 @@ class InvestmentController extends Controller
      *     @OA\Response(response=200, description="Investment deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $investment = $request->user()->investments()->findOrFail($id);
+        $investment = Investment::findOrFail($id);
+        $this->authorize('delete', $investment);
+
         $investment->delete();
 
         return response()->json(['message' => 'Investment deleted']);

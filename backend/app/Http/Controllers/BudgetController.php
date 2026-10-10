@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\Budget\IndexBudgetRequest;
+use App\Http\Requests\Budget\StoreBudgetRequest;
+use App\Http\Requests\Budget\UpdateBudgetRequest;
 use App\Models\Budget;
 
 class BudgetController extends Controller
@@ -17,9 +20,8 @@ class BudgetController extends Controller
      *     @OA\Response(response=200, description="Array of budgets")
      * )
      */
-    public function index(Request $request)
+    public function index(IndexBudgetRequest $request)
     {
-        $request->validate(['month' => 'nullable|date_format:Y-m']);
         $month = $request->query('month', date('Y-m'));
 
         $budgets = $request->user()
@@ -47,13 +49,9 @@ class BudgetController extends Controller
      *     @OA\Response(response=201, description="Budget created")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreBudgetRequest $request)
     {
-        $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'amount' => 'required|numeric|min:0',
-            'month' => 'required|date_format:Y-m',
-        ]);
+        $data = $request->validated();
 
         $budget = $request->user()->budgets()->create($data);
 
@@ -70,9 +68,11 @@ class BudgetController extends Controller
      *     @OA\Response(response=200, description="Budget object")
      * )
      */
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $budget = $request->user()->budgets()->with('category')->findOrFail($id);
+        $budget = Budget::with('category')->findOrFail($id);
+        $this->authorize('view', $budget);
+
         return response()->json($budget);
     }
 
@@ -93,15 +93,10 @@ class BudgetController extends Controller
      *     @OA\Response(response=200, description="Budget updated")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateBudgetRequest $request)
     {
-        $budget = $request->user()->budgets()->findOrFail($id);
-
-        $data = $request->validate([
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'amount' => 'sometimes|required|numeric|min:0',
-            'month' => 'sometimes|required|date_format:Y-m',
-        ]);
+        $budget = $request->record();
+        $data = $request->validated();
 
         $budget->update($data);
 
@@ -118,9 +113,11 @@ class BudgetController extends Controller
      *     @OA\Response(response=200, description="Budget deleted")
      * )
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $budget = $request->user()->budgets()->findOrFail($id);
+        $budget = Budget::findOrFail($id);
+        $this->authorize('delete', $budget);
+
         $budget->delete();
 
         return response()->json(['message' => 'Budget deleted']);
