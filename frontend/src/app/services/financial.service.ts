@@ -14,6 +14,9 @@ export interface FinancialRecord {
   month: number;
   monthly_income: number;
   monthly_expenses: number;
+  is_custom?: boolean;
+  base_income?: number;
+  base_expenses?: number;
   savings_goal: number;
   savings_goal_type: 'percentage' | 'fixed';
   savings?: number;

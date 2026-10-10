@@ -31,6 +31,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   overviewIncome = 0;
   overviewExpenses = 0;
   overviewSavings = 0;
+  monthRecord: FinancialRecord | null = null;
+  editingBase = false;
+  savingBase = false;
+  baseError = '';
   selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
 
   monthBreakdown: { month: number; income: number; expenses: number; balance: number }[] = [];
@@ -123,6 +127,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   updateOverviewFromRecord(record: FinancialRecord): void {
+    this.monthRecord = record;
     this.overviewIncome = parseFloat(String(record.monthly_income || 0));
     this.overviewExpenses = parseFloat(String(record.monthly_expenses || 0));
     this.overviewSavings = parseFloat(String(record.savings || 0));
@@ -239,6 +244,55 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return (this.getCategoryPct(total) / 100) * 94.25;
   }
 
+  get baseIncomeValue(): number {
+    return this.monthRecord?.is_custom
+      ? parseFloat(String(this.monthRecord.base_income || 0))
+      : parseFloat(String(this.user?.monthly_income || 0));
+  }
+
+  get baseExpensesValue(): number {
+    return this.monthRecord?.is_custom
+      ? parseFloat(String(this.monthRecord.base_expenses || 0))
+      : parseFloat(String(this.user?.monthly_expenses || 0));
+  }
+
+  saveMonthBase(income: string, expenses: string): void {
+    const baseIncome = parseFloat(income);
+    const baseExpenses = parseFloat(expenses);
+    if (!isFinite(baseIncome) || !isFinite(baseExpenses) || baseIncome < 0 || baseExpenses < 0) {
+      this.baseError = 'Enter amounts of zero or more.';
+      return;
+    }
+    this.submitMonthBase({ is_custom: true, base_income: baseIncome, base_expenses: baseExpenses });
+  }
+
+  resetMonthToDefault(): void {
+    this.submitMonthBase({ is_custom: false });
+  }
+
+  private submitMonthBase(change: Partial<FinancialRecord>): void {
+    this.savingBase = true;
+    this.baseError = '';
+    this.financialService.saveRecord({ year: this.overviewYear, month: this.overviewMonth, ...change }).subscribe({
+      next: (record) => {
+        const index = this.yearlyRecords.findIndex(r => r.year === record.year && r.month === record.month);
+        if (index >= 0) { this.yearlyRecords[index] = record; } else { this.yearlyRecords.push(record); }
+        this.savingBase = false;
+        this.editingBase = false;
+        this.updateMonthBreakdown();
+        this.updateOverviewFromRecord(record);
+        this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+        this.updateChartsWithRealData();
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.savingBase = false;
+        this.baseError = error?.message || 'Could not save this month. Please try again.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   prevMonth(): void {
     let year = this.overviewYear;
     let month = this.overviewMonth - 1;
@@ -257,6 +311,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.overviewYear = year;
     this.overviewMonth = month;
     this.selectedMonth = `${year}-${String(month).padStart(2, '0')}`;
+    this.editingBase = false;
+    this.baseError = '';
     this.loadOverviewMonth();
     this.loadExpensesByCategory();
   }

@@ -44,25 +44,9 @@ class FinancialRecordController extends Controller
      */
     public function current(Request $request)
     {
-        $record = $request->user()
-            ->financialRecords()
-            ->where('year', date('Y'))
-            ->where('month', date('n'))
-            ->first();
-
-        if (!$record) {
-            $record = new FinancialRecord([
-                'user_id' => $request->user()->id,
-                'year' => date('Y'),
-                'month' => date('n'),
-                'monthly_income' => $request->user()->monthly_income,
-                'monthly_expenses' => $request->user()->monthly_expenses,
-                'savings_goal' => 0,
-                'savings_goal_type' => 'fixed',
-            ]);
-        }
-
-        return response()->json($record);
+        return response()->json(
+            FinancialRecord::ensureMonth($request->user(), (int) date('Y'), (int) date('n'))
+        );
     }
 
     /**
@@ -79,8 +63,17 @@ class FinancialRecordController extends Controller
     {
         abort_unless(ctype_digit((string) $year), 422, 'Year must be a number.');
 
-        $records = $request->user()
-            ->financialRecords()
+        $user = $request->user();
+
+        // Every month from the account's start follows the default, so fill in the ones not touched yet.
+        $firstMonth = (int) $year === $user->created_at->year ? $user->created_at->month : 1;
+        if ((int) $year >= $user->created_at->year) {
+            for ($month = $firstMonth; $month <= 12; $month++) {
+                FinancialRecord::ensureMonth($user, (int) $year, $month);
+            }
+        }
+
+        $records = $user->financialRecords()
             ->where('year', $year)
             ->orderBy('month', 'asc')
             ->get();
@@ -95,11 +88,12 @@ class FinancialRecordController extends Controller
      *     summary="Create or update a financial record",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(required=true,
-     *         @OA\JsonContent(required={"year","month","monthly_income","monthly_expenses"},
+     *         @OA\JsonContent(required={"year","month"},
      *             @OA\Property(property="year", type="integer"),
      *             @OA\Property(property="month", type="integer"),
-     *             @OA\Property(property="monthly_income", type="number"),
-     *             @OA\Property(property="monthly_expenses", type="number"),
+     *             @OA\Property(property="is_custom", type="boolean", description="Month uses its own base instead of the profile default"),
+     *             @OA\Property(property="base_income", type="number", description="Base income when is_custom is true"),
+     *             @OA\Property(property="base_expenses", type="number", description="Base expenses when is_custom is true"),
      *             @OA\Property(property="savings_goal", type="number"),
      *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
      *         )
@@ -110,24 +104,14 @@ class FinancialRecordController extends Controller
     public function store(StoreFinancialRecordRequest $request)
     {
         try {
-            $record = $request->user()->financialRecords()->updateOrCreate(
-                [
-                    'year' => $request->year,
-                    'month' => $request->month,
-                ],
-                [
-                    'monthly_income' => $request->monthly_income,
-                    'monthly_expenses' => $request->monthly_expenses,
-                    'savings_goal' => $request->savings_goal ?? 0,
-                    'savings_goal_type' => $request->savings_goal_type ?? 'fixed',
-                ]
-            );
-
-            // Also update the user's default values to the latest record
-            $request->user()->update([
-                'monthly_income' => $request->monthly_income,
-                'monthly_expenses' => $request->monthly_expenses,
+            $user = $request->user();
+            $record = $user->financialRecords()->firstOrNew([
+                'year' => $request->year,
+                'month' => $request->month,
             ]);
+
+            $this->applyMonthSettings($record, $request->validated(), $user);
+            $record = FinancialRecord::syncFromTransactions($user, $record->year, $record->month);
 
             return response()->json($record, 201);
         } catch (\Exception $e) {
@@ -165,8 +149,9 @@ class FinancialRecordController extends Controller
      *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
      *     @OA\RequestBody(required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="monthly_income", type="number"),
-     *             @OA\Property(property="monthly_expenses", type="number"),
+     *             @OA\Property(property="is_custom", type="boolean", description="Month uses its own base instead of the profile default"),
+     *             @OA\Property(property="base_income", type="number", description="Base income when is_custom is true"),
+     *             @OA\Property(property="base_expenses", type="number", description="Base expenses when is_custom is true"),
      *             @OA\Property(property="savings_goal", type="number"),
      *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
      *         )
@@ -179,20 +164,10 @@ class FinancialRecordController extends Controller
         $record = $request->record();
 
         try {
-            $record->update($request->only([
-                'monthly_income',
-                'monthly_expenses',
-                'savings_goal',
-                'savings_goal_type',
-            ]));
+            $user = $request->user();
 
-            // Update user's default values if this is the current month
-            if ($record->year == date('Y') && $record->month == date('n')) {
-                $request->user()->update([
-                    'monthly_income' => $record->monthly_income,
-                    'monthly_expenses' => $record->monthly_expenses,
-                ]);
-            }
+            $this->applyMonthSettings($record, $request->validated(), $user);
+            $record = FinancialRecord::syncFromTransactions($user, $record->year, $record->month);
 
             return response()->json($record);
         } catch (\Exception $e) {
@@ -201,6 +176,39 @@ class FinancialRecordController extends Controller
                 'message' => 'Failed to update financial record. Please try again.',
             ], 500);
         }
+    }
+
+    /**
+     * Applies the savings goal and the custom-month flag. Income and expenses are never
+     * taken from the request: they are always the base plus the month's transactions.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function applyMonthSettings(FinancialRecord $record, array $data, \App\Models\User $user): void
+    {
+        $wasCustom = (bool) $record->is_custom;
+
+        if (array_key_exists('is_custom', $data)) {
+            $record->is_custom = (bool) $data['is_custom'];
+        }
+
+        if ($record->is_custom) {
+            // Switching a month to custom starts from the default, so nothing jumps until edited.
+            $record->base_income = $data['base_income']
+                ?? ($wasCustom ? $record->base_income : (float) $user->monthly_income);
+            $record->base_expenses = $data['base_expenses']
+                ?? ($wasCustom ? $record->base_expenses : (float) $user->monthly_expenses);
+        }
+
+        if (array_key_exists('savings_goal', $data) || ! $record->exists) {
+            $record->savings_goal = $data['savings_goal'] ?? $record->savings_goal ?? 0;
+        }
+        if (array_key_exists('savings_goal_type', $data) || ! $record->exists) {
+            $record->savings_goal_type = $data['savings_goal_type'] ?? $record->savings_goal_type ?? 'fixed';
+        }
+
+        $record->user_id = $user->id;
+        $record->save();
     }
 
     /**

@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $month
  * @property float $monthly_income
  * @property float $monthly_expenses
+ * @property bool $is_custom
+ * @property float $base_income
+ * @property float $base_expenses
  * @property float|null $savings_goal
  * @property string|null $savings_goal_type
  * @property float $savings
@@ -25,8 +28,15 @@ class FinancialRecord extends Model
         'month',
         'monthly_income',
         'monthly_expenses',
+        'is_custom',
+        'base_income',
+        'base_expenses',
         'savings_goal',
         'savings_goal_type',
+    ];
+
+    protected $casts = [
+        'is_custom' => 'boolean',
     ];
 
     protected $appends = ['savings'];
@@ -49,25 +59,29 @@ class FinancialRecord extends Model
         });
     }
 
-    public static function syncFromTransactions(User $user, int $year, int $month): void
+    /**
+     * A month is its base (the user's default, or the month's own values when
+     * it is flagged as custom) plus whatever its transactions add to it.
+     */
+    public static function syncFromTransactions(User $user, int $year, int $month): self
     {
         $start = now()->setDate($year, $month, 1)->startOfMonth();
         $end = now()->setDate($year, $month, 1)->endOfMonth();
 
-        $monthlyIncome = (float) $user->transactions()
-            ->where('type', 'income')
+        $totals = $user->transactions()
             ->whereBetween('transaction_date', [$start, $end])
-            ->sum('amount');
-
-        $monthlyExpenses = (float) $user->transactions()
-            ->where('type', 'expense')
-            ->whereBetween('transaction_date', [$start, $end])
-            ->sum('amount');
+            ->selectRaw('type, SUM(amount) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
 
         $record = $user->financialRecords()->firstOrNew(['year' => $year, 'month' => $month]);
         $record->user_id = $user->id;
-        $record->monthly_income = $monthlyIncome;
-        $record->monthly_expenses = $monthlyExpenses;
+
+        $baseIncome = $record->is_custom ? (float) $record->base_income : (float) $user->monthly_income;
+        $baseExpenses = $record->is_custom ? (float) $record->base_expenses : (float) $user->monthly_expenses;
+
+        $record->monthly_income = $baseIncome + (float) ($totals['income'] ?? 0);
+        $record->monthly_expenses = $baseExpenses + (float) ($totals['expense'] ?? 0);
 
         if (is_null($record->savings_goal)) {
             $record->savings_goal = 0;
@@ -77,6 +91,28 @@ class FinancialRecord extends Model
         }
 
         $record->save();
+
+        return $record;
+    }
+
+    /**
+     * The month's record, derived on first use so every month shows the default plus its transactions.
+     */
+    public static function ensureMonth(User $user, int $year, int $month): self
+    {
+        return $user->financialRecords()->where(['year' => $year, 'month' => $month])->first()
+            ?? self::syncFromTransactions($user, $year, $month);
+    }
+
+    /**
+     * Re-derives every month that follows the user's default, e.g. after the default changed.
+     */
+    public static function syncDefaultMonths(User $user): void
+    {
+        $user->financialRecords()
+            ->where('is_custom', false)
+            ->get()
+            ->each(fn (self $record) => self::syncFromTransactions($user, $record->year, $record->month));
     }
 
     public function getSavingsGoalAmountAttribute(): float

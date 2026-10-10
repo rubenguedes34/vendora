@@ -42,17 +42,8 @@ class SetupController extends Controller
             $currentYear = date('Y');
             $currentMonth = date('n');
 
-            FinancialRecord::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'year' => $currentYear,
-                    'month' => $currentMonth,
-                ],
-                [
-                    'monthly_income' => $request->monthly_income,
-                    'monthly_expenses' => $request->monthly_expenses,
-                ]
-            );
+            // Months follow the default just saved, so this only makes sure the current one exists.
+            FinancialRecord::ensureMonth($user, (int) $currentYear, (int) $currentMonth);
 
             $userData = [
                 'id' => $user->id,
