@@ -132,4 +132,33 @@ class AdminControllerTest extends TestCase
                 ->assertStatus(200);
         }
     }
+
+    public function test_admin_panel_link_signs_the_admin_into_the_panel_once(): void
+    {
+        $url = $this->postJson('/api/admin/panel-link', [], $this->authHeader($this->adminToken))
+            ->assertStatus(200)
+            ->json('url');
+
+        $path = parse_url($url, PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
+
+        $this->get($path)->assertRedirect('/admin');
+        $this->assertAuthenticatedAs($this->admin, 'web');
+
+        // The link is single use.
+        auth('web')->logout();
+        $this->get($path)->assertRedirect(route('filament.admin.auth.login'));
+        $this->assertGuest('web');
+    }
+
+    public function test_regular_user_cannot_get_an_admin_panel_link(): void
+    {
+        $this->postJson('/api/admin/panel-link', [], $this->authHeader($this->userToken))->assertStatus(403);
+    }
+
+    public function test_admin_panel_entry_rejects_an_unknown_code(): void
+    {
+        $this->get('/auth/admin-panel?code=' . str_repeat('a', 64))
+            ->assertRedirect(route('filament.admin.auth.login'));
+        $this->assertGuest('web');
+    }
 }

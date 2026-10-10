@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { environment } from '../../../../environments/environment';
@@ -167,7 +168,7 @@ export class SidebarComponent implements OnInit {
     return this.user?.roles?.some((role: string) => ['admin', 'manager'].includes(role)) ?? false;
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => {
@@ -183,7 +184,12 @@ export class SidebarComponent implements OnInit {
 
   openAdmin(): void {
     this.mobileOpen = false;
-    window.location.assign(this.adminUrl);
+
+    // Ask the backend for a single-use link so the panel opens already signed in.
+    this.http.post<{ url: string }>(`${environment.apiUrl}/admin/panel-link`, {}).subscribe({
+      next: ({ url }) => window.location.assign(url),
+      error: () => window.location.assign(this.adminUrl),
+    });
   }
 
   @HostListener('document:keydown.escape')

@@ -24,6 +24,7 @@ use App\Support\DefaultCategories;
 class AuthController extends Controller
 {
     private const GOOGLE_CODE_PREFIX = 'google-login-code:';
+    private const ADMIN_PANEL_CODE_PREFIX = 'admin-panel-code:';
 
     /**
      * @OA\Post(
@@ -266,6 +267,44 @@ class AuthController extends Controller
         TokenService::revokeAll($user, $user->currentAccessToken());
 
         return response()->json(['message' => 'Password updated successfully.']);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/admin/panel-link",
+     *     tags={"Admin"},
+     *     summary="Get a single-use link that signs the current user into the admin panel",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Single-use admin panel URL"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function adminPanelLink(Request $request)
+    {
+        // The panel uses a browser session while the app uses API tokens, so
+        // bridge the two with a short-lived, single-use code.
+        $code = Str::random(64);
+        Cache::put(self::ADMIN_PANEL_CODE_PREFIX . hash('sha256', $code), $request->user()->id, now()->addMinute());
+
+        return response()->json([
+            'url' => $request->getSchemeAndHttpHost() . '/auth/admin-panel?code=' . $code,
+        ]);
+    }
+
+    public function enterAdminPanel(Request $request)
+    {
+        $code = $request->query('code');
+        $userId = is_string($code) ? Cache::pull(self::ADMIN_PANEL_CODE_PREFIX . hash('sha256', $code)) : null;
+        $user = $userId ? User::find($userId) : null;
+
+        if (!$user || $user->isBlacklisted() || !$user->can('access admin panel')) {
+            return redirect()->route('filament.admin.auth.login');
+        }
+
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
+
+        return redirect('/admin');
     }
 
     public function redirectToGoogle()
