@@ -563,6 +563,28 @@
                 ]
             }
         },
+        "/api/admin/panel-link": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get a single-use link that signs the current user into the admin panel",
+                "operationId": "31055d4dfa7a086b9402e23dba4e9ef5",
+                "responses": {
+                    "200": {
+                        "description": "Single-use admin panel URL"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/auth/google/exchange": {
             "post": {
                 "tags": [
