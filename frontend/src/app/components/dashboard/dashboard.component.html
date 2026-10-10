@@ -181,6 +181,48 @@
         </div>
       </div>
 
+      <!-- Month base: the profile default unless this month is customised -->
+      <div class="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3 mb-6 text-sm">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span *ngIf="monthRecord?.is_custom" class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">Custom month</span>
+          <span class="text-gray-600">
+            Base for {{ monthNames[overviewMonth - 1] }}:
+            <strong>{{ baseIncomeValue | currencySymbol }}</strong> income,
+            <strong>{{ baseExpensesValue | currencySymbol }}</strong> expenses
+            <span class="text-gray-400">{{ monthRecord?.is_custom ? '(set for this month)' : '(your default)' }}, plus transactions</span>
+          </span>
+          <span class="flex items-center gap-2 ml-auto">
+            <button type="button" *ngIf="!editingBase" (click)="editingBase = true"
+              class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
+              {{ monthRecord?.is_custom ? 'Edit this month' : 'Customize this month' }}
+            </button>
+            <button type="button" *ngIf="monthRecord?.is_custom && !editingBase" (click)="resetMonthToDefault()" [disabled]="savingBase"
+              class="px-3 py-1.5 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50">
+              Reset to default
+            </button>
+          </span>
+        </div>
+
+        <div *ngIf="editingBase" class="flex flex-wrap items-end gap-3 mt-3">
+          <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
+            Income base
+            <input #baseIncomeInput type="number" min="0" step="0.01" [value]="baseIncomeValue"
+              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal" />
+          </label>
+          <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
+            Expenses base
+            <input #baseExpensesInput type="number" min="0" step="0.01" [value]="baseExpensesValue"
+              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal" />
+          </label>
+          <button type="button" (click)="saveMonthBase(baseIncomeInput.value, baseExpensesInput.value)" [disabled]="savingBase"
+            class="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50">
+            {{ savingBase ? 'Saving…' : 'Save' }}
+          </button>
+          <button type="button" (click)="editingBase = false" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">Cancel</button>
+        </div>
+        <p *ngIf="baseError" class="text-red-500 text-xs mt-2">{{ baseError }}</p>
+      </div>
+
       <!-- Monthly Balance Breakdown -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50">

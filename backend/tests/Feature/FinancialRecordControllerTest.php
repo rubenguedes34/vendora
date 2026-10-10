@@ -122,7 +122,8 @@ class FinancialRecordControllerTest extends TestCase
             'savings_goal_type' => 'fixed',
         ], $this->authHeader())
             ->assertStatus(201)
-            ->assertJsonPath('monthly_income', 5500);
+            ->assertJsonPath('monthly_income', 5000)
+            ->assertJsonPath('savings_goal', 300);
 
         $this->assertDatabaseHas('financial_records', [
             'user_id' => $this->user->id,

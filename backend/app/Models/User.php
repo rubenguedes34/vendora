@@ -111,6 +111,13 @@ class User extends Authenticatable implements FilamentUser
             Storage::deleteDirectory('receipts/' . $user->id);
             $user->tokens()->delete();
         });
+
+        // Months that follow the default pick up a new default right away.
+        static::saved(function (self $user): void {
+            if ($user->wasChanged(['monthly_income', 'monthly_expenses'])) {
+                FinancialRecord::syncDefaultMonths($user);
+            }
+        });
     }
 
     public function isBlacklisted(): bool
