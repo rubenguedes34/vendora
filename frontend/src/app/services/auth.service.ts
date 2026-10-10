@@ -54,7 +54,7 @@ export class AuthService {
 
   login(data: { email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
-      timeout(3000),
+      timeout(10000),
       catchError(error => {
         // Handle 401 errors specifically
         if (error.status === 401) {
@@ -62,6 +62,13 @@ export class AuthService {
         }
         return throwError(() => this.handleError(error));
       })
+    );
+  }
+
+  exchangeGoogleCode(code: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/google/exchange`, { code }).pipe(
+      timeout(10000),
+      catchError(error => throwError(() => this.handleError(error)))
     );
   }
 

@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Investment;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -66,6 +67,7 @@ class AdminController extends Controller
      */
     public function users(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate(['search' => 'nullable|string|max:100']);
         $search = $request->query('search');
 
         $users = User::query()
@@ -110,6 +112,10 @@ class AdminController extends Controller
             'role' => 'required|string|in:admin,manager,user',
         ]);
 
+        if ($request->role !== 'admin' && $this->isLastAdmin($user)) {
+            return response()->json(['message' => 'You cannot demote the last admin.'], 422);
+        }
+
         Role::firstOrCreate(['name' => $request->role, 'guard_name' => 'web']);
         $user->syncRoles([$request->role]);
 
@@ -139,6 +145,10 @@ class AdminController extends Controller
         $user->blacklisted_at = $user->isBlacklisted() ? null : now();
         $user->save();
 
+        if ($user->isBlacklisted()) {
+            TokenService::revokeAll($user);
+        }
+
         return response()->json([
             'message' => $user->isBlacklisted() ? 'User blacklisted.' : 'User unblacklisted.',
             'user' => $user->fresh()->load('roles'),
@@ -163,9 +173,28 @@ class AdminController extends Controller
             return response()->json(['message' => 'You cannot delete your own account.'], 422);
         }
 
+        if ($this->isLastAdmin($user)) {
+            return response()->json(['message' => 'You cannot delete the last admin.'], 422);
+        }
+
         $user->delete();
 
         return response()->json(['message' => 'User deleted.']);
+    }
+
+    private function isLastAdmin(User $user): bool
+    {
+        return $user->hasRole('admin') && User::role('admin')->count() <= 1;
+    }
+
+    /**
+     * SQL expression formatting a date column as Y-m on the active database driver.
+     */
+    private function yearMonth(string $column): string
+    {
+        return DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', {$column})"
+            : "DATE_FORMAT({$column}, '%Y-%m')";
     }
 
     /**
@@ -183,12 +212,17 @@ class AdminController extends Controller
      */
     public function budgetsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|digits:4',
+            'month' => 'nullable|date_format:Y-m',
+            'search' => 'nullable|string|max:100',
+        ]);
+
         $year = $request->query('year');
         $month = $request->query('month');
         $search = $request->query('search');
 
         $query = Budget::query()
-            ->selectRaw('budgets.*, categories.name as category_name, categories.type as category_type')
             ->join('categories', 'categories.id', '=', 'budgets.category_id')
             ->when($search, function ($query, $search) {
                 $term = "%{$search}%";
@@ -199,20 +233,22 @@ class AdminController extends Controller
                 });
             })
             ->when($year, function ($query, $year) {
-                $query->whereRaw("SUBSTRING(month, 1, 4) = ?", [$year]);
+                $query->where('budgets.month', 'like', $year . '-%');
             })
             ->when($month, function ($query, $month) {
-                $query->where('month', $month);
+                $query->where('budgets.month', $month);
             });
 
         $summary = (clone $query)
-            ->selectRaw('COALESCE(SUM(amount), 0) as total_budgeted, COUNT(*) as count')
+            ->selectRaw('COALESCE(SUM(budgets.amount), 0) as total_budgeted, COUNT(*) as count')
+            ->toBase()
             ->first();
 
         $byCategory = (clone $query)
-            ->selectRaw('categories.name as category, categories.type as type, COALESCE(SUM(amount), 0) as total')
+            ->selectRaw('categories.name as category, categories.type as type, COALESCE(SUM(budgets.amount), 0) as total')
             ->groupBy('categories.name', 'categories.type')
             ->orderByDesc('total')
+            ->toBase()
             ->get();
 
         $byMonth = Budget::query()
@@ -243,6 +279,12 @@ class AdminController extends Controller
      */
     public function investmentsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|digits:4',
+            'type' => 'nullable|string|max:50',
+            'search' => 'nullable|string|max:100',
+        ]);
+
         $year = $request->query('year');
         $type = $request->query('type');
         $search = $request->query('search');
@@ -275,7 +317,7 @@ class AdminController extends Controller
             ->get();
 
         $byMonth = Investment::query()
-            ->selectRaw("DATE_FORMAT(purchase_date, '%Y-%m') as month, COALESCE(SUM(initial_amount), 0) as total_initial, COALESCE(SUM(current_amount), 0) as total_current")
+            ->selectRaw($this->yearMonth('purchase_date') . ' as month, COALESCE(SUM(initial_amount), 0) as total_initial, COALESCE(SUM(current_amount), 0) as total_current')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -306,6 +348,13 @@ class AdminController extends Controller
      */
     public function transactionsMetrics(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|digits:4',
+            'month' => 'nullable|integer|between:1,12',
+            'type' => 'nullable|in:income,expense',
+            'search' => 'nullable|string|max:100',
+        ]);
+
         $year = $request->query('year');
         $month = $request->query('month');
         $type = $request->query('type');
@@ -357,7 +406,7 @@ class AdminController extends Controller
             });
 
         $byMonth = Transaction::query()
-            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as month, type, COALESCE(SUM(amount), 0) as total")
+            ->selectRaw($this->yearMonth('transaction_date') . ' as month, type, COALESCE(SUM(amount), 0) as total')
             ->groupBy('month', 'type')
             ->orderBy('month')
             ->get();

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\RecurrentTransaction;
-use App\Models\Transaction;
 use App\Models\Category;
 
 class RecurrentTransactionController extends Controller
@@ -49,17 +47,18 @@ class RecurrentTransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
             'type' => 'required|in:income,expense',
             'category_id' => 'required|exists:categories,id',
             'day_of_month' => 'required|integer|between:1,28',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        Category::findOrFail($request->category_id);
+        Category::assertMatchesTransactionType($data['category_id'], $data['type']);
 
-        $item = $request->user()->recurrentTransactions()->create($request->all());
+        $item = $request->user()->recurrentTransactions()->create($data);
 
         return response()->json($item->load('category'), 201);
     }
@@ -103,19 +102,21 @@ class RecurrentTransactionController extends Controller
     {
         $item = $request->user()->recurrentTransactions()->findOrFail($id);
 
-        $request->validate([
+        $data = $request->validate([
             'description' => 'sometimes|required|string|max:255',
             'amount' => 'sometimes|required|numeric|min:0.01',
             'type' => 'sometimes|required|in:income,expense',
             'category_id' => 'sometimes|required|exists:categories,id',
             'day_of_month' => 'sometimes|required|integer|between:1,28',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        if ($request->has('category_id')) {
-            Category::findOrFail($request->category_id);
-        }
+        Category::assertMatchesTransactionType(
+            $data['category_id'] ?? $item->category_id,
+            $data['type'] ?? $item->type
+        );
 
-        $item->update($request->all());
+        $item->update($data);
 
         return response()->json($item->load('category'));
     }
@@ -164,6 +165,7 @@ class RecurrentTransactionController extends Controller
 
         $recurrents = $request->user()
             ->recurrentTransactions()
+            ->where('is_active', true)
             ->with('category')
             ->get();
 
@@ -175,6 +177,9 @@ class RecurrentTransactionController extends Controller
 
             $existing = $request->user()->transactions()
                 ->where('description', $recurrent->description)
+                ->where('category_id', $recurrent->category_id)
+                ->where('amount', $recurrent->amount)
+                ->where('type', $recurrent->type)
                 ->whereDate('transaction_date', $date)
                 ->first();
 

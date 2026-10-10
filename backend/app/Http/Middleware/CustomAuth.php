@@ -10,22 +10,27 @@ class CustomAuth
 {
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->bearerToken()
-            ?? $request->header('X-Auth-Token')
-            ?? $request->input('token')
-            ?? $request->query('token');
+        $token = $request->bearerToken();
 
         if (!$token) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $user = TokenService::verify($token);
+        $accessToken = TokenService::find($token);
 
-        if (!$user) {
+        if (!$accessToken) {
             return response()->json(['message' => 'Invalid or expired token'], 401);
         }
 
-        auth()->login($user);
+        $user = $accessToken->tokenable;
+
+        if ($user->isBlacklisted()) {
+            return response()->json(['message' => 'Your account has been suspended.'], 403);
+        }
+
+        $user->withAccessToken($accessToken);
+
+        auth()->setUser($user);
         $request->setUserResolver(fn () => $user);
 
         return $next($request);

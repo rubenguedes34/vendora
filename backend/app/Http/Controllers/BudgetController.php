@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Budget;
-use App\Models\Category;
-use App\Models\Transaction;
 
 class BudgetController extends Controller
 {
@@ -21,8 +19,9 @@ class BudgetController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate(['month' => 'nullable|date_format:Y-m']);
         $month = $request->query('month', date('Y-m'));
-        
+
         $budgets = $request->user()
             ->budgets()
             ->with('category')
@@ -50,16 +49,13 @@ class BudgetController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0',
             'month' => 'required|date_format:Y-m',
         ]);
 
-        // Verify category belongs to user
-        Category::findOrFail($request->category_id);
-
-        $budget = $request->user()->budgets()->create($request->all());
+        $budget = $request->user()->budgets()->create($data);
 
         return response()->json($budget->load('category'), 201);
     }
@@ -101,17 +97,13 @@ class BudgetController extends Controller
     {
         $budget = $request->user()->budgets()->findOrFail($id);
 
-        $request->validate([
+        $data = $request->validate([
             'category_id' => 'sometimes|required|exists:categories,id',
             'amount' => 'sometimes|required|numeric|min:0',
             'month' => 'sometimes|required|date_format:Y-m',
         ]);
 
-        if ($request->has('category_id')) {
-            Category::findOrFail($request->category_id);
-        }
-
-        $budget->update($request->all());
+        $budget->update($data);
 
         return response()->json($budget->load('category'));
     }
@@ -146,7 +138,7 @@ class BudgetController extends Controller
      */
     public function comparison(Request $request, $month = null)
     {
-        $month = $month ?? date('Y-m');
+        $month = $this->resolveMonth($month);
         [$year, $mon] = explode('-', $month);
 
         $budgets = $request->user()
@@ -203,7 +195,7 @@ class BudgetController extends Controller
      */
     public function summary(Request $request, $month = null)
     {
-        $month = $month ?? date('Y-m');
+        $month = $this->resolveMonth($month);
 
         $budgets = $request->user()
             ->budgets()
@@ -222,5 +214,14 @@ class BudgetController extends Controller
             'savings' => $savings,
             'balance' => $income - $expenses - $savings,
         ]);
+    }
+
+    private function resolveMonth(?string $month): string
+    {
+        $month ??= date('Y-m');
+
+        abort_unless(preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) === 1, 422, 'Month must be in Y-m format.');
+
+        return $month;
     }
 }

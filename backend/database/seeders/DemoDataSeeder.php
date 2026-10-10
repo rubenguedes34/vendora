@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use App\Models\Category;
+use App\Support\DefaultCategories;
 use App\Models\FinancialRecord;
 use App\Models\Transaction;
 use App\Models\Budget;
@@ -15,40 +14,15 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── 1. Ensure admin user exists ──────────────────────────────────────
-        $user = User::updateOrCreate(
-            ['email' => 'admin@vendora.com'],
-            [
-                'name'             => 'Ruben Guedes',
-                'password'         => Hash::make('Guedes13'),
-                'monthly_income'   => 3500.00,
-                'monthly_expenses' => 1800.00,
-            ]
-        );
+        // ── 1. Demo data is attached to the admin created by AdminSeeder ─────
+        $user = User::where('email', 'admin@vendora.com')->first();
+        if (! $user) {
+            $this->command?->warn('Admin user not found; run AdminSeeder before DemoDataSeeder.');
+            return;
+        }
 
         // ── 2. Categories ────────────────────────────────────────────────────
-        $cats = [];
-        $defs = [
-            ['name' => 'Salary',         'type' => 'income',   'icon' => '💰', 'color' => '#10B981'],
-            ['name' => 'Freelance',      'type' => 'income',   'icon' => '💼', 'color' => '#3B82F6'],
-            ['name' => 'Side Income',    'type' => 'income',   'icon' => '📈', 'color' => '#F59E0B'],
-            ['name' => 'Food',           'type' => 'expense',  'icon' => '🍔', 'color' => '#EF4444'],
-            ['name' => 'Transport',      'type' => 'expense',  'icon' => '🚗', 'color' => '#3B82F6'],
-            ['name' => 'Rent',           'type' => 'expense',  'icon' => '🏠', 'color' => '#8B5CF6'],
-            ['name' => 'Entertainment',  'type' => 'expense',  'icon' => '🎬', 'color' => '#EC4899'],
-            ['name' => 'Shopping',       'type' => 'expense',  'icon' => '🛍️', 'color' => '#F59E0B'],
-            ['name' => 'Bills',          'type' => 'expense',  'icon' => '📄', 'color' => '#6366F1'],
-            ['name' => 'Health',         'type' => 'expense',  'icon' => '🏥', 'color' => '#14B8A6'],
-            ['name' => 'Emergency Fund', 'type' => 'savings',  'icon' => '🛡️', 'color' => '#10B981'],
-            ['name' => 'Vacation',       'type' => 'savings',  'icon' => '✈️', 'color' => '#3B82F6'],
-        ];
-
-        foreach ($defs as $d) {
-            $cats[$d['name']] = Category::firstOrCreate(
-                ['name' => $d['name'], 'type' => $d['type']],
-                ['icon' => $d['icon'], 'color' => $d['color']]
-            );
-        }
+        $cats = DefaultCategories::ensure();
 
         // ── 3. Recurrent transactions ─────────────────────────────────────────
         $recurrents = [

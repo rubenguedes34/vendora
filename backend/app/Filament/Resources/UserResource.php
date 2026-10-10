@@ -24,6 +24,11 @@ class UserResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Access';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('manage users') ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

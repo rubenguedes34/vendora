@@ -45,7 +45,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('API_TOKEN_LIFETIME_MINUTES', 60 * 24 * 7),
 
     /*
     |--------------------------------------------------------------------------

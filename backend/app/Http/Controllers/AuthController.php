@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -11,12 +12,14 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
-use App\Models\Category;
 use App\Models\FinancialRecord;
 use App\Services\TokenService;
+use App\Support\DefaultCategories;
 
 class AuthController extends Controller
 {
+    private const GOOGLE_CODE_PREFIX = 'google-login-code:';
+
     /**
      * @OA\Post(
      *     path="/api/register",
@@ -52,7 +55,7 @@ class AuthController extends Controller
             Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
             $user->assignRole('user');
 
-            $this->seedDefaultCategories();
+            DefaultCategories::ensure();
 
             $token = TokenService::issue($user);
 
@@ -179,8 +182,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Simple logout - just return success
-        // In production, you would invalidate the token
+        $request->user()->currentAccessToken()?->delete();
+
         return response()->json([
             'message' => 'Logged out successfully',
         ]);
@@ -227,7 +230,16 @@ class AuthController extends Controller
             'email'            => 'required|email|max:255|unique:users,email,' . $user->id,
             'monthly_income'   => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
             'monthly_expenses' => 'nullable|numeric|min:0|max:99999999.99|decimal:0,2',
+            'current_password' => 'nullable|string|max:72',
         ]);
+
+        // Changing the login email is sensitive, so it needs the current password.
+        if ($request->email !== $user->email
+            && !Hash::check((string) $request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Your current password is required to change your email.'],
+            ]);
+        }
 
         $user->update([
             'name'             => $request->name,
@@ -272,6 +284,9 @@ class AuthController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+
+        // Sign out every other session; the current one stays valid.
+        TokenService::revokeAll($user, $user->currentAccessToken());
 
         return response()->json(['message' => 'Password updated successfully.']);
     }
@@ -318,7 +333,7 @@ class AuthController extends Controller
                 $user->forceFill(['email_verified_at' => now()])->save();
                 Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
                 $user->assignRole('user');
-                $this->seedDefaultCategories();
+                DefaultCategories::ensure();
                 $isNewUser = true;
             } else {
                 if (empty($user->google_id)) {
@@ -326,31 +341,72 @@ class AuthController extends Controller
                 }
             }
 
-            $currentYear = date('Y');
-            $currentMonth = date('n');
+            // Hand the frontend a short-lived, single-use code instead of putting
+            // the API token and profile in the redirect URL.
+            $code = Str::random(64);
+            Cache::put(self::GOOGLE_CODE_PREFIX . hash('sha256', $code), [
+                'user_id' => $user->id,
+                'is_new_user' => $isNewUser,
+            ], now()->addMinute());
 
-            $needsSetup = $isNewUser || ($user->monthly_income === null || $user->monthly_expenses === null);
+            $frontendUrl = config('app.frontend_url');
+            return redirect($frontendUrl . '/auth/callback?code=' . urlencode($code));
+        } catch (\Exception $e) {
+            Log::error('Google login failed', ['exception' => $e]);
+            $frontendUrl = config('app.frontend_url');
+            return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed. Please try again.'));
+        }
+    }
 
-            $financialRecord = FinancialRecord::where('user_id', $user->id)
-                ->where('year', $currentYear)
-                ->where('month', $currentMonth)
-                ->first();
+    /**
+     * @OA\Post(
+     *     path="/api/auth/google/exchange",
+     *     tags={"Auth"},
+     *     summary="Exchange a one-time Google login code for an API token",
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"code"},
+     *             @OA\Property(property="code", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Login successful, returns token"),
+     *     @OA\Response(response=401, description="Invalid or expired code")
+     * )
+     */
+    public function exchangeGoogleCode(Request $request)
+    {
+        $request->validate(['code' => 'required|string|size:64']);
 
-            // Only create a record once the user has completed setup, so we
-            // never persist placeholder zero values for incomplete accounts.
-            if (!$financialRecord && !$needsSetup) {
-                $financialRecord = FinancialRecord::create([
-                    'user_id' => $user->id,
-                    'year' => $currentYear,
-                    'month' => $currentMonth,
-                    'monthly_income' => $user->monthly_income,
-                    'monthly_expenses' => $user->monthly_expenses,
-                ]);
-            }
+        $payload = Cache::pull(self::GOOGLE_CODE_PREFIX . hash('sha256', $request->code));
+        $user = $payload ? User::find($payload['user_id']) : null;
 
-            $token = TokenService::issue($user);
+        if (!$user || $user->isBlacklisted()) {
+            return response()->json(['message' => 'Invalid or expired login code.'], 401);
+        }
 
-            $userData = [
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        $needsSetup = $payload['is_new_user'] || ($user->monthly_income === null || $user->monthly_expenses === null);
+
+        $financialRecord = FinancialRecord::where('user_id', $user->id)
+            ->where('year', $currentYear)
+            ->where('month', $currentMonth)
+            ->first();
+
+        // Only create a record once the user has completed setup, so we
+        // never persist placeholder zero values for incomplete accounts.
+        if (!$financialRecord && !$needsSetup) {
+            $financialRecord = FinancialRecord::create([
+                'user_id' => $user->id,
+                'year' => $currentYear,
+                'month' => $currentMonth,
+                'monthly_income' => $user->monthly_income,
+                'monthly_expenses' => $user->monthly_expenses,
+            ]);
+        }
+
+        return response()->json([
+            'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -361,40 +417,8 @@ class AuthController extends Controller
                 'current_year' => $currentYear,
                 'current_month' => $currentMonth,
                 'needs_setup' => $needsSetup,
-            ];
-
-            $frontendUrl = config('app.frontend_url');
-            return redirect($frontendUrl . '/auth/callback?token=' . urlencode($token) . '&user=' . urlencode(json_encode($userData)));
-        } catch (\Exception $e) {
-            Log::error('Google login failed', ['exception' => $e]);
-            $frontendUrl = config('app.frontend_url');
-            return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed. Please try again.'));
-        }
-    }
-
-    private function seedDefaultCategories(): void
-    {
-        $defaults = [
-            ['name' => 'Salary',         'type' => 'income',  'icon' => '💰', 'color' => '#10B981'],
-            ['name' => 'Freelance',      'type' => 'income',  'icon' => '💼', 'color' => '#3B82F6'],
-            ['name' => 'Side Income',    'type' => 'income',  'icon' => '📈', 'color' => '#F59E0B'],
-            ['name' => 'Food',           'type' => 'expense', 'icon' => '🍔', 'color' => '#EF4444'],
-            ['name' => 'Transport',      'type' => 'expense', 'icon' => '🚗', 'color' => '#3B82F6'],
-            ['name' => 'Rent',           'type' => 'expense', 'icon' => '🏠', 'color' => '#8B5CF6'],
-            ['name' => 'Entertainment',  'type' => 'expense', 'icon' => '🎬', 'color' => '#EC4899'],
-            ['name' => 'Shopping',       'type' => 'expense', 'icon' => '🛍️', 'color' => '#F59E0B'],
-            ['name' => 'Bills',          'type' => 'expense', 'icon' => '📄', 'color' => '#6366F1'],
-            ['name' => 'Health',         'type' => 'expense', 'icon' => '🏥', 'color' => '#14B8A6'],
-            ['name' => 'Emergency Fund', 'type' => 'savings', 'icon' => '🛡️', 'color' => '#10B981'],
-            ['name' => 'Vacation',       'type' => 'savings', 'icon' => '✈️', 'color' => '#3B82F6'],
-            ['name' => 'General Savings','type' => 'savings', 'icon' => '🏦', 'color' => '#8B5CF6'],
-        ];
-
-        foreach ($defaults as $cat) {
-            Category::firstOrCreate(
-                ['name' => $cat['name'], 'type' => $cat['type']],
-                ['icon' => $cat['icon'], 'color' => $cat['color']]
-            );
-        }
+            ],
+            'token' => TokenService::issue($user),
+        ]);
     }
 }

@@ -22,9 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Define rate limiter to fix missing rate limiter error
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::none(); // No rate limiting for development
+        // The general 'api' limiter lives in RouteServiceProvider; these cover
+        // the endpoints that spend third-party API quota.
+        RateLimiter::for('ai', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('market', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
     }
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\AiChatController;
 // Public routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/auth/google/exchange', [AuthController::class, 'exchangeGoogleCode'])->middleware('throttle:10,1');
 Route::post('/setup', [SetupController::class, 'store'])->middleware('throttle:10,1');
 
 // Protected routes - using custom auth middleware
@@ -63,9 +64,11 @@ Route::middleware('auth.custom')->group(function () {
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
 
     // Market data (live price lookup, symbol search, candle chart)
-    Route::get('/market/quote',  [MarketDataController::class, 'quote']);
-    Route::get('/market/search', [MarketDataController::class, 'search']);
-    Route::get('/market/candle', [MarketDataController::class, 'candle']);
+    Route::middleware('throttle:market')->group(function () {
+        Route::get('/market/quote',  [MarketDataController::class, 'quote']);
+        Route::get('/market/search', [MarketDataController::class, 'search']);
+        Route::get('/market/candle', [MarketDataController::class, 'candle']);
+    });
 
     // Tags
     Route::apiResource('tags', TagController::class)->except(['show']);
@@ -76,19 +79,24 @@ Route::middleware('auth.custom')->group(function () {
 
     // AI support routes
     Route::middleware('permission:use ai support')->group(function () {
-        Route::post('/ai/chat', [AiChatController::class, 'chat']);
+        Route::post('/ai/chat', [AiChatController::class, 'chat'])->middleware('throttle:ai');
         Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
     });
 
     // Admin routes
     Route::middleware('permission:access admin panel')->prefix('admin')->group(function () {
-        Route::get('/dashboard-metrics', [AdminController::class, 'dashboardMetrics']);
-        Route::get('/users', [AdminController::class, 'users']);
-        Route::patch('/users/{user}/role', [AdminController::class, 'updateRole']);
-        Route::patch('/users/{user}/blacklist', [AdminController::class, 'toggleBlacklist']);
-        Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);
-        Route::get('/budgets-metrics', [AdminController::class, 'budgetsMetrics']);
-        Route::get('/investments-metrics', [AdminController::class, 'investmentsMetrics']);
-        Route::get('/transactions-metrics', [AdminController::class, 'transactionsMetrics']);
+        Route::middleware('permission:view metrics')->group(function () {
+            Route::get('/dashboard-metrics', [AdminController::class, 'dashboardMetrics']);
+            Route::get('/budgets-metrics', [AdminController::class, 'budgetsMetrics']);
+            Route::get('/investments-metrics', [AdminController::class, 'investmentsMetrics']);
+            Route::get('/transactions-metrics', [AdminController::class, 'transactionsMetrics']);
+        });
+
+        Route::middleware('permission:manage users')->group(function () {
+            Route::get('/users', [AdminController::class, 'users']);
+            Route::patch('/users/{user}/role', [AdminController::class, 'updateRole']);
+            Route::patch('/users/{user}/blacklist', [AdminController::class, 'toggleBlacklist']);
+            Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);
+        });
     });
 });

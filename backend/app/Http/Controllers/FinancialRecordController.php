@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use App\Models\FinancialRecord;
 use App\Services\HealthScoreCalculator;
 
@@ -74,6 +75,8 @@ class FinancialRecordController extends Controller
      */
     public function byYear(Request $request, $year)
     {
+        abort_unless(ctype_digit((string) $year), 422, 'Year must be a number.');
+
         $records = $request->user()
             ->financialRecords()
             ->where('year', $year)
@@ -106,7 +109,7 @@ class FinancialRecordController extends Controller
     {
         try {
             $request->validate([
-                'year' => 'required|integer',
+                'year' => 'required|integer|between:2000,2100',
                 'month' => 'required|integer|between:1,12',
                 'monthly_income' => 'required|numeric|min:0',
                 'monthly_expenses' => 'required|numeric|min:0',
@@ -137,8 +140,9 @@ class FinancialRecordController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            Log::error('Saving financial record failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Failed to save financial record: ' . $e->getMessage(),
+                'message' => 'Failed to save financial record. Please try again.',
             ], 500);
         }
     }
@@ -179,9 +183,9 @@ class FinancialRecordController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $record = $request->user()->financialRecords()->findOrFail($id);
+        $record = $request->user()->financialRecords()->findOrFail($id);
 
+        try {
             $request->validate([
                 'monthly_income' => 'sometimes|required|numeric|min:0',
                 'monthly_expenses' => 'sometimes|required|numeric|min:0',
@@ -208,8 +212,9 @@ class FinancialRecordController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            Log::error('Updating financial record failed', ['exception' => $e]);
             return response()->json([
-                'message' => 'Failed to update financial record: ' . $e->getMessage(),
+                'message' => 'Failed to update financial record. Please try again.',
             ], 500);
         }
     }
@@ -300,13 +305,17 @@ class FinancialRecordController extends Controller
                     ->sum('amount');
                 $yearlyChange = round($yearlyIncome - $yearlyExpense, 2);
 
-                // History only needs the last 13 months of data.
+                // Only the last 13 months are loaded row by row; everything older
+                // is folded into opening balances so the series ends at the real total.
                 $transactions  = $user->transactions()
                     ->whereDate('transaction_date', '>=', $historyWindowStart)
                     ->get(['type', 'transaction_date', 'amount']);
+                $openingTotals = $user->transactions()
+                    ->whereDate('transaction_date', '<', $historyWindowStart)
+                    ->selectRaw('type, SUM(amount) as total')
+                    ->groupBy('type')
+                    ->pluck('total', 'type');
                 $investmentRows = $user->investments()
-                    ->whereDate('purchase_date', '>=', $historyWindowStart)
-                    ->orWhereNull('purchase_date')
                     ->get(['type', 'purchase_date', 'current_amount', 'initial_amount']);
 
                 $incomeRows   = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
@@ -319,9 +328,11 @@ class FinancialRecordController extends Controller
                 $incomeIdx  = 0;
                 $expenseIdx = 0;
                 $investIdx  = 0;
-                $cumulativeIncome  = 0.0;
-                $cumulativeExpense = 0.0;
-                $cumulativeInvest  = 0.0;
+                $cumulativeIncome  = (float) ($openingTotals['income'] ?? 0);
+                $cumulativeExpense = (float) ($openingTotals['expense'] ?? 0);
+                $cumulativeInvest  = (float) $investmentRows
+                    ->filter(fn ($inv) => !$inv->purchase_date)
+                    ->sum('current_amount');
 
                 $history = [];
                 for ($i = 12; $i >= 0; $i--) {

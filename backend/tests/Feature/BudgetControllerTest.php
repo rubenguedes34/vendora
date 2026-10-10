@@ -126,4 +126,22 @@ class BudgetControllerTest extends TestCase
         $this->deleteJson("/api/budgets/{$budget->id}", [], $this->authHeader())
             ->assertStatus(404);
     }
+
+    public function test_update_cannot_move_budget_to_another_user(): void
+    {
+        /** @var User $other */
+        $other = User::factory()->create();
+        $budget = $this->user->budgets()->create([
+            'category_id' => $this->category->id,
+            'amount'      => 100,
+            'month'       => '2025-07',
+        ]);
+
+        $this->putJson("/api/budgets/{$budget->id}", [
+            'amount'  => 150,
+            'user_id' => $other->id,
+        ], $this->authHeader())->assertStatus(200);
+
+        $this->assertDatabaseHas('budgets', ['id' => $budget->id, 'user_id' => $this->user->id, 'amount' => 150]);
+    }
 }
