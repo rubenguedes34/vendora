@@ -36,22 +36,27 @@ class AdminSeeder extends Seeder
 
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
 
+        // Only set a password when creating the admin or when ADMIN_PASSWORD is
+        // given, so re-seeding never silently resets an existing admin's password.
         $password = env('ADMIN_PASSWORD');
-        if (! $password) {
-            $password = Str::random(20);
-            $this->command?->warn('No ADMIN_PASSWORD set; generated random password for admin@vendora.com: '.$password);
-        }
+        $user = User::where('email', 'admin@vendora.com')->first();
 
-        $user = User::updateOrCreate(
-            ['email' => 'admin@vendora.com'],
-            [
+        if (! $user) {
+            if (! $password) {
+                $password = Str::random(20);
+                $this->command?->warn('No ADMIN_PASSWORD set; generated random password for admin@vendora.com: '.$password);
+            }
+
+            $user = User::create([
                 'name' => 'Admin',
                 'email' => 'admin@vendora.com',
                 'password' => Hash::make($password),
                 'monthly_income' => 3500.00,
                 'monthly_expenses' => 1200.00,
-            ]
-        );
+            ]);
+        } elseif ($password) {
+            $user->update(['password' => Hash::make($password)]);
+        }
 
         $user->syncRoles(['admin']);
     }

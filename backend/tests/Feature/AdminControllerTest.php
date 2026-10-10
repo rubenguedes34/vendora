@@ -96,4 +96,40 @@ class AdminControllerTest extends TestCase
         $this->deleteJson('/api/admin/users/' . $this->admin->id, [], $this->authHeader($this->adminToken))
             ->assertStatus(422);
     }
+
+    public function test_manager_can_view_metrics_but_not_manage_users(): void
+    {
+        /** @var Role $managerRole */
+        $managerRole = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
+        $managerRole->syncPermissions(['access admin panel', 'view metrics']);
+
+        /** @var User $manager */
+        $manager = User::factory()->create();
+        $manager->assignRole('manager');
+        $header = $this->authHeader(TokenService::issue($manager));
+
+        $this->getJson('/api/admin/dashboard-metrics', $header)->assertStatus(200);
+        $this->getJson('/api/admin/users', $header)->assertStatus(403);
+        $this->patchJson('/api/admin/users/' . $this->user->id . '/role', ['role' => 'admin'], $header)->assertStatus(403);
+        $this->patchJson('/api/admin/users/' . $this->admin->id . '/blacklist', [], $header)->assertStatus(403);
+        $this->deleteJson('/api/admin/users/' . $this->admin->id, [], $header)->assertStatus(403);
+
+        $this->assertFalse($this->user->fresh()->hasRole('admin'));
+    }
+
+    public function test_blacklisting_a_user_revokes_their_tokens(): void
+    {
+        $this->patchJson('/api/admin/users/' . $this->user->id . '/blacklist', [], $this->authHeader($this->adminToken))
+            ->assertStatus(200);
+
+        $this->assertSame(0, $this->user->tokens()->count());
+    }
+
+    public function test_metrics_endpoints_respond(): void
+    {
+        foreach (['budgets-metrics', 'investments-metrics', 'transactions-metrics'] as $endpoint) {
+            $this->getJson('/api/admin/' . $endpoint . '?year=2025&search=a', $this->authHeader($this->adminToken))
+                ->assertStatus(200);
+        }
+    }
 }

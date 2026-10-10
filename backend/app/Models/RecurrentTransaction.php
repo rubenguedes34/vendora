@@ -22,11 +22,13 @@ class RecurrentTransaction extends Model
         'type',
         'category_id',
         'day_of_month',
+        'is_active',
     ];
 
     protected $casts = [
         'amount' => 'float',
         'day_of_month' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function user()

@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -23,7 +25,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -101,6 +103,15 @@ class User extends Authenticatable implements FilamentUser
         'blacklisted_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    protected static function booted(): void
+    {
+        // Database rows cascade, but receipt files and API tokens do not.
+        static::deleting(function (self $user): void {
+            Storage::deleteDirectory('receipts/' . $user->id);
+            $user->tokens()->delete();
+        });
+    }
 
     public function isBlacklisted(): bool
     {

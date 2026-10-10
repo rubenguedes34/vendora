@@ -48,6 +48,7 @@ class AccountControllerTest extends TestCase
         $this->putJson('/api/user/profile', [
             'name'  => 'Jane Doe',
             'email' => 'jane@example.com',
+            'current_password' => 'password123',
         ], $this->authHeader())
             ->assertStatus(200)
             ->assertJsonPath('message', 'Profile updated successfully.')
@@ -165,5 +166,44 @@ class AccountControllerTest extends TestCase
         ], $this->authHeader())
             ->assertStatus(422)
             ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_changing_email_requires_current_password(): void
+    {
+        $this->putJson('/api/user/profile', [
+            'name'  => 'Jane Doe',
+            'email' => 'jane@example.com',
+        ], $this->authHeader())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'jane@example.com']);
+    }
+
+    public function test_token_still_works_after_changing_email(): void
+    {
+        $this->putJson('/api/user/profile', [
+            'name'  => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'current_password' => 'password123',
+        ], $this->authHeader())->assertStatus(200);
+
+        $this->getJson('/api/user', $this->authHeader())
+            ->assertStatus(200)
+            ->assertJsonPath('email', 'jane@example.com');
+    }
+
+    public function test_changing_password_signs_out_other_sessions(): void
+    {
+        $otherToken = TokenService::issue($this->user);
+
+        $this->putJson('/api/user/password', [
+            'current_password'      => 'password123',
+            'password'              => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ], $this->authHeader())->assertStatus(200);
+
+        $this->getJson('/api/user', $this->authHeader())->assertStatus(200);
+        $this->getJson('/api/user', ['Authorization' => 'Bearer ' . $otherToken])->assertStatus(401);
     }
 }

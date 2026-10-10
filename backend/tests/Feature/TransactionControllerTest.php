@@ -350,7 +350,7 @@ class TransactionControllerTest extends TestCase
             'category_id'      => $this->category->id,
             'description'      => 'PDF receipt',
             'amount'           => 99,
-            'type'             => 'expense',
+            'type'             => 'income',
             'transaction_date' => '2025-07-01',
         ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
 
@@ -609,5 +609,54 @@ class TransactionControllerTest extends TestCase
             ->assertJsonPath('per_page', 10)
             ->assertJsonPath('total', 25);
         $this->assertCount(10, $page2->json('data'));
+    }
+
+    public function test_store_rejects_category_of_the_wrong_type(): void
+    {
+        $this->postJson('/api/transactions', [
+            'category_id'      => $this->category->id,
+            'description'      => 'Mismatch',
+            'amount'           => 10,
+            'type'             => 'expense',
+            'transaction_date' => '2025-07-01',
+        ], $this->authHeader())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['category_id']);
+    }
+
+    public function test_export_neutralises_spreadsheet_formulas(): void
+    {
+        $this->user->transactions()->create([
+            'category_id'      => $this->category->id,
+            'description'      => '=HYPERLINK("http://evil.test")',
+            'amount'           => 10,
+            'type'             => 'income',
+            'transaction_date' => '2025-07-01',
+        ]);
+
+        $csv = $this->get('/api/transactions/export', $this->authHeader())
+            ->assertStatus(200)
+            ->getContent();
+
+        $this->assertStringContainsString('"\'=HYPERLINK', $csv);
+        $this->assertStringNotContainsString(',"=HYPERLINK', $csv);
+    }
+
+    public function test_moving_a_transaction_to_another_month_resyncs_both_months(): void
+    {
+        $transaction = $this->user->transactions()->create([
+            'category_id'      => $this->category->id,
+            'description'      => 'Pay',
+            'amount'           => 500,
+            'type'             => 'income',
+            'transaction_date' => '2025-07-10',
+        ]);
+
+        $this->putJson("/api/transactions/{$transaction->id}", [
+            'transaction_date' => '2025-08-10',
+        ], $this->authHeader())->assertStatus(200);
+
+        $this->assertDatabaseHas('financial_records', ['user_id' => $this->user->id, 'year' => 2025, 'month' => 7, 'monthly_income' => 0]);
+        $this->assertDatabaseHas('financial_records', ['user_id' => $this->user->id, 'year' => 2025, 'month' => 8, 'monthly_income' => 500]);
     }
 }

@@ -49,6 +49,12 @@ class Transaction extends Model
         static::saved(function (self $transaction): void {
             FinancialCacheService::clearForUser($transaction->user);
             FinancialRecord::syncFromTransactions($transaction->user, $transaction->transaction_date->year, $transaction->transaction_date->month);
+
+            // When the date moved to another month, the month it left needs recalculating too.
+            $previousDate = $transaction->wasChanged('transaction_date') ? $transaction->getOriginal('transaction_date') : null;
+            if ($previousDate && $previousDate->format('Y-m') !== $transaction->transaction_date->format('Y-m')) {
+                FinancialRecord::syncFromTransactions($transaction->user, $previousDate->year, $previousDate->month);
+            }
         });
 
         static::deleted(function (self $transaction): void {

@@ -128,4 +128,50 @@ class AuthControllerTest extends TestCase
     //    $response->assertStatus(200)
     //        ->assertJson(['message' => 'Logged out successfully']);
     //}
+
+    public function test_logout_revokes_the_token(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+
+        $this->getJson('/api/user', $header)->assertStatus(200);
+        $this->postJson('/api/logout', [], $header)->assertStatus(200);
+
+        // The guard caches the resolved user for the lifetime of the test app.
+        $this->app['auth']->forgetGuards();
+
+        $this->getJson('/api/user', $header)->assertStatus(401);
+    }
+
+    public function test_token_in_query_string_is_not_accepted(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $token = \App\Services\TokenService::issue($user);
+
+        $this->getJson('/api/user?token=' . urlencode($token))->assertStatus(401);
+    }
+
+    public function test_expired_token_is_rejected(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+
+        $this->travel((int) config('sanctum.expiration') + 1)->minutes();
+
+        $this->getJson('/api/user', $header)->assertStatus(401);
+    }
+
+    public function test_blacklisted_user_token_is_rejected(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+
+        $user->forceFill(['blacklisted_at' => now()])->save();
+
+        $this->getJson('/api/user', $header)->assertStatus(403);
+    }
 }

@@ -182,4 +182,22 @@ class RecurrentTransactionControllerTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['month']);
     }
+
+    public function test_process_command_creates_transactions_for_active_rules_only(): void
+    {
+        $this->user->recurrentTransactions()->create([
+            'description' => 'Active rule', 'amount' => 20, 'type' => $this->category->type,
+            'category_id' => $this->category->id, 'day_of_month' => 5,
+        ]);
+        $this->user->recurrentTransactions()->create([
+            'description' => 'Paused rule', 'amount' => 30, 'type' => $this->category->type,
+            'category_id' => $this->category->id, 'day_of_month' => 5, 'is_active' => false,
+        ]);
+
+        $this->artisan('recurrent:process', ['--month' => '2025-07'])->assertSuccessful();
+        $this->artisan('recurrent:process', ['--month' => '2025-07'])->assertSuccessful();
+
+        $this->assertSame(1, $this->user->transactions()->where('description', 'Active rule')->count());
+        $this->assertSame(0, $this->user->transactions()->where('description', 'Paused rule')->count());
+    }
 }

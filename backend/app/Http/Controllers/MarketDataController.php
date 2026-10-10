@@ -3,13 +3,36 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class MarketDataController extends Controller
 {
     private function finnhubKey(): string
     {
-        return config('services.finnhub.key', env('FINNHUB_API_KEY', ''));
+        return (string) config('services.finnhub.key', '');
+    }
+
+    // Symbols are interpolated into provider URLs, so only ticker characters are allowed.
+    private const SYMBOL_RULES = ['required', 'string', 'max:20', 'regex:/^[A-Za-z0-9.\-=^]+$/'];
+
+    /**
+     * Cache successful provider responses briefly so repeated lookups do not
+     * burn third-party API quota.
+     */
+    private function cached(string $key, int $seconds, \Closure $resolve): \Illuminate\Http\JsonResponse
+    {
+        $hit = Cache::get($key);
+        if ($hit !== null) {
+            return response()->json($hit);
+        }
+
+        $response = $resolve();
+        if ($response->getStatusCode() === 200) {
+            Cache::put($key, $response->getData(true), $seconds);
+        }
+
+        return $response;
     }
 
     private function isCrypto(string $symbol): bool
@@ -30,12 +53,12 @@ class MarketDataController extends Controller
     // GET /market/quote?symbol=AAPL  or  BTC-USD
     public function quote(Request $request)
     {
-        $request->validate(['symbol' => 'required|string|max:20']);
+        $request->validate(['symbol' => self::SYMBOL_RULES]);
         $symbol = strtoupper(trim($request->symbol));
 
-        return $this->isCrypto($symbol)
+        return $this->cached("market:quote:{$symbol}", 60, fn () => $this->isCrypto($symbol)
             ? $this->quoteFromCoinGecko($symbol)
-            : $this->quoteFromFinnhub($symbol);
+            : $this->quoteFromFinnhub($symbol));
     }
 
     /**
@@ -100,9 +123,12 @@ class MarketDataController extends Controller
     // GET /market/candle?symbol=AAPL&days=7
     public function candle(Request $request)
     {
-        $request->validate(['symbol' => 'required|string|max:20']);
+        $request->validate([
+            'symbol' => self::SYMBOL_RULES,
+            'days'   => 'nullable|integer|between:1,365',
+        ]);
         $symbol = strtoupper(trim($request->symbol));
-        $days   = (int) ($request->query('days', '7'));
+        $days   = $request->integer('days', 7);
         $key    = $this->finnhubKey();
 
         if (!$key) {

@@ -38,48 +38,7 @@ class TransactionController extends Controller
             'page'         => 'nullable|integer|min:1',
         ]);
 
-        $query = $request->user()
-            ->transactions()
-            ->with(['category', 'tags'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('id', 'desc');
-
-        if ($request->filled('search')) {
-            $term = '%' . $request->search . '%';
-            $query->where(function ($q) use ($term) {
-                $q->where('description', 'like', $term)
-                  ->orWhere('notes', 'like', $term);
-            });
-        }
-        if ($request->filled('notes_search')) {
-            $query->where('notes', 'like', '%' . $request->notes_search . '%');
-        }
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-        if ($request->filled('date_from')) {
-            $query->whereDate('transaction_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('transaction_date', '<=', $request->date_to);
-        }
-        if ($request->filled('amount_min')) {
-            $query->where('amount', '>=', $request->amount_min);
-        }
-        if ($request->filled('amount_max')) {
-            $query->where('amount', '<=', $request->amount_max);
-        }
-        if ($request->filled('tag_ids')) {
-            $tagIds = array_filter(array_map('intval', explode(',', $request->tag_ids)));
-            if (!empty($tagIds)) {
-                foreach ($tagIds as $tagId) {
-                    $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tagId));
-                }
-            }
-        }
+        $query = $this->filteredQuery($request);
 
         $perPage = $request->integer('per_page', 20);
         $page    = $request->integer('page', 1);
@@ -122,14 +81,13 @@ class TransactionController extends Controller
             'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        // Verify category belongs to user
-        Category::findOrFail($request->category_id);
+        Category::assertMatchesTransactionType($request->category_id, $request->type);
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->storeAs(
                 'receipts/' . $request->user()->id,
-                Str::uuid() . '.' . $request->file('attachment')->getClientOriginalExtension()
+                Str::uuid() . '.' . $request->file('attachment')->extension()
             );
         }
 
@@ -207,8 +165,11 @@ class TransactionController extends Controller
             'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        if ($request->has('category_id')) {
-            Category::findOrFail($request->category_id);
+        if ($request->hasAny(['category_id', 'type'])) {
+            Category::assertMatchesTransactionType(
+                $request->input('category_id', $transaction->category_id),
+                $request->input('type', $transaction->type)
+            );
         }
 
         $data = $request->only([
@@ -222,7 +183,7 @@ class TransactionController extends Controller
             }
             $data['attachment_path'] = $request->file('attachment')->storeAs(
                 'receipts/' . $request->user()->id,
-                Str::uuid() . '.' . $request->file('attachment')->getClientOriginalExtension()
+                Str::uuid() . '.' . $request->file('attachment')->extension()
             );
         }
 
@@ -307,6 +268,67 @@ class TransactionController extends Controller
         return response()->json(['message' => 'Attachment deleted']);
     }
 
+    /**
+     * The user's transactions with the shared list/export filters applied.
+     */
+    private function filteredQuery(Request $request)
+    {
+        $query = $request->user()
+            ->transactions()
+            ->with(['category', 'tags'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('description', 'like', $term)
+                  ->orWhere('notes', 'like', $term);
+            });
+        }
+        if ($request->filled('notes_search')) {
+            $query->where('notes', 'like', '%' . $request->notes_search . '%');
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('transaction_date', '<=', $request->date_to);
+        }
+        if ($request->filled('amount_min')) {
+            $query->where('amount', '>=', $request->amount_min);
+        }
+        if ($request->filled('amount_max')) {
+            $query->where('amount', '<=', $request->amount_max);
+        }
+        if ($request->filled('tag_ids')) {
+            $tagIds = array_filter(array_map('intval', explode(',', $request->tag_ids)));
+            foreach ($tagIds as $tagId) {
+                $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tagId));
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Quote a CSV cell and neutralise values a spreadsheet would run as a formula.
+     */
+    private function csvCell(string $value): string
+    {
+        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            $value = "'" . $value;
+        }
+
+        return '"' . str_replace('"', '""', $value) . '"';
+    }
+
     private function resolveTagIds(Request $request): array
     {
         $raw = $request->input('tag_ids', []);
@@ -340,32 +362,7 @@ class TransactionController extends Controller
             'tag_ids'      => 'nullable|string',
         ]);
 
-        $query = $request->user()
-            ->transactions()
-            ->with(['category', 'tags'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('id', 'desc');
-
-        if ($request->filled('search')) {
-            $term = '%' . $request->search . '%';
-            $query->where(function ($q) use ($term) {
-                $q->where('description', 'like', $term)
-                  ->orWhere('notes', 'like', $term);
-            });
-        }
-        if ($request->filled('notes_search')) $query->where('notes', 'like', '%' . $request->notes_search . '%');
-        if ($request->filled('type'))         $query->where('type', $request->type);
-        if ($request->filled('category_id'))  $query->where('category_id', $request->category_id);
-        if ($request->filled('date_from'))    $query->whereDate('transaction_date', '>=', $request->date_from);
-        if ($request->filled('date_to'))      $query->whereDate('transaction_date', '<=', $request->date_to);
-        if ($request->filled('amount_min'))   $query->where('amount', '>=', $request->amount_min);
-        if ($request->filled('amount_max'))   $query->where('amount', '<=', $request->amount_max);
-        if ($request->filled('tag_ids')) {
-            $tagIds = array_filter(array_map('intval', explode(',', $request->tag_ids)));
-            foreach ($tagIds as $tagId) {
-                $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tagId));
-            }
-        }
+        $query = $this->filteredQuery($request);
 
         $transactions = $query->get();
 
@@ -373,13 +370,13 @@ class TransactionController extends Controller
         foreach ($transactions as $t) {
             $tagNames = $t->tags->pluck('name')->implode(';');
             $lines[] = implode(',', [
-                $t->transaction_date,
-                '"' . str_replace('"', '""', $t->description) . '"',
-                '"' . str_replace('"', '""', $t->category?->name ?? '') . '"',
+                $t->transaction_date->format('Y-m-d'),
+                $this->csvCell($t->description),
+                $this->csvCell($t->category?->name ?? ''),
                 $t->type,
                 $t->amount,
-                '"' . str_replace('"', '""', $t->notes ?? '') . '"',
-                '"' . str_replace('"', '""', $tagNames) . '"',
+                $this->csvCell($t->notes ?? ''),
+                $this->csvCell($tagNames),
             ]);
         }
 

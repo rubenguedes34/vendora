@@ -25,8 +25,7 @@ export class AuthCallbackComponent implements OnInit {
 
   ngOnInit(): void {
     const params = this.route.snapshot.queryParams;
-    const token = params['token'];
-    const userJson = params['user'];
+    const code = params['code'];
     const error = params['error'];
 
     if (error) {
@@ -34,22 +33,21 @@ export class AuthCallbackComponent implements OnInit {
       return;
     }
 
-    if (token && userJson) {
-      try {
-        const user = JSON.parse(userJson);
+    if (!code) {
+      this.router.navigate(['/login'], { queryParams: { error: 'Missing login data' } });
+      return;
+    }
+
+    // Trade the single-use code for a token so credentials never sit in the URL.
+    this.authService.exchangeGoogleCode(code).subscribe({
+      next: ({ token, user }) => {
         this.authService.setToken(token);
         this.authService.setUser(user);
-
-        if (user.needs_setup) {
-          this.router.navigate(['/setup']);
-        } else {
-          this.router.navigate(['/dashboard']);
-        }
-      } catch (e) {
-        this.router.navigate(['/login'], { queryParams: { error: 'Invalid login response' } });
+        this.router.navigate([user.needs_setup ? '/setup' : '/dashboard'], { replaceUrl: true });
+      },
+      error: () => {
+        this.router.navigate(['/login'], { queryParams: { error: 'Google login failed. Please try again.' } });
       }
-    } else {
-      this.router.navigate(['/login'], { queryParams: { error: 'Missing login data' } });
-    }
+    });
   }
 }

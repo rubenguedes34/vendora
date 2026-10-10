@@ -37,7 +37,8 @@ class GoogleLoginTest extends TestCase
         $response = $this->get('/auth/google/callback');
 
         $response->assertStatus(302);
-        $response->assertRedirectContains('/auth/callback?token=');
+        $response->assertRedirectContains('/auth/callback?code=');
+        $this->assertStringNotContainsString('token=', $response->headers->get('Location'));
 
         $this->assertDatabaseHas('users', [
             'email' => 'google@example.com',
@@ -64,7 +65,8 @@ class GoogleLoginTest extends TestCase
         $response = $this->get('/auth/google/callback');
 
         $response->assertStatus(302);
-        $response->assertRedirectContains('/auth/callback?token=');
+        $response->assertRedirectContains('/auth/callback?code=');
+        $this->assertStringNotContainsString('token=', $response->headers->get('Location'));
 
         $this->assertDatabaseHas('users', [
             'email' => 'google@example.com',
@@ -91,6 +93,37 @@ class GoogleLoginTest extends TestCase
         $this->assertDatabaseMissing('users', [
             'email' => 'unverified@example.com',
         ]);
+    }
+
+    public function test_google_code_can_be_exchanged_once_for_a_token(): void
+    {
+        $abstractUser = Mockery::mock('Laravel\Socialite\Contracts\User');
+        $abstractUser->id = '123456789';
+        $abstractUser->email = 'google@example.com';
+        $abstractUser->name = 'Google User';
+        $abstractUser->user = ['email_verified' => true];
+
+        Socialite::shouldReceive('driver')->with('google')->andReturnSelf();
+        Socialite::shouldReceive('user')->andReturn($abstractUser);
+
+        $location = $this->get('/auth/google/callback')->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        $token = $this->postJson('/api/auth/google/exchange', ['code' => $query['code']])
+            ->assertStatus(200)
+            ->assertJsonPath('user.email', 'google@example.com')
+            ->assertJsonPath('user.needs_setup', true)
+            ->json('token');
+
+        $this->getJson('/api/user', ['Authorization' => 'Bearer ' . $token])->assertStatus(200);
+
+        // The code is single use.
+        $this->postJson('/api/auth/google/exchange', ['code' => $query['code']])->assertStatus(401);
+    }
+
+    public function test_google_exchange_rejects_unknown_code(): void
+    {
+        $this->postJson('/api/auth/google/exchange', ['code' => str_repeat('a', 64)])->assertStatus(401);
     }
 
     protected function tearDown(): void
