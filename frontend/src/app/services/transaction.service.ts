@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { ApiError, ApiErrorMessage, MessageResponse } from '../models/api';
+
+export type TransactionPayload = Record<string, unknown>;
 
 export interface Transaction {
   id: number;
@@ -49,14 +52,7 @@ export class TransactionService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.authService.getTokenValue()}`
-    });
-  }
-
-  private handleError(error: any): any {
+  private handleError(error: ApiError): ApiErrorMessage {
     if (error.status === 401) return { message: 'Session expired. Please log in again.' };
     if (error.name === 'TimeoutError' || error.status === 0) {
       return { message: 'Could not reach the backend. Make sure php artisan serve is running.' };
@@ -96,52 +92,48 @@ export class TransactionService {
       if (filters.per_page)                         parts.push(`per_page=${filters.per_page}`);
       if (parts.length) params = '?' + parts.join('&');
     }
-    return this.http.get<PaginatedResponse<Transaction>>(`${this.apiUrl}/transactions${params}`, { headers: this.getHeaders() }).pipe(
+    return this.http.get<PaginatedResponse<Transaction>>(`${this.apiUrl}/transactions${params}`).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
   }
 
   getTransaction(id: number): Observable<Transaction> {
-    return this.http.get<Transaction>(`${this.apiUrl}/transactions/${id}`, { headers: this.getHeaders() }).pipe(
+    return this.http.get<Transaction>(`${this.apiUrl}/transactions/${id}`).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
   }
 
-  private authHeaders(): HttpHeaders {
-    return new HttpHeaders({ 'Authorization': `Bearer ${this.authService.getTokenValue()}` });
-  }
-
-  createTransaction(data: any): Observable<Transaction> {
+  createTransaction(data: TransactionPayload | FormData): Observable<Transaction> {
     if (data instanceof FormData) {
-      return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data, { headers: this.authHeaders() }).pipe(
+      return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data).pipe(
         timeout(10000),
         catchError(err => throwError(() => this.handleError(err)))
       );
     }
-    return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data, { headers: this.getHeaders() }).pipe(
+    return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
   }
 
-  updateTransaction(id: number, data: any): Observable<Transaction> {
+  updateTransaction(id: number, data: TransactionPayload | FormData): Observable<Transaction> {
     if (data instanceof FormData) {
       data.append('_method', 'PUT');
-      return this.http.post<Transaction>(`${this.apiUrl}/transactions/${id}`, data, { headers: this.authHeaders() }).pipe(
+      return this.http.post<Transaction>(`${this.apiUrl}/transactions/${id}`, data).pipe(
         timeout(10000),
         catchError(err => throwError(() => this.handleError(err)))
       );
     }
-    return this.http.put<Transaction>(`${this.apiUrl}/transactions/${id}`, data, { headers: this.getHeaders() }).pipe(
+    return this.http.put<Transaction>(`${this.apiUrl}/transactions/${id}`, data).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
   }
 
-  deleteAttachment(transactionId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/transactions/${transactionId}/attachment`, { headers: this.getHeaders() }).pipe(
+  deleteAttachment(transactionId: number): Observable<MessageResponse> {
+    return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/${transactionId}/attachment`).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );
@@ -149,7 +141,6 @@ export class TransactionService {
 
   getAttachment(transactionId: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/transactions/${transactionId}/attachment`, {
-      headers: this.getHeaders(),
       responseType: 'blob'
     }).pipe(
       timeout(8000),
@@ -157,8 +148,8 @@ export class TransactionService {
     );
   }
 
-  deleteTransaction(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/transactions/${id}`, { headers: this.getHeaders() }).pipe(
+  deleteTransaction(id: number): Observable<MessageResponse> {
+    return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/${id}`).pipe(
       timeout(5000),
       catchError(err => throwError(() => this.handleError(err)))
     );

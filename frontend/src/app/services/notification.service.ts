@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { ApiError } from '../models/api';
 
 export interface AppNotification {
   id: number;
@@ -29,16 +30,9 @@ export class NotificationService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.authService.getTokenValue()}`
-    });
-  }
-
   load(unreadOnly = false): Observable<AppNotification[]> {
     const qs = unreadOnly ? '?unread_only=1' : '';
-    return this.http.get<AppNotification[]>(`${this.apiUrl}/notifications${qs}`, { headers: this.getHeaders() }).pipe(
+    return this.http.get<AppNotification[]>(`${this.apiUrl}/notifications${qs}`).pipe(
       timeout(8000),
       tap(items => this._notifications.next(items)),
       catchError(err => throwError(() => this.handleError(err)))
@@ -46,7 +40,7 @@ export class NotificationService {
   }
 
   refreshCount(): Observable<{ count: number }> {
-    return this.http.get<{ count: number }>(`${this.apiUrl}/notifications/unread-count`, { headers: this.getHeaders() }).pipe(
+    return this.http.get<{ count: number }>(`${this.apiUrl}/notifications/unread-count`).pipe(
       timeout(5000),
       tap(c => this._unreadCount.next(c.count)),
       catchError(err => throwError(() => this.handleError(err)))
@@ -54,7 +48,7 @@ export class NotificationService {
   }
 
   markAsRead(id: number): Observable<AppNotification> {
-    return this.http.patch<AppNotification>(`${this.apiUrl}/notifications/${id}/read`, {}, { headers: this.getHeaders() }).pipe(
+    return this.http.patch<AppNotification>(`${this.apiUrl}/notifications/${id}/read`, {}).pipe(
       timeout(5000),
       tap(n => this.updateLocalNotification(n)),
       catchError(err => throwError(() => this.handleError(err)))
@@ -62,7 +56,7 @@ export class NotificationService {
   }
 
   markAllAsRead(): Observable<{ message: string }> {
-    return this.http.patch<{ message: string }>(`${this.apiUrl}/notifications/read-all`, {}, { headers: this.getHeaders() }).pipe(
+    return this.http.patch<{ message: string }>(`${this.apiUrl}/notifications/read-all`, {}).pipe(
       timeout(5000),
       tap(() => {
         const updated = this._notifications.value.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() }));
@@ -74,7 +68,7 @@ export class NotificationService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/notifications/${id}`, { headers: this.getHeaders() }).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/notifications/${id}`).pipe(
       timeout(5000),
       tap(() => {
         const remaining = this._notifications.value.filter(n => n.id !== id);
@@ -91,7 +85,7 @@ export class NotificationService {
     this.refreshCount().subscribe();
   }
 
-  private handleError(error: any): Error {
+  private handleError(error: ApiError): Error {
     if (error.status === 0) return new Error('Network error');
     return new Error(error.error?.message || 'Notification request failed');
   }

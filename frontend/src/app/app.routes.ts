@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
-import { AuthService } from './services/auth.service';
+import { AuthService, User } from './services/auth.service';
 
-const userNeedsSetup = (user: any): boolean => {
+const userNeedsSetup = (user: User | null): boolean => {
   if (!user) return false;
   if (user.needs_setup === false) return false;
   if (user.needs_setup === true) return true;

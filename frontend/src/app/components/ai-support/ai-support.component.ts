@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
@@ -108,17 +108,8 @@ export class AiSupportComponent implements OnInit {
   loading = false;
   error = '';
 
-  private headers(): HttpHeaders {
-    const token = this.authService.getTokenValue();
-    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
-    }
-    return headers;
-  }
-
   ngOnInit(): void {
-    this.http.get<{ data: Faq[] }>(`${environment.apiUrl}/ai/faqs`, { headers: this.headers() })
+    this.http.get<{ data: Faq[] }>(`${environment.apiUrl}/ai/faqs`)
       .pipe(timeout(10000))
       .subscribe({
         next: (res) => {
@@ -152,7 +143,7 @@ export class AiSupportComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.http.post<{ message: string }>(`${environment.apiUrl}/ai/chat`, { message: text }, { headers: this.headers() })
+    this.http.post<{ message: string }>(`${environment.apiUrl}/ai/chat`, { message: text })
       .pipe(timeout(10000))
       .subscribe({
         next: (res) => {
