@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -109,6 +109,7 @@ interface ChatMessage {
 
           <div class="flex gap-2 mt-auto">
             <input
+              #chatInput
               [(ngModel)]="newMessage"
               (keydown.enter)="send()"
               type="text"
@@ -130,6 +131,8 @@ interface ChatMessage {
 export class AiSupportComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+
+  private chatInput = viewChild<ElementRef<HTMLInputElement>>('chatInput');
 
   // Signals so the view re-renders after HTTP callbacks even when zone.js does not trigger change detection.
   faqs = signal<Faq[]>([]);
@@ -216,6 +219,10 @@ export class AiSupportComponent implements OnInit {
 
   useFaq(faq: Faq): void {
     this.newMessage = faq.question;
+    // The chat sits above a long FAQ list: bring the box into view so the copied question is not lost.
+    const input = this.chatInput()?.nativeElement;
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input?.focus({ preventScroll: true });
   }
 
   send(): void {
