@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Ai\Agents\SupportAgent;
 use App\Http\Requests\Ai\ChatRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Laravel\Ai\Contracts\ConversationStore;
 use Laravel\Ai\Enums\Lab;
+use Laravel\Ai\Models\Conversation;
 use App\Models\Faq;
 use Throwable;
 
@@ -16,28 +19,82 @@ class AiChatController extends Controller
     {
         $message = $request->input('message');
 
-        if (empty(config('ai.providers.openai.key'))) {
+        $provider = $this->supportProvider();
+
+        if ($provider === null) {
             return response()->json([
                 'message' => $this->localResponse($message),
             ]);
         }
 
-        try {
-            $response = SupportAgent::make()->prompt(
-                $message,
-                provider: Lab::OpenAI,
-            );
+        $models = config('ai.support.models') ?: [null];
+        $timeout = (int) config('ai.support.timeout');
 
-            return response()->json([
-                'message' => (string) $response,
-            ]);
-        } catch (Throwable $e) {
-            Log::error('AI chat failed', ['error' => $e->getMessage()]);
+        // A local model can outlast PHP's default 30 s request limit (cold start loads it into RAM).
+        set_time_limit($timeout * count($models) + 15);
 
-            return response()->json([
-                'message' => $this->localResponse($message),
-            ]);
+        foreach ($models as $model) {
+            try {
+                $response = (new SupportAgent($this->relevantFaqs($message, 3)))
+                    ->continueLastConversation($request->user())
+                    ->prompt(
+                        $message,
+                        provider: $provider,
+                        model: $model,
+                        timeout: $timeout,
+                    );
+
+                return response()->json([
+                    'message' => (string) $response,
+                ]);
+            } catch (Throwable $e) {
+                Log::warning('AI chat model failed', ['model' => $model, 'error' => $e->getMessage()]);
+            }
         }
+
+        return response()->json([
+            'message' => $this->localResponse($message),
+        ]);
+    }
+
+    private function supportProvider(): ?Lab
+    {
+        $name = config('ai.support.provider')
+            ?: (config('ai.providers.openai.key') ? 'openai' : 'none');
+
+        return match ($name) {
+            'ollama' => Lab::Ollama,
+            'openai' => Lab::OpenAI,
+            default => null,
+        };
+    }
+
+    public function history(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $store = resolve(ConversationStore::class);
+        $id = $store->latestConversationId(Conversation::participantType($user), Conversation::participantKey($user));
+
+        $messages = $id === null ? collect() : $store->getLatestConversationMessages($id, 50)
+            ->filter(fn ($m) => in_array($m->role->value, ['user', 'assistant'], true) && filled($m->content))
+            ->map(fn ($m) => ['role' => $m->role->value, 'text' => $m->content]);
+
+        return response()->json(['data' => $messages->values()]);
+    }
+
+    public function clearHistory(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        Conversation::where('participant_type', Conversation::participantType($user))
+            ->where('participant_id', Conversation::participantKey($user))
+            ->get()
+            ->each(function (Conversation $conversation) {
+                $conversation->messages()->delete();
+                $conversation->delete();
+            });
+
+        return response()->json(['message' => 'Conversation cleared.']);
     }
 
     public function faqs(): JsonResponse
@@ -64,8 +121,22 @@ class AiChatController extends Controller
             return "Hi there! I can answer common questions about Vendora. Try asking:\n" . $this->faqSuggestions();
         }
 
-        $best = null;
-        $bestScore = 0;
+        $best = $this->relevantFaqs($message, 1)[0] ?? null;
+
+        if ($best !== null) {
+            return $best['answer'];
+        }
+
+        return "I'm not sure about that. Here are some things I can help with:\n" . $this->faqSuggestions();
+    }
+
+    /**
+     * FAQs that match the message by keyword, best first.
+     */
+    private function relevantFaqs(string $message, int $limit): array
+    {
+        $lowercase = strtolower($message);
+        $scored = [];
 
         foreach ($this->faqList() as $faq) {
             $score = 0;
@@ -79,17 +150,14 @@ class AiChatController extends Controller
                 $score++;
             }
 
-            if ($score > $bestScore) {
-                $bestScore = $score;
-                $best = $faq;
+            if ($score > 0) {
+                $scored[] = ['score' => $score, 'faq' => $faq];
             }
         }
 
-        if ($best !== null && $bestScore >= 1) {
-            return $best['answer'] . "\n\n(Live AI is not configured, so I matched this from the FAQ list.)";
-        }
+        usort($scored, fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
-        return "I'm not sure about that. Here are some things I can help with:\n" . $this->faqSuggestions() . "\n\nSet OPENAI_API_KEY in the backend .env file for full AI answers.";
+        return array_slice(array_column($scored, 'faq'), 0, $limit);
     }
 
     private function faqSuggestions(): string

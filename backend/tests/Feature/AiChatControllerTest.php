@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Ai\Agents\SupportAgent;
 use App\Models\Faq;
 use App\Models\User;
 use App\Services\TokenService;
@@ -20,6 +21,7 @@ class AiChatControllerTest extends TestCase
     {
         parent::setUp();
         config()->set('ai.providers.openai.key', '');
+        config()->set('ai.support.provider', 'none');
 
         $this->user = User::factory()->create();
         $this->token = TokenService::issue($this->user);
@@ -67,7 +69,34 @@ class AiChatControllerTest extends TestCase
         $response = $this->postJson('/api/ai/chat', ['message' => 'How do I set a budget?'], $this->authHeader())
             ->assertStatus(200);
 
-        $this->assertStringContainsString('Live AI is not configured', $response->json('message'));
+        $this->assertStringContainsString('limit', $response->json('message'));
+        $this->assertStringNotContainsString('not configured', $response->json('message'));
+    }
+
+    public function test_chat_history_is_saved_per_user_and_can_be_cleared(): void
+    {
+        config()->set('ai.support.provider', 'openai');
+        config()->set('ai.support.models', ['test-model']);
+        SupportAgent::fake(['Budgets set monthly limits.']);
+
+        $this->postJson('/api/ai/chat', ['message' => 'How do budgets work?'], $this->authHeader())
+            ->assertStatus(200)
+            ->assertJson(['message' => 'Budgets set monthly limits.']);
+
+        $this->getJson('/api/ai/history', $this->authHeader())
+            ->assertStatus(200)
+            ->assertJson(['data' => [
+                ['role' => 'user', 'text' => 'How do budgets work?'],
+                ['role' => 'assistant', 'text' => 'Budgets set monthly limits.'],
+            ]]);
+
+        $otherToken = TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'));
+        $this->getJson('/api/ai/history', ['Authorization' => 'Bearer ' . $otherToken])
+            ->assertStatus(200)
+            ->assertJson(['data' => []]);
+
+        $this->deleteJson('/api/ai/history', [], $this->authHeader())->assertStatus(200);
+        $this->getJson('/api/ai/history', $this->authHeader())->assertJson(['data' => []]);
     }
 
     public function test_chat_validates_message(): void

@@ -81,6 +81,8 @@ Route::middleware('auth.custom')->group(function () {
     Route::middleware('permission:use ai support')->group(function () {
         Route::post('/ai/chat', [AiChatController::class, 'chat'])->middleware('throttle:ai');
         Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
+        Route::get('/ai/history', [AiChatController::class, 'history']);
+        Route::delete('/ai/history', [AiChatController::class, 'clearHistory']);
     });
 
     // Admin routes
