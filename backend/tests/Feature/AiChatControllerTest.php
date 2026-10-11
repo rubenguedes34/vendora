@@ -73,30 +73,44 @@ class AiChatControllerTest extends TestCase
         $this->assertStringNotContainsString('not configured', $response->json('message'));
     }
 
-    public function test_chat_history_is_saved_per_user_and_can_be_cleared(): void
+    public function test_conversations_are_saved_listed_continued_and_deleted_per_user(): void
     {
         config()->set('ai.support.provider', 'openai');
         config()->set('ai.support.models', ['test-model']);
-        SupportAgent::fake(['Budgets set monthly limits.']);
+        SupportAgent::fake(['Budgets set monthly limits.', 'Yes, per category.', 'Another answer.']);
 
-        $this->postJson('/api/ai/chat', ['message' => 'How do budgets work?'], $this->authHeader())
+        $first = $this->postJson('/api/ai/chat', ['message' => 'How do budgets work?'], $this->authHeader())
             ->assertStatus(200)
-            ->assertJson(['message' => 'Budgets set monthly limits.']);
+            ->assertJson(['message' => 'Budgets set monthly limits.'])
+            ->json('conversation_id');
+        $this->assertNotEmpty($first);
 
-        $this->getJson('/api/ai/history', $this->authHeader())
+        // Continuing keeps the same conversation; omitting the id starts a new one.
+        $this->postJson('/api/ai/chat', ['message' => 'Per category?', 'conversation_id' => $first], $this->authHeader())
+            ->assertJson(['conversation_id' => $first]);
+        $second = $this->postJson('/api/ai/chat', ['message' => 'Something else'], $this->authHeader())
+            ->json('conversation_id');
+        $this->assertNotSame($first, $second);
+
+        $this->getJson('/api/ai/conversations', $this->authHeader())
             ->assertStatus(200)
-            ->assertJson(['data' => [
-                ['role' => 'user', 'text' => 'How do budgets work?'],
-                ['role' => 'assistant', 'text' => 'Budgets set monthly limits.'],
-            ]]);
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['id' => $first, 'title' => 'How do budgets work?']);
 
-        $otherToken = TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'));
-        $this->getJson('/api/ai/history', ['Authorization' => 'Bearer ' . $otherToken])
+        $this->getJson('/api/ai/conversations/' . $first, $this->authHeader())
             ->assertStatus(200)
-            ->assertJson(['data' => []]);
+            ->assertJsonCount(4, 'data')
+            ->assertJsonPath('data.0', ['role' => 'user', 'text' => 'How do budgets work?']);
 
-        $this->deleteJson('/api/ai/history', [], $this->authHeader())->assertStatus(200);
-        $this->getJson('/api/ai/history', $this->authHeader())->assertJson(['data' => []]);
+        // Another user cannot see, continue or delete it.
+        $other = ['Authorization' => 'Bearer ' . TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'))];
+        $this->getJson('/api/ai/conversations', $other)->assertJson(['data' => []]);
+        $this->getJson('/api/ai/conversations/' . $first, $other)->assertStatus(404);
+        $this->postJson('/api/ai/chat', ['message' => 'hi', 'conversation_id' => $first], $other)->assertStatus(404);
+        $this->deleteJson('/api/ai/conversations/' . $first, [], $other)->assertStatus(404);
+
+        $this->deleteJson('/api/ai/conversations/' . $first, [], $this->authHeader())->assertStatus(200);
+        $this->getJson('/api/ai/conversations', $this->authHeader())->assertJsonCount(1, 'data');
     }
 
     public function test_chat_validates_message(): void

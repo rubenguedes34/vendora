@@ -27,6 +27,13 @@ class AiChatController extends Controller
             ]);
         }
 
+        $user = $request->user();
+        $conversationId = $request->input('conversation_id');
+
+        if ($conversationId !== null && ! $this->userConversations($user)->whereKey($conversationId)->exists()) {
+            return response()->json(['message' => 'Conversation not found.'], 404);
+        }
+
         $models = config('ai.support.models') ?: [null];
         $timeout = (int) config('ai.support.timeout');
 
@@ -35,9 +42,12 @@ class AiChatController extends Controller
 
         foreach ($models as $model) {
             try {
-                $response = (new SupportAgent($this->relevantFaqs($message, 3)))
-                    ->continueLastConversation($request->user())
-                    ->prompt(
+                $agent = new SupportAgent($this->relevantFaqs($message, 3));
+                $agent = $conversationId !== null
+                    ? $agent->continue($conversationId, $user)
+                    : $agent->forUser($user);
+
+                $response = $agent->prompt(
                         $message,
                         provider: $provider,
                         model: $model,
@@ -46,6 +56,7 @@ class AiChatController extends Controller
 
                 return response()->json([
                     'message' => (string) $response,
+                    'conversation_id' => $response->conversationId ?? $conversationId,
                 ]);
             } catch (Throwable $e) {
                 Log::warning('AI chat model failed', ['model' => $model, 'error' => $e->getMessage()]);
@@ -69,32 +80,41 @@ class AiChatController extends Controller
         };
     }
 
-    public function history(Request $request): JsonResponse
+    public function conversations(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $store = resolve(ConversationStore::class);
-        $id = $store->latestConversationId(Conversation::participantType($user), Conversation::participantKey($user));
+        $data = $this->userConversations($request->user())
+            ->orderByDesc('updated_at')
+            ->limit(50)
+            ->get(['id', 'title', 'updated_at']);
 
-        $messages = $id === null ? collect() : $store->getLatestConversationMessages($id, 50)
+        return response()->json(['data' => $data]);
+    }
+
+    public function conversation(Request $request, string $id): JsonResponse
+    {
+        $this->userConversations($request->user())->findOrFail($id);
+
+        $messages = resolve(ConversationStore::class)->getLatestConversationMessages($id, 100)
             ->filter(fn ($m) => in_array($m->role->value, ['user', 'assistant'], true) && filled($m->content))
             ->map(fn ($m) => ['role' => $m->role->value, 'text' => $m->content]);
 
         return response()->json(['data' => $messages->values()]);
     }
 
-    public function clearHistory(Request $request): JsonResponse
+    public function deleteConversation(Request $request, string $id): JsonResponse
     {
-        $user = $request->user();
+        $conversation = $this->userConversations($request->user())->findOrFail($id);
 
-        Conversation::where('participant_type', Conversation::participantType($user))
-            ->where('participant_id', Conversation::participantKey($user))
-            ->get()
-            ->each(function (Conversation $conversation) {
-                $conversation->messages()->delete();
-                $conversation->delete();
-            });
+        $conversation->messages()->delete();
+        $conversation->delete();
 
-        return response()->json(['message' => 'Conversation cleared.']);
+        return response()->json(['message' => 'Conversation deleted.']);
+    }
+
+    private function userConversations(object $user)
+    {
+        return Conversation::where('participant_type', Conversation::participantType($user))
+            ->where('participant_id', Conversation::participantKey($user));
     }
 
     public function faqs(): JsonResponse

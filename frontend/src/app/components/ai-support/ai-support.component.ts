@@ -12,6 +12,12 @@ interface Faq {
   answer: string;
 }
 
+interface Conversation {
+  id: string;
+  title: string;
+  updated_at: string;
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
@@ -55,12 +61,33 @@ interface ChatMessage {
 
         <!-- Chat -->
         <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[500px]">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-4 relative">
             <h2 class="text-lg font-semibold text-gray-800">Chat with AI</h2>
-            <button (click)="newChat()" [disabled]="loading()"
-                    class="text-sm text-primary-600 hover:underline disabled:opacity-50">
-              New chat
-            </button>
+            <div class="flex items-center gap-4">
+              <button (click)="historyOpen.set(!historyOpen())"
+                      class="text-sm text-primary-600 hover:underline">
+                History ({{ conversations().length }})
+              </button>
+              <button (click)="newChat()" [disabled]="loading()"
+                      class="text-sm text-primary-600 hover:underline disabled:opacity-50">
+                New chat
+              </button>
+            </div>
+
+            <div *ngIf="historyOpen()"
+                 class="absolute right-0 top-full mt-2 w-72 max-h-72 overflow-y-auto bg-white border rounded-md shadow-lg z-10">
+              <p *ngIf="!conversations().length" class="p-3 text-sm text-gray-500">No previous conversations.</p>
+              <div *ngFor="let c of conversations()"
+                   class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 border-b last:border-b-0"
+                   [class.bg-gray-100]="c.id === conversationId()">
+                <button (click)="openConversation(c.id)" class="flex-1 text-left text-sm truncate" [title]="c.title">
+                  {{ c.title }}
+                  <span class="block text-xs text-gray-500">{{ c.updated_at | date: 'short' }}</span>
+                </button>
+                <button (click)="deleteConversation(c.id)" aria-label="Delete conversation"
+                        class="text-gray-400 hover:text-red-600 text-sm">✕</button>
+              </div>
+            </div>
           </div>
 
           <div class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2" #scrollContainer>
@@ -109,6 +136,9 @@ export class AiSupportComponent implements OnInit {
   faqsLoading = signal(true);
   faqsError = signal('');
   messages = signal<ChatMessage[]>([this.greeting()]);
+  conversations = signal<Conversation[]>([]);
+  conversationId = signal<string | null>(null);
+  historyOpen = signal(false);
   newMessage = '';
   loading = signal(false);
   error = signal('');
@@ -118,22 +148,50 @@ export class AiSupportComponent implements OnInit {
   }
 
   newChat(): void {
-    this.http.delete(`${environment.apiUrl}/ai/history`).subscribe({
-      next: () => this.messages.set([this.greeting()]),
-      error: () => this.error.set('Could not start a new chat. Please try again.')
+    this.conversationId.set(null);
+    this.messages.set([this.greeting()]);
+    this.error.set('');
+    this.historyOpen.set(false);
+  }
+
+  openConversation(id: string): void {
+    this.http.get<{ data: ChatMessage[] }>(`${environment.apiUrl}/ai/conversations/${id}`).subscribe({
+      next: (res) => {
+        this.conversationId.set(id);
+        this.messages.set([this.greeting(), ...res.data]);
+        this.error.set('');
+        this.historyOpen.set(false);
+      },
+      error: () => this.error.set('Could not open that conversation.')
     });
   }
 
-  ngOnInit(): void {
-    this.http.get<{ data: ChatMessage[] }>(`${environment.apiUrl}/ai/history`).subscribe({
+  deleteConversation(id: string): void {
+    this.http.delete(`${environment.apiUrl}/ai/conversations/${id}`).subscribe({
+      next: () => {
+        this.conversations.update((list) => list.filter((c) => c.id !== id));
+        if (this.conversationId() === id) {
+          this.newChat();
+        }
+      },
+      error: () => this.error.set('Could not delete that conversation.')
+    });
+  }
+
+  private loadConversations(openLatest = false): void {
+    this.http.get<{ data: Conversation[] }>(`${environment.apiUrl}/ai/conversations`).subscribe({
       next: (res) => {
-        // Only replace the greeting if the user has not already started typing a new conversation.
-        if (res.data.length && this.messages().length === 1) {
-          this.messages.set([this.greeting(), ...res.data]);
+        this.conversations.set(res.data);
+        if (openLatest && res.data.length && this.messages().length === 1) {
+          this.openConversation(res.data[0].id);
         }
       },
       error: () => {} // history is a convenience; the chat works without it
     });
+  }
+
+  ngOnInit(): void {
+    this.loadConversations(true);
 
     this.http.get<{ data: Faq[] }>(`${environment.apiUrl}/ai/faqs`)
       .pipe(timeout(10000))
@@ -169,12 +227,19 @@ export class AiSupportComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.http.post<{ message: string }>(`${environment.apiUrl}/ai/chat`, { message: text })
+    this.http.post<{ message: string; conversation_id?: string | null }>(`${environment.apiUrl}/ai/chat`, {
+      message: text,
+      conversation_id: this.conversationId()
+    })
       .pipe(timeout(120000))
       .subscribe({
         next: (res) => {
           this.messages.update((m) => [...m, { role: 'assistant', text: res.message }]);
           this.loading.set(false);
+          if (res.conversation_id) {
+            this.conversationId.set(res.conversation_id);
+            this.loadConversations();
+          }
         },
         error: (err) => {
           if (err.name === 'TimeoutError' || err.status === 0) {
