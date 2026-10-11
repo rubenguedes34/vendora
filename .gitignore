@@ -32,3 +32,15 @@ auth.json
 # IDE / tool-specific config (keep local only)
 .devin/
 .windsurf/
+
+# Generated knowledge graph / diagrams (local only)
+graphify-out/
+.archify/
+
+# Local MCP / skills config (keep local only)
+.mcp.json
+skills-lock.json
+
+# Claude Code (keep local only)
+CLAUDE.md
+.claude/
