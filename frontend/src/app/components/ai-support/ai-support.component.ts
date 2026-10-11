@@ -157,9 +157,13 @@ export class AiSupportComponent implements OnInit {
     this.historyOpen.set(false);
   }
 
-  openConversation(id: string): void {
+  openConversation(id: string, onlyIfPristine = false): void {
     this.http.get<{ data: ChatMessage[] }>(`${environment.apiUrl}/ai/conversations/${id}`).subscribe({
       next: (res) => {
+        // The auto-open on load must not overwrite what the user started doing while it was loading.
+        if (onlyIfPristine && (this.messages().length > 1 || this.conversationId() || this.newMessage)) {
+          return;
+        }
         this.conversationId.set(id);
         this.messages.set([this.greeting(), ...res.data]);
         this.error.set('');
@@ -186,7 +190,7 @@ export class AiSupportComponent implements OnInit {
       next: (res) => {
         this.conversations.set(res.data);
         if (openLatest && res.data.length && this.messages().length === 1) {
-          this.openConversation(res.data[0].id);
+          this.openConversation(res.data[0].id, true);
         }
       },
       error: () => {} // history is a convenience; the chat works without it
@@ -238,7 +242,7 @@ export class AiSupportComponent implements OnInit {
       message: text,
       conversation_id: this.conversationId()
     })
-      .pipe(timeout(120000))
+      .pipe(timeout(180000))
       .subscribe({
         next: (res) => {
           this.messages.update((m) => [...m, { role: 'assistant', text: res.message }]);

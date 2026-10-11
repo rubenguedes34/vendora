@@ -113,6 +113,24 @@ class AiChatControllerTest extends TestCase
         $this->getJson('/api/ai/conversations', $this->authHeader())->assertJsonCount(1, 'data');
     }
 
+    public function test_faq_without_keywords_never_matches(): void
+    {
+        Faq::query()->delete();
+        Faq::create(['question' => 'Empty keywords', 'answer' => 'Should never be returned.', 'keywords' => []]);
+
+        $response = $this->postJson('/api/ai/chat', ['message' => 'qwertyuiop'], $this->authHeader())
+            ->assertStatus(200);
+
+        $this->assertStringNotContainsString('Should never be returned.', $response->json('message'));
+    }
+
+    public function test_conversation_id_must_be_a_uuid(): void
+    {
+        $this->postJson('/api/ai/chat', ['message' => 'hi', 'conversation_id' => 'not-a-uuid'], $this->authHeader())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['conversation_id']);
+    }
+
     public function test_chat_validates_message(): void
     {
         $this->postJson('/api/ai/chat', [], $this->authHeader())

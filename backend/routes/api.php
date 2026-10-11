@@ -82,8 +82,8 @@ Route::middleware('auth.custom')->group(function () {
         Route::post('/ai/chat', [AiChatController::class, 'chat'])->middleware('throttle:ai');
         Route::get('/ai/faqs', [AiChatController::class, 'faqs']);
         Route::get('/ai/conversations', [AiChatController::class, 'conversations']);
-        Route::get('/ai/conversations/{id}', [AiChatController::class, 'conversation']);
-        Route::delete('/ai/conversations/{id}', [AiChatController::class, 'deleteConversation']);
+        Route::get('/ai/conversations/{id}', [AiChatController::class, 'conversation'])->whereUuid('id');
+        Route::delete('/ai/conversations/{id}', [AiChatController::class, 'deleteConversation'])->whereUuid('id');
     });
 
     // Admin routes

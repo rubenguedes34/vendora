@@ -78,7 +78,7 @@ services:
     environment:
       # Keep the model in RAM so the first question after idle is not slow.
       OLLAMA_KEEP_ALIVE: 24h
-    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5; for m in $$(echo '${AI_SUPPORT_MODELS:-llama3.2:3b,llama3.2:1b}' | tr ',' ' '); do ollama pull $$m; done; wait"]
+    entrypoint: ["/bin/sh", "-c", "ollama serve & until ollama list >/dev/null 2>&1; do sleep 2; done; for m in $$(echo '${AI_SUPPORT_MODELS:-llama3.2:3b,llama3.2:1b}' | tr ',' ' '); do until ollama pull $$m; do sleep 5; done; done; wait"]
     volumes:
       - ollama-data:/root/.ollama
     ports:

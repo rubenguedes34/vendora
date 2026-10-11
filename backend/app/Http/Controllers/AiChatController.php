@@ -6,6 +6,7 @@ use App\Ai\Agents\SupportAgent;
 use App\Http\Requests\Ai\ChatRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Contracts\ConversationStore;
 use Laravel\Ai\Enums\Lab;
@@ -15,6 +16,29 @@ use Throwable;
 
 class AiChatController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/ai/chat",
+     *     tags={"AI Support"},
+     *     summary="Send a message to the support assistant",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true,
+     *         @OA\JsonContent(required={"message"},
+     *             @OA\Property(property="message", type="string", maxLength=2000),
+     *             @OA\Property(property="conversation_id", type="string", format="uuid", nullable=true,
+     *                 description="Continue this conversation; omit to start a new one")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Assistant reply and the conversation it belongs to",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="conversation_id", type="string", format="uuid", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Conversation belongs to another user or does not exist"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function chat(ChatRequest $request): JsonResponse
     {
         $message = $request->input('message');
@@ -34,25 +58,32 @@ class AiChatController extends Controller
             return response()->json(['message' => 'Conversation not found.'], 404);
         }
 
-        $models = config('ai.support.models') ?: [null];
+        // Ollama has no default model name, so an empty list there means "not configured".
+        // Capped so the worst case (timeout x models) stays below the SPA's request timeout.
+        $models = array_slice(config('ai.support.models') ?: ($provider === Lab::Ollama ? [] : [null]), 0, 3);
         $timeout = (int) config('ai.support.timeout');
+        $faqs = $this->relevantFaqs($message, 3);
+
+        if ($models === []) {
+            Log::warning('AI support has no models configured; set AI_SUPPORT_MODELS');
+        }
 
         // A local model can outlast PHP's default 30 s request limit (cold start loads it into RAM).
-        set_time_limit($timeout * count($models) + 15);
+        set_time_limit($timeout * max(count($models), 1) + 15);
 
         foreach ($models as $model) {
             try {
-                $agent = new SupportAgent($this->relevantFaqs($message, 3));
+                $agent = new SupportAgent($faqs);
                 $agent = $conversationId !== null
                     ? $agent->continue($conversationId, $user)
                     : $agent->forUser($user);
 
                 $response = $agent->prompt(
-                        $message,
-                        provider: $provider,
-                        model: $model,
-                        timeout: $timeout,
-                    );
+                    $message,
+                    provider: $provider,
+                    model: $model,
+                    timeout: $timeout,
+                );
 
                 return response()->json([
                     'message' => (string) $response,
@@ -80,6 +111,15 @@ class AiChatController extends Controller
         };
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/ai/conversations",
+     *     tags={"AI Support"},
+     *     summary="List the user's 50 most recent support conversations",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Conversations (id, title, updated_at), newest first")
+     * )
+     */
     public function conversations(Request $request): JsonResponse
     {
         $data = $this->userConversations($request->user())
@@ -90,6 +130,17 @@ class AiChatController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/ai/conversations/{id}",
+     *     tags={"AI Support"},
+     *     summary="Get the messages of one of the user's conversations",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="Messages as role (user|assistant) and text"),
+     *     @OA\Response(response=404, description="Not found or not owned by the user")
+     * )
+     */
     public function conversation(Request $request, string $id): JsonResponse
     {
         $this->userConversations($request->user())->findOrFail($id);
@@ -101,12 +152,25 @@ class AiChatController extends Controller
         return response()->json(['data' => $messages->values()]);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/ai/conversations/{id}",
+     *     tags={"AI Support"},
+     *     summary="Delete one of the user's conversations and its messages",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="Conversation deleted"),
+     *     @OA\Response(response=404, description="Not found or not owned by the user")
+     * )
+     */
     public function deleteConversation(Request $request, string $id): JsonResponse
     {
         $conversation = $this->userConversations($request->user())->findOrFail($id);
 
-        $conversation->messages()->delete();
-        $conversation->delete();
+        DB::transaction(function () use ($conversation) {
+            $conversation->messages()->delete();
+            $conversation->delete();
+        });
 
         return response()->json(['message' => 'Conversation deleted.']);
     }
@@ -159,6 +223,12 @@ class AiChatController extends Controller
         $scored = [];
 
         foreach ($this->faqList() as $faq) {
+            // An empty keyword list would build the regex "()", which matches every message.
+            $faq['keywords'] = array_values(array_filter($faq['keywords'] ?? []));
+            if ($faq['keywords'] === []) {
+                continue;
+            }
+
             $score = 0;
             foreach ($faq['keywords'] as $keyword) {
                 if (str_contains($lowercase, $keyword)) {
