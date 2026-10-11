@@ -35,7 +35,7 @@ Vendora is a modern, intuitive financial ecosystem designed to help individuals 
 
 ## 🐳 Running with Docker
 
-The whole stack (MySQL, Laravel backend, Angular frontend) runs with one command:
+The whole stack runs with one command:
 
 ```bash
 docker compose up --build
@@ -46,4 +46,3 @@ On the first start the backend container runs the migrations and seeds the datab
 - API keys and `APP_KEY` are read from `backend/.env` when that file exists. Without an `APP_KEY`, one is generated and kept in the `backend-storage` volume.
 - Database credentials, `ADMIN_EMAIL` and the MySQL host port can be overridden in a root `.env`; see `.env.docker.example`.
 - MySQL is published on host port `3307`. Data lives in the `database-data` volume; `docker compose down -v` wipes it.
-- Stop any local `php artisan serve` / `ng serve` first, since the containers use ports 8000 and 4200.
