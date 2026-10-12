@@ -46,3 +46,4 @@ On the first start the backend container runs the migrations and seeds the datab
 - API keys and `APP_KEY` are read from `backend/.env` when that file exists. Without an `APP_KEY`, one is generated and kept in the `backend-storage` volume.
 - Database credentials, `ADMIN_EMAIL` and the MySQL host port can be overridden in a root `.env`; see `.env.docker.example`.
 - MySQL is published on host port `3307`. Data lives in the `database-data` volume; `docker compose down -v` wipes it.
+- The AI support chat uses a local `ollama` container. Its models (`AI_SUPPORT_MODELS`) download on first start, and until then the chat answers by FAQ matching. Set `AI_SUPPORT_PROVIDER=openai` or `none` in a root `.env` to skip it; if port `11434` clashes with a native Ollama, set `OLLAMA_HOST_PORT` (a backend run outside Docker must then point `OLLAMA_URL` at that port).

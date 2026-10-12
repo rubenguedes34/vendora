@@ -53,6 +53,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-vendora}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       LOG_CHANNEL: stderr
+      AI_SUPPORT_PROVIDER: ${AI_SUPPORT_PROVIDER:-ollama}
+      AI_SUPPORT_MODELS: ${AI_SUPPORT_MODELS:-llama3.2:3b,llama3.2:1b}
+      OLLAMA_URL: http://ollama:11434
     volumes:
       - backend-storage:/app/storage
     ports:
@@ -66,6 +69,22 @@ services:
       timeout: 3s
       retries: 60
       start_period: 5s
+
+  # Local model for the AI support chat. The model downloads on first start; until
+  # then (or if this service is down) the chat falls back to FAQ matching.
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    environment:
+      # Keep the model in RAM so the first question after idle is not slow.
+      OLLAMA_KEEP_ALIVE: 24h
+    entrypoint: ["/bin/sh", "-c", "ollama serve & until ollama list >/dev/null 2>&1; do sleep 2; done; for m in $$(echo '${AI_SUPPORT_MODELS:-llama3.2:3b,llama3.2:1b}' | tr ',' ' '); do i=0; until ollama pull $$m; do i=$$((i+1)); if [ $$i -ge 20 ]; then echo \"Giving up on ollama model $$m after 20 tries; the chat will use FAQ matching.\"; break; fi; echo \"Pull of ollama model $$m failed, retrying ($$i/20)\"; sleep 5; done; done; wait"]
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      # Loopback only: Ollama has no authentication. Use OLLAMA_HOST_PORT if you
+      # run a native Ollama on the host and 11434 clashes.
+      - "127.0.0.1:${OLLAMA_HOST_PORT:-11434}:11434"
 
   # Starts only once the backend is healthy, and prints the "up and running"
   # banner on start, so it is the last thing shown by `docker compose up`.
@@ -81,3 +100,4 @@ services:
 volumes:
   database-data:
   backend-storage:
+  ollama-data:

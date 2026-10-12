@@ -21,6 +21,23 @@ return [
     'default_for_reranking' => 'cohere',
 
     /*
+    | Support chat (POST /api/ai/chat): ollama | openai | none. Left empty it uses
+    | OpenAI when OPENAI_API_KEY is set and plain FAQ matching otherwise.
+    */
+    // Conversation titles are the first words of the message, not an extra LLM call.
+    'conversations' => [
+        'generate_title' => false,
+    ],
+
+    'support' => [
+        'provider' => env('AI_SUPPORT_PROVIDER'),
+        // Comma-separated, tried in order; the next one is used when a model fails or times out.
+        'models' => array_values(array_filter(array_map('trim', explode(',', (string) env('AI_SUPPORT_MODELS', ''))))),
+        // Seconds per model attempt.
+        'timeout' => (int) env('AI_SUPPORT_TIMEOUT', 45),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Caching
     |--------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Ai\Agents\SupportAgent;
 use App\Models\Faq;
 use App\Models\User;
 use App\Services\TokenService;
@@ -14,12 +15,14 @@ class AiChatControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
         config()->set('ai.providers.openai.key', '');
+        config()->set('ai.support.provider', 'none');
 
         $this->user = User::factory()->create();
         $this->token = TokenService::issue($this->user);
@@ -31,7 +34,7 @@ class AiChatControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_ai_routes_require_authentication_and_permission(): void
@@ -39,7 +42,7 @@ class AiChatControllerTest extends TestCase
         $this->postJson('/api/ai/chat', ['message' => 'Hello'])->assertStatus(401);
 
         $token = TokenService::issue(User::factory()->create());
-        $this->getJson('/api/ai/faqs', ['Authorization' => 'Bearer ' . $token])
+        $this->getJson('/api/ai/faqs', ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
 
@@ -67,7 +70,81 @@ class AiChatControllerTest extends TestCase
         $response = $this->postJson('/api/ai/chat', ['message' => 'How do I set a budget?'], $this->authHeader())
             ->assertStatus(200);
 
-        $this->assertStringContainsString('Live AI is not configured', $response->json('message'));
+        $this->assertStringContainsString('limit', $response->json('message'));
+        $this->assertStringNotContainsString('not configured', $response->json('message'));
+    }
+
+    public function test_conversations_are_saved_listed_continued_and_deleted_per_user(): void
+    {
+        config()->set('ai.support.provider', 'openai');
+        config()->set('ai.support.models', ['test-model']);
+        SupportAgent::fake(['Budgets set monthly limits.', 'Yes, per category.', 'Another answer.']);
+
+        $first = $this->postJson('/api/ai/chat', ['message' => 'How do budgets work?'], $this->authHeader())
+            ->assertStatus(200)
+            ->assertJson(['message' => 'Budgets set monthly limits.'])
+            ->json('conversation_id');
+        $this->assertNotEmpty($first);
+
+        // Continuing keeps the same conversation; omitting the id starts a new one.
+        $this->postJson('/api/ai/chat', ['message' => 'Per category?', 'conversation_id' => $first], $this->authHeader())
+            ->assertJson(['conversation_id' => $first]);
+        $second = $this->postJson('/api/ai/chat', ['message' => 'Something else'], $this->authHeader())
+            ->json('conversation_id');
+        $this->assertNotSame($first, $second);
+
+        $this->getJson('/api/ai/conversations', $this->authHeader())
+            ->assertStatus(200)
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['id' => $first, 'title' => 'How do budgets work?']);
+
+        $this->getJson('/api/ai/conversations/'.$first, $this->authHeader())
+            ->assertStatus(200)
+            ->assertJsonCount(4, 'data')
+            ->assertJsonPath('data.0', ['role' => 'user', 'text' => 'How do budgets work?']);
+
+        // Another user cannot see, continue or delete it.
+        $other = ['Authorization' => 'Bearer '.TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'))];
+        $this->getJson('/api/ai/conversations', $other)->assertJson(['data' => []]);
+        $this->getJson('/api/ai/conversations/'.$first, $other)->assertStatus(404);
+        $this->postJson('/api/ai/chat', ['message' => 'hi', 'conversation_id' => $first], $other)->assertStatus(404);
+        $this->deleteJson('/api/ai/conversations/'.$first, [], $other)->assertStatus(404);
+
+        $this->deleteJson('/api/ai/conversations/'.$first, [], $this->authHeader())->assertStatus(200);
+        $this->getJson('/api/ai/conversations', $this->authHeader())->assertJsonCount(1, 'data');
+    }
+
+    public function test_faq_keywords_with_slash_or_capitals_still_match(): void
+    {
+        Faq::query()->delete();
+        Faq::create([
+            'question' => 'Income or expense?',
+            'answer' => 'Pick the transaction type.',
+            'keywords' => ['Income/Expense'],
+        ]);
+
+        $response = $this->postJson('/api/ai/chat', ['message' => 'What is an income/expense entry?'], $this->authHeader())
+            ->assertStatus(200);
+
+        $this->assertStringContainsString('Pick the transaction type.', $response->json('message'));
+    }
+
+    public function test_faq_without_keywords_never_matches(): void
+    {
+        Faq::query()->delete();
+        Faq::create(['question' => 'Empty keywords', 'answer' => 'Should never be returned.', 'keywords' => []]);
+
+        $response = $this->postJson('/api/ai/chat', ['message' => 'qwertyuiop'], $this->authHeader())
+            ->assertStatus(200);
+
+        $this->assertStringNotContainsString('Should never be returned.', $response->json('message'));
+    }
+
+    public function test_conversation_id_must_be_a_uuid(): void
+    {
+        $this->postJson('/api/ai/chat', ['message' => 'hi', 'conversation_id' => 'not-a-uuid'], $this->authHeader())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['conversation_id']);
     }
 
     public function test_chat_validates_message(): void
