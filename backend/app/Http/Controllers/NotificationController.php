@@ -23,14 +23,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        Cache::remember(
-            "notifications:generated:{$request->user()->id}",
-            now()->addHour(),
-            function () use ($request) {
-                $this->generator->generateFor($request->user());
-                return true;
-            }
-        );
+        $this->generateIfStale($request);
 
         $unreadOnly = $request->boolean('unread_only', false);
         $query = $request->user()->appNotifications()->orderByDesc('created_at');
@@ -52,6 +45,9 @@ class NotificationController extends Controller
      */
     public function unreadCount(Request $request)
     {
+        // The sidebar badge polls this before the list is ever opened, so it must generate too.
+        $this->generateIfStale($request);
+
         $count = $request->user()->appNotifications()->where('is_read', false)->count();
         return response()->json(['count' => $count]);
     }
@@ -110,5 +106,18 @@ class NotificationController extends Controller
 
         $notification->delete();
         return response()->json(['message' => 'Notification deleted']);
+    }
+
+    /** Notifications are created lazily here (no scheduler), at most once every 10 minutes per user. */
+    private function generateIfStale(Request $request): void
+    {
+        Cache::remember(
+            "notifications:generated:{$request->user()->id}",
+            now()->addMinutes(10),
+            function () use ($request) {
+                $this->generator->generateFor($request->user());
+                return true;
+            }
+        );
     }
 }

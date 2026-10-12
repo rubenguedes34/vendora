@@ -58,7 +58,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   showAlerts = false;
   alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
-  dismissedAlerts = new Set<string>();
+  // Persisted in localStorage: alerts are recomputed on every load, so an in-memory set would forget the dismissal.
+  dismissedAlerts = this.loadDismissedAlerts();
   hasCritical = false;
   alertCount = 0;
   projectedBalance = 0;
@@ -175,18 +176,52 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
   }
 
+  // Scoped to user and month so dismissing in October does not hide the same alert in November.
+  // shortcut: dismissed keys are never pruned (a handful per month), clean up if it ever grows.
+  private dismissKey(alert: { title: string }): string {
+    return `${this.userId()}:${this.overviewYear}-${this.overviewMonth}:${alert.title}`;
+  }
+
+  // this.user is set asynchronously; fall back to the stored session so the key never flips from '' to the id.
+  private userId(): string {
+    if (this.user?.id) return String(this.user.id);
+    try {
+      return String(JSON.parse(localStorage.getItem('user') || 'null')?.id ?? '');
+    } catch {
+      return '';
+    }
+  }
+
+  private loadDismissedAlerts(): Set<string> {
+    try {
+      return new Set<string>(JSON.parse(localStorage.getItem('vendora.dismissedAlerts') || '[]'));
+    } catch {
+      return new Set<string>();
+    }
+  }
+
+  private saveDismissedAlerts(): void {
+    try {
+      localStorage.setItem('vendora.dismissedAlerts', JSON.stringify([...this.dismissedAlerts]));
+    } catch {
+      // storage unavailable: the dismissal then only lasts for this page view
+    }
+  }
+
   get visibleAlerts() {
-    return this.alerts.filter(a => !this.dismissedAlerts.has(a.title));
+    return this.alerts.filter(a => !this.dismissedAlerts.has(this.dismissKey(a)));
   }
 
   dismissAlert(alert: { type: string; title: string; message: string }): void {
-    this.dismissedAlerts.add(alert.title);
+    this.dismissedAlerts.add(this.dismissKey(alert));
+    this.saveDismissedAlerts();
     this.hasCritical = this.visibleAlerts.some(a => a.type === 'danger');
     this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
   }
 
   clearAllAlerts(): void {
-    this.alerts.forEach(a => this.dismissedAlerts.add(a.title));
+    this.alerts.forEach(a => this.dismissedAlerts.add(this.dismissKey(a)));
+    this.saveDismissedAlerts();
     this.hasCritical = false;
     this.alertCount = 0;
   }

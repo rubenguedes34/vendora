@@ -11,6 +11,9 @@ class NotificationGenerator
 {
     public function generateFor(User $user): void
     {
+        // A deleted notification only needs remembering while its (month-scoped) key can still be generated.
+        $user->appNotifications()->onlyTrashed()->where('deleted_at', '<', now()->subDays(60))->forceDelete();
+
         $this->generateBudgetNotifications($user);
         $this->generateRecurringNotifications($user);
         $this->generateMonthlyReport($user);
@@ -20,7 +23,9 @@ class NotificationGenerator
 
     private function addOnce(User $user, string $type, string $key, string $title, string $body, array $data = []): void
     {
+        // withTrashed: a notification the user deleted must not be generated again.
         $exists = $user->appNotifications()
+            ->withTrashed()
             ->where('type', $type)
             ->where('data->key', $key)
             ->exists();
@@ -60,10 +65,11 @@ class NotificationGenerator
             $key    = "budget-{$budget->id}-{$month}";
 
             if ($actual > $limit) {
+                // Superseded, not dismissed: hard delete so it can come back if spending drops below the limit.
                 $user->appNotifications()
                     ->where('type', 'budget_almost_exceeded')
                     ->where('data->key', $key)
-                    ->delete();
+                    ->forceDelete();
 
                 $this->addOnce(
                     $user,
@@ -89,20 +95,29 @@ class NotificationGenerator
     private function generateRecurringNotifications(User $user): void
     {
         $today = Carbon::today();
-        $key   = 'recurring-' . $today->format('Y-m-d');
 
-        $due = RecurrentTransaction::where('user_id', $user->id)
+        $rules = RecurrentTransaction::where('user_id', $user->id)
             ->where('is_active', true)
-            ->whereDate('next_due_date', '<=', $today)
             ->get();
 
-        foreach ($due as $rt) {
+        foreach ($rules as $rt) {
+            // day_of_month is validated to 1-28, so the date exists in every month.
+            $dueDate = $today->copy()->day((int) ($rt->day_of_month ?? 1));
+
+            // Skip rules not yet due this month, or created after their due date this month.
+            if ($dueDate->gt($today) || $rt->created_at->gt($dueDate->copy()->endOfDay())) {
+                continue;
+            }
+
+            // One notification per rule and month, created on the first generation on/after the due day.
             $this->addOnce(
                 $user,
                 'recurring_due',
-                "{$key}-{$rt->id}",
+                'recurring-' . $dueDate->format('Y-m') . "-{$rt->id}",
                 'Recurring transaction due',
-                "{$rt->description} is due today.",
+                $dueDate->isSameDay($today)
+                    ? "{$rt->description} is due today."
+                    : "{$rt->description} was due on {$dueDate->format('M j')}.",
                 ['recurrent_transaction_id' => $rt->id]
             );
         }
