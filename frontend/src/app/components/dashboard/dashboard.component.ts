@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, FinancialRecord } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
+import { TransactionService, Transaction } from '../../services/transaction.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { User } from '../../services/auth.service';
@@ -38,10 +39,26 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
 
   monthBreakdown: { month: number; income: number; expenses: number; balance: number }[] = [];
+  recentTransactions: Transaction[] = [];
 
   userInitials = '';
 
   get overviewBalance(): number { return this.overviewIncome - this.overviewExpenses; }
+
+  get greeting(): string {
+    const h = new Date().getHours();
+    return h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+  }
+
+  get firstName(): string { return (this.user?.name || '').split(' ')[0]; }
+
+  // % change against the previous month of the same year; null when there is nothing to compare.
+  deltaPct(key: 'income' | 'expenses' | 'balance'): number | null {
+    const prev = this.monthBreakdown.find(m => m.month === this.overviewMonth - 1);
+    const cur = key === 'income' ? this.overviewIncome : key === 'expenses' ? this.overviewExpenses : this.overviewBalance;
+    if (!prev || !prev[key]) return null;
+    return ((cur - prev[key]) / Math.abs(prev[key])) * 100;
+  }
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
   @ViewChild('categoryChart') categoryChart!: ElementRef;
@@ -57,6 +74,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private maxExpense = 0;
 
   showAlerts = false;
+  showMonthPicker = false;
+  pickerYear = new Date().getFullYear();
+  readonly todayYear = new Date().getFullYear();
+  readonly todayMonth = new Date().getMonth() + 1;
   alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
   // Persisted in localStorage: alerts are recomputed on every load, so an in-memory set would forget the dismissal.
   dismissedAlerts = this.loadDismissedAlerts();
@@ -72,6 +93,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private financialService: FinancialService,
     private router: Router,
+    private transactionService: TransactionService,
     public currencyService: CurrencyService
   ) {
     this.destroyRef.onDestroy(() => {
@@ -112,6 +134,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       },
       error: () => { this.updateChartsWithRealData(); this.cdr.markForCheck(); }
+    });
+
+    this.transactionService.getTransactions({ per_page: 5 }).subscribe({
+      next: res => { this.recentTransactions = res.data; this.cdr.markForCheck(); },
+      error: () => { this.recentTransactions = []; this.cdr.markForCheck(); }
     });
 
     this.loadExpensesByCategory();
@@ -230,13 +257,27 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.showAlerts = !this.showAlerts;
   }
 
+  toggleMonthPicker(): void {
+    this.showMonthPicker = !this.showMonthPicker;
+    if (this.showMonthPicker) this.pickerYear = this.overviewYear;
+  }
+
+  pickMonth(month: number, year = this.pickerYear): void {
+    this.showMonthPicker = false;
+    this.setMonth(year, month);
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.showAlerts) return;
     const target = event.target as HTMLElement;
-    if (!target.closest('.alerts-panel-wrapper')) {
-      this.showAlerts = false;
-    }
+    if (this.showAlerts && !target.closest('.alerts-panel-wrapper')) this.showAlerts = false;
+    if (this.showMonthPicker && !target.closest('.month-picker-wrapper')) this.showMonthPicker = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.showMonthPicker = false;
+    this.showAlerts = false;
   }
 
   loadExpensesByCategory(): void {
@@ -499,7 +540,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
           backgroundColor: ['#2dd4bf', '#f87171', '#818cf8'],
-          borderColor: '#ffffff',
+          borderColor: 'transparent',
           borderWidth: 3,
           hoverOffset: 6,
           borderRadius: 4
@@ -533,7 +574,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           data: this.expensesByCategory.map(e => e.total),
           backgroundColor: this.expensesByCategory.map(e => e.color),
-          borderColor: '#ffffff',
+          borderColor: 'transparent',
           borderWidth: 2,
           hoverOffset: 6,
           borderRadius: 3

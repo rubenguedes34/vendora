@@ -162,7 +162,7 @@ interface ChatMessage {
             <button
               (click)="send()"
               [disabled]="!newMessage.trim() || loading() || opening()"
-              class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send
             </button>

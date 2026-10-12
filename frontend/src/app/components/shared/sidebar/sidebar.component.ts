@@ -39,135 +39,135 @@ import { User } from '../../../services/auth.service';
 
     <!-- Sidebar -->
     <aside
-      class="fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50 w-64 h-[100dvh] lg:h-screen bg-primary-500 text-white shadow-lg flex-shrink-0 flex flex-col transition-transform duration-300 lg:translate-x-0"
+      class="fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50 w-64 h-[100dvh] lg:h-screen bg-white text-gray-600 border-r border-gray-200 flex-shrink-0 flex flex-col transition-transform duration-300 lg:translate-x-0"
       [class.translate-x-0]="mobileOpen"
       [class.-translate-x-full]="!mobileOpen">
 
       <div class="p-6 flex items-center justify-between">
         <!-- Close button (mobile only) -->
-        <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-primary-200 hover:text-white">
+        <button data-testid="sidebar-close" (click)="mobileOpen = false" class="lg:hidden absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-700">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
 
         <a routerLink="/dashboard" (click)="mobileOpen = false" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <h1 class="text-2xl font-bold">Vendora</h1>
+          <h1 class="text-xl font-bold text-gray-900 tracking-tight">Vendora</h1>
         </a>
       </div>
 
       <nav class="mt-2 flex-1 overflow-y-auto">
         <a routerLink="/dashboard" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/dashboard')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/dashboard')" [class.text-primary-700]="isActive('/dashboard')" [class.text-gray-600]="!isActive('/dashboard')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <span class="font-semibold">Dashboard</span>
+          <span class="font-medium">Dashboard</span>
         </a>
 
         <a routerLink="/budgets" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/budgets')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/budgets')" [class.text-primary-700]="isActive('/budgets')" [class.text-gray-600]="!isActive('/budgets')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
-          <span class="font-semibold">Budget</span>
+          <span class="font-medium">Budget</span>
         </a>
 
         <a routerLink="/investments" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/investments')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/investments')" [class.text-primary-700]="isActive('/investments')" [class.text-gray-600]="!isActive('/investments')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          <span class="font-semibold">Investments</span>
+          <span class="font-medium">Investments</span>
         </a>
 
         <a routerLink="/net-worth" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/net-worth')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/net-worth')" [class.text-primary-700]="isActive('/net-worth')" [class.text-gray-600]="!isActive('/net-worth')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="font-semibold">Net Worth</span>
+          <span class="font-medium">Net Worth</span>
         </a>
 
         <a routerLink="/health-score" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/health-score')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/health-score')" [class.text-primary-700]="isActive('/health-score')" [class.text-gray-600]="!isActive('/health-score')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="font-semibold">Health Score</span>
+          <span class="font-medium">Health Score</span>
         </a>
 
         <a routerLink="/ai-support" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/ai-support')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/ai-support')" [class.text-primary-700]="isActive('/ai-support')" [class.text-gray-600]="!isActive('/ai-support')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          <span class="font-semibold">AI Support</span>
+          <span class="font-medium">AI Support</span>
         </a>
 
         <a routerLink="/notifications" (click)="mobileOpen = false"
-          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
-          [class.bg-primary-700]="isActive('/notifications')">
+          class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+          [class.bg-primary-50]="isActive('/notifications')" [class.text-primary-700]="isActive('/notifications')" [class.text-gray-600]="!isActive('/notifications')">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span class="font-semibold">Notifications</span>
+          <span class="font-medium">Notifications</span>
           <span *ngIf="unreadCount > 0" data-testid="sidebar-unread-badge"
-            class="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full">
+            class="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-bold bg-red-600 text-white rounded-full">
             {{ unreadCount > 9 ? '9+' : unreadCount }}
           </span>
         </a>
 
         <button *ngIf="canAccessAdmin" type="button" (click)="openAdmin()"
-          class="w-full flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors cursor-pointer"
+          class="w-[calc(100%-1.5rem)] flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
           title="Open admin panel">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <span class="font-semibold">Admin</span>
+          <span class="font-medium">Admin</span>
         </button>
       </nav>
 
-      <div class="p-4 border-t border-primary-600 space-y-2">
+      <div class="p-4 border-t border-gray-200 space-y-2">
         <app-theme-picker></app-theme-picker>
         <app-currency-picker></app-currency-picker>
       </div>
 
-      <div class="p-4 border-t border-primary-600 space-y-1">
+      <div class="p-4 border-t border-gray-200 space-y-1">
         <a routerLink="/account" (click)="mobileOpen = false"
-          class="flex items-center px-3 py-2 text-white hover:bg-primary-600 rounded-md transition-colors"
-          [class.bg-primary-700]="isActive('/account')">
-          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 20a9 9 0 10-18 0" />
-          </svg>
-          <span class="font-semibold">Account</span>
+          class="flex items-center gap-3 px-3 py-2 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors"
+          [class.bg-primary-50]="isActive('/account')">
+          <span class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-semibold shrink-0">{{ initials }}</span>
+          <span class="min-w-0 leading-tight">
+            <span class="block text-sm font-medium text-gray-900 truncate">{{ user?.name }}</span>
+            <span class="block text-xs text-gray-400">Free plan</span>
+          </span>
         </a>
         <button (click)="logout()"
-          class="w-full flex items-center px-3 py-2 text-red-200 hover:bg-primary-600 hover:text-white rounded-md transition-colors">
+          class="w-full flex items-center px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          <span class="font-semibold">Logout</span>
+          <span class="font-medium">Logout</span>
         </button>
       </div>
     </aside>

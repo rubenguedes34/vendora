@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-gray-100 flex">
+<div class="min-h-screen bg-slate-50 flex">
   <app-sidebar></app-sidebar>
 
   <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
-    <header class="bg-primary-700 text-white shadow-md">
+    <header class="page-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col sm:flex-row justify-between h-auto sm:h-16 py-3 sm:py-0 items-start sm:items-center gap-3">
           <div>
@@ -26,7 +26,7 @@
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+      <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-5">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Asset type</label>
@@ -67,7 +67,7 @@
 
       <ng-container *ngIf="data">
         <!-- Empty state -->
-        <div *ngIf="data.breakdown.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <div *ngIf="data.breakdown.length === 0" class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
           </svg>
@@ -77,7 +77,7 @@
 
         <div *ngIf="data.breakdown.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- Pie chart -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Allocation</h3>
             <div style="height: 220px; position: relative;">
               <canvas #allocationChart></canvas>
@@ -89,7 +89,7 @@
           </div>
 
           <!-- Breakdown -->
-          <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Breakdown</h3>
             <div class="space-y-3">
               <div *ngFor="let item of data.breakdown" class="flex items-center gap-4 p-3 rounded-xl bg-gray-50 border border-gray-100">

@@ -29,11 +29,11 @@ const COLORS: Record<string, string> = {
   standalone: true,
   imports: [CommonModule, SidebarComponent],
   template: `
-    <div class="min-h-screen bg-gray-100 flex">
+    <div class="min-h-screen bg-slate-50 flex">
       <app-sidebar></app-sidebar>
 
       <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
-        <header class="bg-primary-700 text-white shadow-md">
+        <header class="page-header">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <div>
@@ -53,7 +53,7 @@ const COLORS: Record<string, string> = {
 
           <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading…</div>
 
-          <div *ngIf="!loading && notifications.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <div *ngIf="!loading && notifications.length === 0" class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
@@ -62,7 +62,7 @@ const COLORS: Record<string, string> = {
 
           <div *ngIf="!loading" class="space-y-2">
             <div *ngFor="let n of notifications"
-              class="flex gap-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors"
+              class="flex gap-3 p-4 bg-white rounded-2xl border border-gray-200 hover:bg-gray-50 transition-colors"
               [class.bg-blue-50/30]="!n.is_read">
               <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-base"
                 [class]="colorFor(n.type)">

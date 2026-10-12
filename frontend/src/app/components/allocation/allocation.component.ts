@@ -130,7 +130,7 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           data: values,
           backgroundColor: colors,
-          borderColor: '#ffffff',
+          borderColor: 'transparent',
           borderWidth: 2,
           hoverOffset: 8,
         }]

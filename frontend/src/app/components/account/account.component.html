@@ -1,16 +1,16 @@
-<div class="min-h-screen bg-gray-100 flex">
+<div class="min-h-screen bg-slate-50 flex">
   <app-sidebar></app-sidebar>
 
   <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
     <!-- Header -->
-    <header class="bg-primary-700 text-white shadow-md">
+    <header class="page-header">
       <div class="max-w-4xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16">
           <div>
             <h2 class="text-xl font-semibold">Account Settings</h2>
             <p class="text-primary-200 text-xs">Manage your profile and preferences</p>
           </div>
-          <a routerLink="/dashboard" class="text-primary-200 hover:text-white text-sm transition-colors">
+          <a routerLink="/dashboard" class="text-gray-500 hover:text-gray-900 text-sm transition-colors">
             ← Back to Dashboard
           </a>
         </div>
@@ -21,7 +21,7 @@
 
       <!-- Avatar + name banner -->
       <div class="bg-white rounded-xl shadow-md p-6 flex items-center gap-5">
-        <div class="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center text-white text-3xl font-bold select-none">
+        <div class="w-20 h-20 rounded-full bg-primary-600 flex items-center justify-center text-white text-3xl font-bold select-none">
           {{ initials }}
         </div>
         <div>
@@ -91,7 +91,7 @@
 
           <div class="flex justify-end">
             <button type="submit" [disabled]="profileForm.invalid || savingProfile"
-              class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
+              class="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
               {{ savingProfile ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
@@ -141,7 +141,7 @@
           </div>
           <div class="flex justify-end">
             <button type="submit" [disabled]="passwordForm.invalid || savingPassword"
-              class="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
+              class="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">
               {{ savingPassword ? 'Updating...' : 'Update Password' }}
             </button>
           </div>
@@ -197,7 +197,7 @@
         </h3>
         <p class="text-sm text-gray-500 mb-4">Once you log out of all sessions, you will need to sign in again on every device.</p>
         <button (click)="logoutAll()"
-          class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
+          class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
           Log out everywhere
         </button>
       </div>

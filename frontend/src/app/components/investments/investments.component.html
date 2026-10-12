@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-gray-100 flex">
+<div class="min-h-screen bg-slate-50 flex">
   <app-sidebar></app-sidebar>
 
   <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
-    <header class="bg-primary-700 text-white shadow-md">
+    <header class="page-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <h2 class="text-xl font-semibold">Investments</h2>
@@ -81,7 +81,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
         <!-- Portfolio Breakdown Donut Chart (desktop only) -->
-        <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-1">
+        <div class="hidden lg:block bg-white rounded-2xl border border-gray-200 p-5 lg:col-span-1">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-gray-700">Portfolio Breakdown</h3>
             <select [(ngModel)]="groupBy" (change)="recalcTotals()"
@@ -129,7 +129,7 @@
         </div>
 
         <!-- Add/Edit Form panel -->
-        <div *ngIf="showForm" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
+        <div *ngIf="showForm" class="bg-white rounded-2xl border border-gray-200 p-5 lg:col-span-2">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-gray-700">{{ editingId ? 'Edit Investment' : 'Add Investment' }}</h3>
             <button *ngIf="editingId" (click)="cancelEdit()" class="text-xs text-gray-400 hover:text-gray-600">✕ Cancel</button>
@@ -302,7 +302,7 @@
       </div>
 
       <!-- Investments List -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+      <div class="bg-white rounded-2xl border border-gray-200 mb-6">
 
         <!-- Empty state -->
         <div *ngIf="!isLoading && investments.length === 0" class="text-center py-16 px-4">

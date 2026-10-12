@@ -6,12 +6,12 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <footer class="bg-gray-900 text-gray-300 py-10">
+    <footer class="bg-gray-900 text-slate-300 py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div class="col-span-1 md:col-span-2 lg:col-span-1">
             <h3 class="text-xl font-bold text-white mb-2">Vendora</h3>
-            <p class="text-sm text-gray-400 max-w-xs">Smart financial tracking, AI support, and admin tools for your business.</p>
+            <p class="text-sm text-slate-400 max-w-xs">Smart financial tracking, AI support, and admin tools for your business.</p>
           </div>
 
           <div>
@@ -45,7 +45,7 @@ import { RouterLink } from '@angular/router';
           </div>
         </div>
 
-        <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+        <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
           <p>&copy; 2026 Vendora. All rights reserved.</p>
           <div class="flex space-x-6 mt-4 md:mt-0">
             <a routerLink="/" class="hover:text-white transition-colors">Privacy</a>
