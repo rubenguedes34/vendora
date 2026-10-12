@@ -3,7 +3,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { EMPTY, timer } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
+import { NotificationService } from '../../../services/notification.service';
 import { environment } from '../../../../environments/environment';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
@@ -118,6 +121,20 @@ import { User } from '../../../services/auth.service';
           <span class="font-semibold">AI Support</span>
         </a>
 
+        <a routerLink="/notifications" (click)="mobileOpen = false"
+          class="flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors"
+          [class.bg-primary-700]="isActive('/notifications')">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="font-semibold">Notifications</span>
+          <span *ngIf="unreadCount > 0" data-testid="sidebar-unread-badge"
+            class="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+        </a>
+
         <button *ngIf="canAccessAdmin" type="button" (click)="openAdmin()"
           class="w-full flex items-center px-6 py-3 text-white hover:bg-primary-600 transition-colors cursor-pointer"
           title="Open admin panel">
@@ -162,15 +179,23 @@ export class SidebarComponent implements OnInit {
   user: User | null = null;
   initials = '';
   mobileOpen = false;
+  unreadCount = 0;
   adminUrl = environment.backendUrl + '/admin';
 
   get canAccessAdmin(): boolean {
     return this.user?.roles?.some((role: string) => ['admin', 'manager'].includes(role)) ?? false;
   }
 
-  constructor(private authService: AuthService, private router: Router, private http: HttpClient) {}
+  constructor(private authService: AuthService, private router: Router, private http: HttpClient, private notificationService: NotificationService) {}
 
   ngOnInit(): void {
+    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => this.unreadCount = c);
+    // Poll so the badge follows notifications generated while the page stays open; failures are ignored.
+    timer(0, 5 * 60 * 1000).pipe(
+      switchMap(() => this.notificationService.refreshCount().pipe(catchError(() => EMPTY))),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
+
     this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => {
       this.user = u;
       const name: string = u?.name || '';

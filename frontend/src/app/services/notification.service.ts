@@ -28,7 +28,13 @@ export class NotificationService {
   private _unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this._unreadCount.asObservable();
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService) {
+    // The service is a root singleton: drop the previous user's data when they log out.
+    this.authService.loggedOut$.subscribe(() => {
+      this._notifications.next([]);
+      this._unreadCount.next(0);
+    });
+  }
 
   load(unreadOnly = false): Observable<AppNotification[]> {
     const qs = unreadOnly ? '?unread_only=1' : '';

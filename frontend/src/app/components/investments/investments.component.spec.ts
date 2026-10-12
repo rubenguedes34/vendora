@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, Router } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { vi } from 'vitest';
-import { of, BehaviorSubject } from 'rxjs';
+import { of, BehaviorSubject, Subject } from 'rxjs';
 
 import { InvestmentsComponent } from './investments.component';
 import { AuthService } from '../../services/auth.service';
@@ -21,6 +21,7 @@ const mockAuth = {
   getUserObservable: vi.fn().mockReturnValue(new BehaviorSubject({ id: 1, name: 'Test User', email: 'test@example.com' }).asObservable()),
   logout: vi.fn().mockReturnValue(of({})),
   clearAuth: vi.fn(),
+  loggedOut$: new Subject<void>(),
 };
 
 const mockFinancial = {

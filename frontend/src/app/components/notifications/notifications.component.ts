@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, ChangeDetectorRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -49,6 +49,8 @@ const COLORS: Record<string, string> = {
         </header>
 
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div *ngIf="errorMessage" class="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">{{ errorMessage }}</div>
+
           <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading…</div>
 
           <div *ngIf="!loading && notifications.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -98,10 +100,12 @@ const COLORS: Record<string, string> = {
 })
 export class NotificationsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   notifications: AppNotification[] = [];
   unreadCount = 0;
   loading = false;
+  errorMessage = '';
   marking: number | null = null;
   markingAll = false;
   deleting: number | null = null;
@@ -114,32 +118,45 @@ export class NotificationsComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; }
-    this.notificationService.notifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(n => this.notifications = n);
-    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => this.unreadCount = c);
+    this.notificationService.notifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(n => { this.notifications = n; this.cdr.markForCheck(); });
+    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => { this.unreadCount = c; this.cdr.markForCheck(); });
     this.load();
   }
 
   load(): void {
     this.loading = true;
+    this.errorMessage = '';
     this.notificationService.load().subscribe({
-      next: () => { this.loading = false; },
-      error: () => { this.loading = false; }
+      next: () => { this.loading = false; this.cdr.markForCheck(); },
+      error: () => { this.loading = false; this.errorMessage = 'Could not load notifications.'; this.cdr.markForCheck(); }
     });
   }
 
   markRead(id: number): void {
     this.marking = id;
-    this.notificationService.markAsRead(id).subscribe({ complete: () => { this.marking = null; } });
+    this.errorMessage = '';
+    this.notificationService.markAsRead(id).subscribe({
+      complete: () => { this.marking = null; this.cdr.markForCheck(); },
+      error: () => { this.marking = null; this.errorMessage = 'Could not mark the notification as read.'; this.cdr.markForCheck(); }
+    });
   }
 
   markAllRead(): void {
     this.markingAll = true;
-    this.notificationService.markAllAsRead().subscribe({ complete: () => { this.markingAll = false; } });
+    this.errorMessage = '';
+    this.notificationService.markAllAsRead().subscribe({
+      complete: () => { this.markingAll = false; this.cdr.markForCheck(); },
+      error: () => { this.markingAll = false; this.errorMessage = 'Could not mark all notifications as read.'; this.cdr.markForCheck(); }
+    });
   }
 
   delete(id: number): void {
     this.deleting = id;
-    this.notificationService.delete(id).subscribe({ complete: () => { this.deleting = null; } });
+    this.errorMessage = '';
+    this.notificationService.delete(id).subscribe({
+      complete: () => { this.deleting = null; this.cdr.markForCheck(); },
+      error: () => { this.deleting = null; this.errorMessage = 'Could not delete the notification.'; this.cdr.markForCheck(); }
+    });
   }
 
   iconFor(type: string): string {
