@@ -15,6 +15,7 @@ class AiChatControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -33,7 +34,7 @@ class AiChatControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_ai_routes_require_authentication_and_permission(): void
@@ -41,7 +42,7 @@ class AiChatControllerTest extends TestCase
         $this->postJson('/api/ai/chat', ['message' => 'Hello'])->assertStatus(401);
 
         $token = TokenService::issue(User::factory()->create());
-        $this->getJson('/api/ai/faqs', ['Authorization' => 'Bearer ' . $token])
+        $this->getJson('/api/ai/faqs', ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
 
@@ -97,20 +98,35 @@ class AiChatControllerTest extends TestCase
             ->assertJsonCount(2, 'data')
             ->assertJsonFragment(['id' => $first, 'title' => 'How do budgets work?']);
 
-        $this->getJson('/api/ai/conversations/' . $first, $this->authHeader())
+        $this->getJson('/api/ai/conversations/'.$first, $this->authHeader())
             ->assertStatus(200)
             ->assertJsonCount(4, 'data')
             ->assertJsonPath('data.0', ['role' => 'user', 'text' => 'How do budgets work?']);
 
         // Another user cannot see, continue or delete it.
-        $other = ['Authorization' => 'Bearer ' . TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'))];
+        $other = ['Authorization' => 'Bearer '.TokenService::issue(User::factory()->create()->givePermissionTo('use ai support'))];
         $this->getJson('/api/ai/conversations', $other)->assertJson(['data' => []]);
-        $this->getJson('/api/ai/conversations/' . $first, $other)->assertStatus(404);
+        $this->getJson('/api/ai/conversations/'.$first, $other)->assertStatus(404);
         $this->postJson('/api/ai/chat', ['message' => 'hi', 'conversation_id' => $first], $other)->assertStatus(404);
-        $this->deleteJson('/api/ai/conversations/' . $first, [], $other)->assertStatus(404);
+        $this->deleteJson('/api/ai/conversations/'.$first, [], $other)->assertStatus(404);
 
-        $this->deleteJson('/api/ai/conversations/' . $first, [], $this->authHeader())->assertStatus(200);
+        $this->deleteJson('/api/ai/conversations/'.$first, [], $this->authHeader())->assertStatus(200);
         $this->getJson('/api/ai/conversations', $this->authHeader())->assertJsonCount(1, 'data');
+    }
+
+    public function test_faq_keywords_with_slash_or_capitals_still_match(): void
+    {
+        Faq::query()->delete();
+        Faq::create([
+            'question' => 'Income or expense?',
+            'answer' => 'Pick the transaction type.',
+            'keywords' => ['Income/Expense'],
+        ]);
+
+        $response = $this->postJson('/api/ai/chat', ['message' => 'What is an income/expense entry?'], $this->authHeader())
+            ->assertStatus(200);
+
+        $this->assertStringContainsString('Pick the transaction type.', $response->json('message'));
     }
 
     public function test_faq_without_keywords_never_matches(): void

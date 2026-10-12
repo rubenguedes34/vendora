@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Ai\Agents\SupportAgent;
 use App\Http\Requests\Ai\ChatRequest;
+use App\Models\Faq;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Contracts\ConversationStore;
 use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Models\Conversation;
-use App\Models\Faq;
 use Throwable;
 
 class AiChatController extends Controller
@@ -22,19 +22,26 @@ class AiChatController extends Controller
      *     tags={"AI Support"},
      *     summary="Send a message to the support assistant",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"message"},
+     *
      *             @OA\Property(property="message", type="string", maxLength=2000),
      *             @OA\Property(property="conversation_id", type="string", format="uuid", nullable=true,
      *                 description="Continue this conversation; omit to start a new one")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Assistant reply and the conversation it belongs to",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string"),
      *             @OA\Property(property="conversation_id", type="string", format="uuid", nullable=true)
      *         )
      *     ),
+     *
      *     @OA\Response(response=404, description="Conversation belongs to another user or does not exist"),
      *     @OA\Response(response=422, description="Validation error")
      * )
@@ -117,6 +124,7 @@ class AiChatController extends Controller
      *     tags={"AI Support"},
      *     summary="List the user's 50 most recent support conversations",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Conversations (id, title, updated_at), newest first")
      * )
      */
@@ -136,7 +144,9 @@ class AiChatController extends Controller
      *     tags={"AI Support"},
      *     summary="Get the messages of one of the user's conversations",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *
      *     @OA\Response(response=200, description="Messages as role (user|assistant) and text"),
      *     @OA\Response(response=404, description="Not found or not owned by the user")
      * )
@@ -158,7 +168,9 @@ class AiChatController extends Controller
      *     tags={"AI Support"},
      *     summary="Delete one of the user's conversations and its messages",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *
      *     @OA\Response(response=200, description="Conversation deleted"),
      *     @OA\Response(response=404, description="Not found or not owned by the user")
      * )
@@ -202,7 +214,7 @@ class AiChatController extends Controller
         $lowercase = strtolower($message);
 
         if (preg_match('/^\s*(hi+|hello|hey|howdy|greetings)\b/', $lowercase)) {
-            return "Hi there! I can answer common questions about Vendora. Try asking:\n" . $this->faqSuggestions();
+            return "Hi there! I can answer common questions about Vendora. Try asking:\n".$this->faqSuggestions();
         }
 
         $best = $this->relevantFaqs($message, 1)[0] ?? null;
@@ -211,7 +223,7 @@ class AiChatController extends Controller
             return $best['answer'];
         }
 
-        return "I'm not sure about that. Here are some things I can help with:\n" . $this->faqSuggestions();
+        return "I'm not sure about that. Here are some things I can help with:\n".$this->faqSuggestions();
     }
 
     /**
@@ -224,7 +236,8 @@ class AiChatController extends Controller
 
         foreach ($this->faqList() as $faq) {
             // An empty keyword list would build the regex "()", which matches every message.
-            $faq['keywords'] = array_values(array_filter($faq['keywords'] ?? []));
+            // Lowercased because the message is: admin-entered keywords may have capitals.
+            $faq['keywords'] = array_values(array_map('strtolower', array_filter($faq['keywords'] ?? [])));
             if ($faq['keywords'] === []) {
                 continue;
             }
@@ -236,7 +249,7 @@ class AiChatController extends Controller
                 }
             }
 
-            if (preg_match('/[^\w](' . implode('|', array_map('preg_quote', $faq['keywords'])) . ')/', ' ' . $lowercase)) {
+            if (preg_match('/[^\w]('.implode('|', array_map(fn (string $keyword) => preg_quote($keyword, '/'), $faq['keywords'])).')/', ' '.$lowercase)) {
                 $score++;
             }
 
@@ -253,7 +266,7 @@ class AiChatController extends Controller
     private function faqSuggestions(): string
     {
         return collect($this->faqList())
-            ->map(fn (array $faq) => '• ' . $faq['question'])
+            ->map(fn (array $faq) => '• '.$faq['question'])
             ->implode("\n");
     }
 }
