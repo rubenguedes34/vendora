@@ -174,4 +174,16 @@ describe('DashboardComponent month handling', () => {
     req.flush({ data: rows, current_page: 1, last_page: 1, per_page: 10, total: 10 });
     expect(component.recentTransactions.length).toBe(5);
   });
+
+  it('heading is not "All good!" while unread server notifications are listed', () => {
+    const component = create();
+    component.alerts = [];
+    component.notifications = [
+      { id: 1, type: 'budget_exceeded', title: 'Budget exceeded', body: null, data: {}, is_read: false, read_at: null, created_at: '' },
+    ];
+    expect(component.alertsHeading).toBe('New notifications');
+
+    component.notifications = [{ ...component.notifications[0], is_read: true }];
+    expect(component.alertsHeading).toBe('All good!');
+  });
 });
