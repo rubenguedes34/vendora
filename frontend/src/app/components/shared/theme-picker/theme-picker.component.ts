@@ -87,10 +87,7 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
                 />
               </svg>
             </div>
-            <span
-              class="text-xs text-gray-500 leading-none"
-              >{{ theme.label }}</span
-            >
+            <span class="text-xs text-gray-500 leading-none">{{ theme.label }}</span>
           </button>
         </div>
       </div>

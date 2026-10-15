@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Budget;
+use App\Models\FinancialRecord;
+use App\Models\RecurrentTransaction;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Support\DefaultCategories;
-use App\Models\FinancialRecord;
-use App\Models\Transaction;
-use App\Models\Budget;
-use App\Models\RecurrentTransaction;
+use Illuminate\Database\Seeder;
 
 class DemoDataSeeder extends Seeder
 {
@@ -18,6 +18,7 @@ class DemoDataSeeder extends Seeder
         $user = User::where('email', 'admin@vendora.com')->first();
         if (! $user) {
             $this->command?->warn('Admin user not found; run AdminSeeder before DemoDataSeeder.');
+
             return;
         }
 
@@ -33,16 +34,16 @@ class DemoDataSeeder extends Seeder
             ['description' => 'Phone Bill',     'amount' => 25.00,   'type' => 'expense', 'category' => 'Bills',         'day' => 15],
             ['description' => 'Rent',           'amount' => 700.00,  'type' => 'expense', 'category' => 'Rent',          'day' => 1],
             ['description' => 'Salary',         'amount' => 3500.00, 'type' => 'income',  'category' => 'Salary',        'day' => 25],
-            ['description' => 'Emergency Fund', 'amount' => 200.00,  'type' => 'expense', 'category' => 'Emergency Fund','day' => 28],
+            ['description' => 'Emergency Fund', 'amount' => 200.00,  'type' => 'expense', 'category' => 'Emergency Fund', 'day' => 28],
         ];
 
         foreach ($recurrents as $r) {
             RecurrentTransaction::firstOrCreate(
                 ['user_id' => $user->id, 'description' => $r['description']],
                 [
-                    'amount'       => $r['amount'],
-                    'type'         => $r['type'],
-                    'category_id'  => $cats[$r['category']]->id,
+                    'amount' => $r['amount'],
+                    'type' => $r['type'],
+                    'category_id' => $cats[$r['category']]->id,
                     'day_of_month' => $r['day'],
                 ]
             );
@@ -53,15 +54,15 @@ class DemoDataSeeder extends Seeder
 
         // Monthly income/expense variations to make charts interesting
         $monthlyData = [
-            1  => ['income' => 3500,  'expenses' => 1950, 'note' => 'Jan - New year spending'],
-            2  => ['income' => 3500,  'expenses' => 1650, 'note' => 'Feb - Low month'],
-            3  => ['income' => 3800,  'expenses' => 1820, 'note' => 'Mar - Freelance bonus'],
-            4  => ['income' => 3500,  'expenses' => 2100, 'note' => 'Apr - Easter trip'],
-            5  => ['income' => 3500,  'expenses' => 1750, 'note' => 'May - Normal'],
-            6  => ['income' => 4200,  'expenses' => 2300, 'note' => 'Jun - Side income + holiday'],
-            7  => ['income' => 3500,  'expenses' => 2400, 'note' => 'Jul - Summer holiday'],
-            8  => ['income' => 3500,  'expenses' => 2200, 'note' => 'Aug - Still summer'],
-            9  => ['income' => 3900,  'expenses' => 1900, 'note' => 'Sep - Back to normal'],
+            1 => ['income' => 3500,  'expenses' => 1950, 'note' => 'Jan - New year spending'],
+            2 => ['income' => 3500,  'expenses' => 1650, 'note' => 'Feb - Low month'],
+            3 => ['income' => 3800,  'expenses' => 1820, 'note' => 'Mar - Freelance bonus'],
+            4 => ['income' => 3500,  'expenses' => 2100, 'note' => 'Apr - Easter trip'],
+            5 => ['income' => 3500,  'expenses' => 1750, 'note' => 'May - Normal'],
+            6 => ['income' => 4200,  'expenses' => 2300, 'note' => 'Jun - Side income + holiday'],
+            7 => ['income' => 3500,  'expenses' => 2400, 'note' => 'Jul - Summer holiday'],
+            8 => ['income' => 3500,  'expenses' => 2200, 'note' => 'Aug - Still summer'],
+            9 => ['income' => 3900,  'expenses' => 1900, 'note' => 'Sep - Back to normal'],
             10 => ['income' => 3500,  'expenses' => 1800, 'note' => 'Oct - Normal'],
             11 => ['income' => 3500,  'expenses' => 2050, 'note' => 'Nov - Black Friday'],
             12 => ['income' => 4500,  'expenses' => 2800, 'note' => 'Dec - Christmas'],
@@ -71,7 +72,9 @@ class DemoDataSeeder extends Seeder
 
         foreach ($monthlyData as $month => $data) {
             // Only seed up to current month
-            if ($month > $currentMonth) continue;
+            if ($month > $currentMonth) {
+                continue;
+            }
 
             $savings = $data['income'] - $data['expenses'];
 
@@ -79,7 +82,7 @@ class DemoDataSeeder extends Seeder
             FinancialRecord::updateOrCreate(
                 ['user_id' => $user->id, 'year' => $year, 'month' => $month],
                 [
-                    'monthly_income'   => $data['income'],
+                    'monthly_income' => $data['income'],
                     'monthly_expenses' => $data['expenses'],
                 ]
             );
@@ -87,15 +90,15 @@ class DemoDataSeeder extends Seeder
             // Budgets for this month
             $monthStr = sprintf('%04d-%02d', $year, $month);
             $budgetDefs = [
-                'Food'          => 400,
-                'Transport'     => 150,
-                'Rent'          => 700,
+                'Food' => 400,
+                'Transport' => 150,
+                'Rent' => 700,
                 'Entertainment' => 100,
-                'Shopping'      => 200,
-                'Bills'         => 120,
-                'Health'        => 80,
-                'Emergency Fund'=> 200,
-                'Vacation'      => 100,
+                'Shopping' => 200,
+                'Bills' => 120,
+                'Health' => 80,
+                'Emergency Fund' => 200,
+                'Vacation' => 100,
             ];
             foreach ($budgetDefs as $catName => $amount) {
                 if (isset($cats[$catName])) {
@@ -121,37 +124,37 @@ class DemoDataSeeder extends Seeder
                 ['desc' => 'Supermarket',      'amount' => 102.30,  'type' => 'expense', 'cat' => 'Food',          'day' => 20],
                 ['desc' => 'Fuel',             'amount' => 60.00,   'type' => 'expense', 'cat' => 'Transport',     'day' => 8],
                 ['desc' => 'Fuel',             'amount' => 55.00,   'type' => 'expense', 'cat' => 'Transport',     'day' => 22],
-                ['desc' => 'Emergency Fund',   'amount' => 200.00,  'type' => 'expense', 'cat' => 'Emergency Fund','day' => 28],
+                ['desc' => 'Emergency Fund',   'amount' => 200.00,  'type' => 'expense', 'cat' => 'Emergency Fund', 'day' => 28],
             ];
 
             // Variable transactions per month
             $variableTx = [
-                1  => [['desc' => 'New Year Dinner',    'amount' => 85.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 1],
-                       ['desc' => 'Clothes',            'amount' => 120.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 5]],
-                2  => [['desc' => 'Valentine\'s Dinner','amount' => 65.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 14]],
-                3  => [['desc' => 'Freelance Project',  'amount' => 300.00, 'type' => 'income',  'cat' => 'Freelance',     'day' => 15],
-                       ['desc' => 'Books',              'amount' => 45.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 10]],
-                4  => [['desc' => 'Easter Travel',      'amount' => 380.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 9],
-                       ['desc' => 'Restaurant',         'amount' => 55.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 20]],
-                5  => [['desc' => 'Online Shopping',    'amount' => 89.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 18]],
-                6  => [['desc' => 'Side Income',        'amount' => 700.00, 'type' => 'income',  'cat' => 'Side Income',   'day' => 5],
-                       ['desc' => 'Summer Clothes',     'amount' => 180.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 12],
-                       ['desc' => 'Weekend Trip',       'amount' => 250.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 22]],
-                7  => [['desc' => 'Holiday Flight',     'amount' => 320.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 5],
-                       ['desc' => 'Hotel',              'amount' => 420.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 6],
-                       ['desc' => 'Sunglasses',         'amount' => 75.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 15]],
-                8  => [['desc' => 'Back to School',     'amount' => 150.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 25],
-                       ['desc' => 'Doctor Visit',       'amount' => 60.00,  'type' => 'expense', 'cat' => 'Health',        'day' => 14]],
-                9  => [['desc' => 'Freelance Project',  'amount' => 400.00, 'type' => 'income',  'cat' => 'Freelance',     'day' => 20],
-                       ['desc' => 'Concert Tickets',    'amount' => 90.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 8]],
+                1 => [['desc' => 'New Year Dinner',    'amount' => 85.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 1],
+                    ['desc' => 'Clothes',            'amount' => 120.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 5]],
+                2 => [['desc' => 'Valentine\'s Dinner', 'amount' => 65.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 14]],
+                3 => [['desc' => 'Freelance Project',  'amount' => 300.00, 'type' => 'income',  'cat' => 'Freelance',     'day' => 15],
+                    ['desc' => 'Books',              'amount' => 45.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 10]],
+                4 => [['desc' => 'Easter Travel',      'amount' => 380.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 9],
+                    ['desc' => 'Restaurant',         'amount' => 55.00,  'type' => 'expense', 'cat' => 'Food',          'day' => 20]],
+                5 => [['desc' => 'Online Shopping',    'amount' => 89.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 18]],
+                6 => [['desc' => 'Side Income',        'amount' => 700.00, 'type' => 'income',  'cat' => 'Side Income',   'day' => 5],
+                    ['desc' => 'Summer Clothes',     'amount' => 180.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 12],
+                    ['desc' => 'Weekend Trip',       'amount' => 250.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 22]],
+                7 => [['desc' => 'Holiday Flight',     'amount' => 320.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 5],
+                    ['desc' => 'Hotel',              'amount' => 420.00, 'type' => 'expense', 'cat' => 'Vacation',      'day' => 6],
+                    ['desc' => 'Sunglasses',         'amount' => 75.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 15]],
+                8 => [['desc' => 'Back to School',     'amount' => 150.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 25],
+                    ['desc' => 'Doctor Visit',       'amount' => 60.00,  'type' => 'expense', 'cat' => 'Health',        'day' => 14]],
+                9 => [['desc' => 'Freelance Project',  'amount' => 400.00, 'type' => 'income',  'cat' => 'Freelance',     'day' => 20],
+                    ['desc' => 'Concert Tickets',    'amount' => 90.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 8]],
                 10 => [['desc' => 'Dentist',            'amount' => 120.00, 'type' => 'expense', 'cat' => 'Health',        'day' => 11],
-                       ['desc' => 'Autumn Jacket',      'amount' => 95.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 20]],
+                    ['desc' => 'Autumn Jacket',      'amount' => 95.00,  'type' => 'expense', 'cat' => 'Shopping',      'day' => 20]],
                 11 => [['desc' => 'Black Friday',       'amount' => 280.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 29],
-                       ['desc' => 'Cinema',             'amount' => 22.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 10]],
+                    ['desc' => 'Cinema',             'amount' => 22.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 10]],
                 12 => [['desc' => 'Christmas Gifts',    'amount' => 450.00, 'type' => 'expense', 'cat' => 'Shopping',      'day' => 20],
-                       ['desc' => 'Christmas Dinner',   'amount' => 120.00, 'type' => 'expense', 'cat' => 'Food',          'day' => 25],
-                       ['desc' => 'Year-end Bonus',     'amount' => 1000.00,'type' => 'income',  'cat' => 'Salary',        'day' => 20],
-                       ['desc' => 'New Year Party',     'amount' => 95.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 31]],
+                    ['desc' => 'Christmas Dinner',   'amount' => 120.00, 'type' => 'expense', 'cat' => 'Food',          'day' => 25],
+                    ['desc' => 'Year-end Bonus',     'amount' => 1000.00, 'type' => 'income',  'cat' => 'Salary',        'day' => 20],
+                    ['desc' => 'New Year Party',     'amount' => 95.00,  'type' => 'expense', 'cat' => 'Entertainment', 'day' => 31]],
             ];
 
             $allTx = array_merge($txDefs, $variableTx[$month] ?? []);
@@ -162,13 +165,13 @@ class DemoDataSeeder extends Seeder
 
                 Transaction::firstOrCreate(
                     [
-                        'user_id'          => $user->id,
-                        'description'      => $tx['desc'],
+                        'user_id' => $user->id,
+                        'description' => $tx['desc'],
                         'transaction_date' => $date,
-                        'amount'           => $tx['amount'],
+                        'amount' => $tx['amount'],
                     ],
                     [
-                        'type'        => $tx['type'],
+                        'type' => $tx['type'],
                         'category_id' => $cats[$tx['cat']]->id,
                     ]
                 );

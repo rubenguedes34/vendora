@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FinancialService, Category, BudgetSummary, BudgetComparison } from '../../services/financial.service';
+import {
+  FinancialService,
+  Category,
+  BudgetSummary,
+  BudgetComparison,
+} from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
@@ -16,8 +21,15 @@ import { ApiError } from '../../models/api';
   selector: 'app-budget',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe, TransactionsComponent, RecurrentTransactionsComponent],
-  templateUrl: './budget.component.html'
+  imports: [
+    CommonModule,
+    FormsModule,
+    SidebarComponent,
+    CurrencySymbolPipe,
+    TransactionsComponent,
+    RecurrentTransactionsComponent,
+  ],
+  templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
   Math = Math;
@@ -58,7 +70,7 @@ export class BudgetComponent implements OnInit {
     private authService: AuthService,
     private financialService: FinancialService,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
   ) {}
 
   ngOnInit(): void {
@@ -77,19 +89,19 @@ export class BudgetComponent implements OnInit {
   loadCategories(): void {
     this.financialService.getAllCategories().subscribe({
       next: (categories) => {
-        this.incomeCategories  = categories.filter(c => c.type === 'income');
-        this.expenseCategories = categories.filter(c => c.type === 'expense');
-        this.savingsCategories = categories.filter(c => c.type === 'savings');
-        categories.forEach(c => this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0);
+        this.incomeCategories = categories.filter((c) => c.type === 'income');
+        this.expenseCategories = categories.filter((c) => c.type === 'expense');
+        this.savingsCategories = categories.filter((c) => c.type === 'savings');
+        categories.forEach((c) => (this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0));
       },
-      error: (error) => this.errorMessage = error.message || 'Failed to load categories',
+      error: (error) => (this.errorMessage = error.message || 'Failed to load categories'),
     });
   }
 
   loadSummary(): void {
     this.financialService.getBudgetSummary().subscribe({
-      next: (summary) => this.summary = summary,
-      error: (error) => this.errorMessage = error.message || 'Failed to load summary',
+      next: (summary) => (this.summary = summary),
+      error: (error) => (this.errorMessage = error.message || 'Failed to load summary'),
     });
   }
 
@@ -115,7 +127,7 @@ export class BudgetComponent implements OnInit {
 
     this.financialService.saveBudget(category.id, amount, month).subscribe({
       next: () => this.loadSummary(),
-      error: (error) => this.errorMessage = error.message || 'Failed to save budget',
+      error: (error) => (this.errorMessage = error.message || 'Failed to save budget'),
     });
   }
 
@@ -123,22 +135,24 @@ export class BudgetComponent implements OnInit {
     const currentMonth = this.getCurrentMonth();
     const [year, month] = currentMonth.split('-').map(Number);
 
-    this.financialService.saveRecord({
-      year,
-      month,
-      monthly_income: this.summary.income,
-      monthly_expenses: this.summary.expenses,
-      savings_goal: this.savingsGoalValue,
-      savings_goal_type: this.savingsGoalType,
-    }).subscribe({
-      next: () => {
-        if (!this.user) return;
-        this.user.savings_goal = this.savingsGoalValue;
-        this.user.savings_goal_type = this.savingsGoalType;
-        this.authService.setUser(this.user);
-      },
-      error: (error) => this.errorMessage = error.message || 'Failed to update savings goal',
-    });
+    this.financialService
+      .saveRecord({
+        year,
+        month,
+        monthly_income: this.summary.income,
+        monthly_expenses: this.summary.expenses,
+        savings_goal: this.savingsGoalValue,
+        savings_goal_type: this.savingsGoalType,
+      })
+      .subscribe({
+        next: () => {
+          if (!this.user) return;
+          this.user.savings_goal = this.savingsGoalValue;
+          this.user.savings_goal_type = this.savingsGoalType;
+          this.authService.setUser(this.user);
+        },
+        error: (error) => (this.errorMessage = error.message || 'Failed to update savings goal'),
+      });
   }
 
   saveAll(): void {
@@ -160,7 +174,7 @@ export class BudgetComponent implements OnInit {
       return;
     }
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       this.saveBudget(category);
       completed++;
       if (completed === total) {
@@ -175,7 +189,10 @@ export class BudgetComponent implements OnInit {
     this.comparisonLoading = true;
     this.comparisonError = '';
     this.financialService.getBudgetComparison().subscribe({
-      next: (data) => { this.comparison = data; this.comparisonLoading = false; },
+      next: (data) => {
+        this.comparison = data;
+        this.comparisonLoading = false;
+      },
       error: (err: ApiError) => {
         this.comparison = [];
         this.comparisonLoading = false;
@@ -211,7 +228,7 @@ export class BudgetComponent implements OnInit {
       error: () => {
         this.authService.clearAuth();
         this.router.navigate(['/login']);
-      }
+      },
     });
   }
 }

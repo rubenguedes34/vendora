@@ -2,17 +2,18 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\TokenService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class CategoryControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -26,7 +27,7 @@ class CategoryControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_unauthenticated_request_returns_401(): void
@@ -53,7 +54,6 @@ class CategoryControllerTest extends TestCase
         ], $this->authHeader())
             ->assertStatus(405);
     }
-
 
     public function test_update_is_not_available_to_users(): void
     {

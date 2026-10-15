@@ -10,7 +10,9 @@ describe('AlertRuleService', () => {
   const url = `${environment.apiUrl}/alert-rules`;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     service = TestBed.inject(AlertRuleService);
     http = TestBed.inject(HttpTestingController);
   });

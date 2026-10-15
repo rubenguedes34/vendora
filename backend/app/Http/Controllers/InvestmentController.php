@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\Investment\StoreInvestmentRequest;
 use App\Http\Requests\Investment\UpdateInvestmentRequest;
 use App\Models\Investment;
+use Illuminate\Http\Request;
 
 class InvestmentController extends Controller
 {
@@ -15,6 +15,7 @@ class InvestmentController extends Controller
      *     tags={"Investments"},
      *     summary="List all investments",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of investments")
      * )
      */
@@ -34,8 +35,11 @@ class InvestmentController extends Controller
      *     tags={"Investments"},
      *     summary="Create an investment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"name","type","initial_amount","current_amount","purchase_date"},
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="type", type="string"),
      *             @OA\Property(property="account", type="string"),
@@ -44,6 +48,7 @@ class InvestmentController extends Controller
      *             @OA\Property(property="purchase_date", type="string", format="date")
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Investment created")
      * )
      */
@@ -62,7 +67,9 @@ class InvestmentController extends Controller
      *     tags={"Investments"},
      *     summary="Get a single investment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Investment object")
      * )
      */
@@ -80,9 +87,13 @@ class InvestmentController extends Controller
      *     tags={"Investments"},
      *     summary="Update an investment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="type", type="string"),
      *             @OA\Property(property="account", type="string"),
@@ -91,6 +102,7 @@ class InvestmentController extends Controller
      *             @OA\Property(property="purchase_date", type="string", format="date")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Investment updated")
      * )
      */
@@ -110,7 +122,9 @@ class InvestmentController extends Controller
      *     tags={"Investments"},
      *     summary="Delete an investment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Investment deleted")
      * )
      */

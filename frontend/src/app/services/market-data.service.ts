@@ -25,31 +25,39 @@ export interface MarketQuote {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MarketDataService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   search(q: string): Observable<MarketSearchResult[]> {
-    return this.http.get<MarketSearchResult[]>(`${this.apiUrl}/market/search?q=${encodeURIComponent(q)}`).pipe(
-      timeout(8000),
-      catchError(err => throwError(() => this.handleError(err)))
-    );
+    return this.http
+      .get<MarketSearchResult[]>(`${this.apiUrl}/market/search?q=${encodeURIComponent(q)}`)
+      .pipe(
+        timeout(8000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   quote(symbol: string): Observable<MarketQuote> {
-    return this.http.get<MarketQuote>(`${this.apiUrl}/market/quote?symbol=${encodeURIComponent(symbol)}`).pipe(
-      timeout(10000),
-      catchError(err => throwError(() => this.handleError(err)))
-    );
+    return this.http
+      .get<MarketQuote>(`${this.apiUrl}/market/quote?symbol=${encodeURIComponent(symbol)}`)
+      .pipe(
+        timeout(10000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   private handleError(error: ApiError): Error {
     if (error.status === 0) return new Error('Network error');
     if (error.status === 404) return new Error('Symbol not found');
-    if (error.status === 502 || error.status === 503) return new Error('Market data provider unavailable');
+    if (error.status === 502 || error.status === 503)
+      return new Error('Market data provider unavailable');
     return new Error(error.error?.error || error.error?.message || 'Market data request failed');
   }
 }

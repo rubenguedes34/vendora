@@ -15,10 +15,11 @@ return new class extends Migration
             ->orderBy('id')
             ->get(['id', 'name', 'type'])
             ->each(function (object $category) use (&$canonicalCategoryIds): void {
-                $key = $category->type . "\0" . $category->name;
+                $key = $category->type."\0".$category->name;
 
-                if (!isset($canonicalCategoryIds[$key])) {
+                if (! isset($canonicalCategoryIds[$key])) {
                     $canonicalCategoryIds[$key] = $category->id;
+
                     return;
                 }
 

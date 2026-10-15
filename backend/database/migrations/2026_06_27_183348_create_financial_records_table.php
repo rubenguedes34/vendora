@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('monthly_income', 10, 2)->default(0);
             $table->decimal('monthly_expenses', 10, 2)->default(0);
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'year', 'month']);
         });
     }

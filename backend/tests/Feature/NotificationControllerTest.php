@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\TokenService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -16,6 +17,7 @@ class NotificationControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -27,7 +29,7 @@ class NotificationControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_notifications_require_authentication(): void
@@ -111,10 +113,10 @@ class NotificationControllerTest extends TestCase
 
     public function test_recurring_transaction_due_earlier_this_month_is_notified_once(): void
     {
-        $this->travelTo(\Carbon\Carbon::parse('2026-03-01 09:00'));
+        $this->travelTo(Carbon::parse('2026-03-01 09:00'));
         $this->makeRent();
 
-        $this->travelTo(\Carbon\Carbon::parse('2026-03-10 09:00'));
+        $this->travelTo(Carbon::parse('2026-03-10 09:00'));
         $this->getJson('/api/notifications', $this->authHeader())
             ->assertStatus(200)
             ->assertJsonFragment(['type' => 'recurring_due', 'body' => 'Monthly rent was due on Mar 5.']);
@@ -126,7 +128,7 @@ class NotificationControllerTest extends TestCase
 
     public function test_recurring_transaction_created_after_its_due_date_is_not_notified(): void
     {
-        $this->travelTo(\Carbon\Carbon::parse('2026-03-10 09:00'));
+        $this->travelTo(Carbon::parse('2026-03-10 09:00'));
         $this->makeRent();
 
         $this->getJson('/api/notifications', $this->authHeader())

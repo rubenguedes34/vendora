@@ -1,4 +1,15 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+  HostListener,
+  DestroyRef,
+  ChangeDetectorRef,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -13,14 +24,19 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { CurrencyTextPipe } from '../../pipes/currency-text.pipe';
 import { User } from '../../services/auth.service';
-import { CartesianTooltipItem, ChartInstance, RadialTooltipItem, chartConstructor } from '../../models/chart';
+import {
+  CartesianTooltipItem,
+  ChartInstance,
+  RadialTooltipItem,
+  chartConstructor,
+} from '../../models/chart';
 
 @Component({
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, RouterLink, SidebarComponent, CurrencySymbolPipe, CurrencyTextPipe],
-  templateUrl: './dashboard.component.html'
+  templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -29,7 +45,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   user: User | null = null;
   currentYear = new Date().getFullYear();
   currentMonth = new Date().getMonth() + 1;
-  monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   yearlyRecords: FinancialRecord[] = [];
 
   overviewYear = new Date().getFullYear();
@@ -48,19 +77,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   userInitials = '';
 
-  get overviewBalance(): number { return this.overviewIncome - this.overviewExpenses; }
+  get overviewBalance(): number {
+    return this.overviewIncome - this.overviewExpenses;
+  }
 
   get greeting(): string {
     const h = new Date().getHours();
     return h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
   }
 
-  get firstName(): string { return (this.user?.name || '').split(' ')[0]; }
+  get firstName(): string {
+    return (this.user?.name || '').split(' ')[0];
+  }
 
   // % change against the previous month of the same year; null when there is nothing to compare.
   deltaPct(key: 'income' | 'expenses' | 'balance'): { pct: number } | null {
-    const prev = this.monthBreakdown.find(m => m.month === this.overviewMonth - 1);
-    const cur = key === 'income' ? this.overviewIncome : key === 'expenses' ? this.overviewExpenses : this.overviewBalance;
+    const prev = this.monthBreakdown.find((m) => m.month === this.overviewMonth - 1);
+    const cur =
+      key === 'income'
+        ? this.overviewIncome
+        : key === 'expenses'
+          ? this.overviewExpenses
+          : this.overviewBalance;
     if (!prev || !prev[key]) return null;
     // wrapped so an exact 0% is still truthy for *ngIf and shows as a badge
     return { pct: ((cur - prev[key]) / Math.abs(prev[key])) * 100 };
@@ -97,7 +135,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   daysRemaining = 0;
   savingsRate = 0;
 
-
   constructor(
     private authService: AuthService,
     private financialService: FinancialService,
@@ -105,7 +142,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private transactionService: TransactionService,
     public currencyService: CurrencyService,
     private themeService: ThemeService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {
     this.destroyRef.onDestroy(() => {
       this.incomeExpenseChartInstance?.destroy();
@@ -116,24 +153,45 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.notificationService.notifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(n => { this.notifications = n; this.cdr.markForCheck(); });
-    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => { this.unreadCount = c; this.cdr.markForCheck(); });
+    this.notificationService.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((n) => {
+        this.notifications = n;
+        this.cdr.markForCheck();
+      });
+    this.notificationService.unreadCount$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((c) => {
+        this.unreadCount = c;
+        this.cdr.markForCheck();
+      });
     this.notificationService.refreshCount().subscribe({ error: () => {} });
 
-    this.themeService.dark$.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe(() => this.redrawChartsForMode());
+    this.themeService.dark$
+      .pipe(skip(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.redrawChartsForMode());
 
-    this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
-      this.user = user;
-      // the API sends these as strings (PHP date()), and computeAlerts compares the year with ===
-      if (user?.current_year) this.currentYear = Number(user.current_year);
-      if (user?.current_month) this.currentMonth = Number(user.current_month);
-      this.overviewYear = this.currentYear;
-      this.overviewMonth = this.currentMonth;
-      this.selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
-      const name: string = user?.name || '';
-      this.userInitials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
-      this.cdr.markForCheck();
-    });
+    this.authService
+      .getUserObservable()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.user = user;
+        // the API sends these as strings (PHP date()), and computeAlerts compares the year with ===
+        if (user?.current_year) this.currentYear = Number(user.current_year);
+        if (user?.current_month) this.currentMonth = Number(user.current_month);
+        this.overviewYear = this.currentYear;
+        this.overviewMonth = this.currentMonth;
+        this.selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
+        const name: string = user?.name || '';
+        this.userInitials =
+          name
+            .split(' ')
+            .map((w: string) => w[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase() || '?';
+        this.cdr.markForCheck();
+      });
 
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
@@ -142,7 +200,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     this.loadDashboardData();
 
-    this.financialService.dataChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshAfterChange());
+    this.financialService.dataChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshAfterChange());
   }
 
   // Empty yearlyRecords so loadOverviewMonth refetches instead of reading the stale list.
@@ -152,7 +212,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.loadExpensesByCategory();
     // The API only accepts per_page 10/20/50/100 (IndexTransactionRequest), so ask for 10 and show 5.
     this.transactionService.getTransactions({ per_page: 10 }).subscribe({
-      next: res => { this.recentTransactions = res.data.slice(0, 5); this.cdr.markForCheck(); }
+      next: (res) => {
+        this.recentTransactions = res.data.slice(0, 5);
+        this.cdr.markForCheck();
+      },
     });
   }
 
@@ -161,15 +224,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (record) => {
         this.updateOverviewFromRecord(record);
         this.updateChartsWithRealData();
-        this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+        this.computeAlerts(
+          this.overviewYear,
+          this.overviewMonth,
+          this.overviewIncome,
+          this.overviewExpenses,
+          this.overviewSavings,
+        );
         this.cdr.markForCheck();
       },
-      error: () => { this.updateChartsWithRealData(); this.cdr.markForCheck(); }
+      error: () => {
+        this.updateChartsWithRealData();
+        this.cdr.markForCheck();
+      },
     });
 
     this.transactionService.getTransactions({ per_page: 10 }).subscribe({
-      next: res => { this.recentTransactions = res.data.slice(0, 5); this.cdr.markForCheck(); },
-      error: () => { this.recentTransactions = []; this.cdr.markForCheck(); }
+      next: (res) => {
+        this.recentTransactions = res.data.slice(0, 5);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.recentTransactions = [];
+        this.cdr.markForCheck();
+      },
     });
 
     this.loadExpensesByCategory();
@@ -181,7 +259,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.updateChartsWithRealData();
         this.cdr.markForCheck();
       },
-      error: () => { this.yearlyRecords = []; this.updateMonthBreakdown(); this.cdr.markForCheck(); }
+      error: () => {
+        this.yearlyRecords = [];
+        this.updateMonthBreakdown();
+        this.cdr.markForCheck();
+      },
     });
   }
 
@@ -193,7 +275,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.updateOverviewChart();
   }
 
-  computeAlerts(year: number, month: number, income: number, expenses: number, savings: number): void {
+  computeAlerts(
+    year: number,
+    month: number,
+    income: number,
+    expenses: number,
+    savings: number,
+  ): void {
     const alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
     const now = new Date();
     const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1;
@@ -206,34 +294,62 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     // The monthly base is a full-month plan, not money spent so far; only what transactions added is extrapolated.
     const spentSoFar = Math.max(0, expenses - this.baseExpensesValue);
     this.dailyAvgSpend = dayOfMonth > 0 ? spentSoFar / dayOfMonth : 0;
-    this.projectedBalance = income - expenses - (this.dailyAvgSpend * this.daysRemaining);
+    this.projectedBalance = income - expenses - this.dailyAvgSpend * this.daysRemaining;
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
-      alerts.push({ type: 'danger', title: 'Expenses exceed income', message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned in ${monthName}.` });
+      alerts.push({
+        type: 'danger',
+        title: 'Expenses exceed income',
+        message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned in ${monthName}.`,
+      });
     } else if (expenses > income * 0.9) {
-      alerts.push({ type: 'warning', title: 'Spending at 90%+ of income', message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income in ${monthName}.` });
+      alerts.push({
+        type: 'warning',
+        title: 'Spending at 90%+ of income',
+        message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income in ${monthName}.`,
+      });
     }
 
     if (this.savingsRate < 10 && income > 0) {
-      alerts.push({ type: 'warning', title: 'Low savings rate', message: `You're saving ${this.savingsRate.toFixed(1)}% of income in ${monthName}. Target is at least 20%.` });
+      alerts.push({
+        type: 'warning',
+        title: 'Low savings rate',
+        message: `You're saving ${this.savingsRate.toFixed(1)}% of income in ${monthName}. Target is at least 20%.`,
+      });
     }
 
     if (this.projectedBalance < 0) {
-      alerts.push({ type: 'danger', title: `Negative ${monthName} projection`, message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end ${monthName} ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.` });
+      alerts.push({
+        type: 'danger',
+        title: `Negative ${monthName} projection`,
+        message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end ${monthName} ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.`,
+      });
     } else if (this.projectedBalance < income * 0.1) {
-      alerts.push({ type: 'warning', title: 'Tight projected balance', message: `Projected end of ${monthName} balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.` });
+      alerts.push({
+        type: 'warning',
+        title: 'Tight projected balance',
+        message: `Projected end of ${monthName} balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.`,
+      });
     } else {
-      alerts.push({ type: 'info', title: `On track in ${monthName}`, message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of ${monthName}.` });
+      alerts.push({
+        type: 'info',
+        title: `On track in ${monthName}`,
+        message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of ${monthName}.`,
+      });
     }
 
     if (isCurrent && this.daysRemaining <= 7 && expenses > income * 0.8) {
-      alerts.push({ type: 'warning', title: 'Month ending soon', message: `${this.daysRemaining} days left in ${monthName}. Watch your spending to stay positive.` });
+      alerts.push({
+        type: 'warning',
+        title: 'Month ending soon',
+        message: `${this.daysRemaining} days left in ${monthName}. Watch your spending to stay positive.`,
+      });
     }
 
     this.alerts = alerts;
-    this.hasCritical = this.visibleAlerts.some(a => a.type === 'danger');
-    this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
+    this.hasCritical = this.visibleAlerts.some((a) => a.type === 'danger');
+    this.alertCount = this.visibleAlerts.filter((a) => a.type !== 'info').length;
   }
 
   // Scoped to user and month so dismissing in October does not hide the same alert in November.
@@ -269,34 +385,35 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   get visibleAlerts() {
-    return this.alerts.filter(a => !this.dismissedAlerts.has(this.dismissKey(a)));
+    return this.alerts.filter((a) => !this.dismissedAlerts.has(this.dismissKey(a)));
   }
 
   dismissAlert(alert: { type: string; title: string; message: string }): void {
     this.dismissedAlerts.add(this.dismissKey(alert));
     this.saveDismissedAlerts();
-    this.hasCritical = this.visibleAlerts.some(a => a.type === 'danger');
-    this.alertCount = this.visibleAlerts.filter(a => a.type !== 'info').length;
+    this.hasCritical = this.visibleAlerts.some((a) => a.type === 'danger');
+    this.alertCount = this.visibleAlerts.filter((a) => a.type !== 'info').length;
   }
 
   clearAllAlerts(): void {
-    this.alerts.forEach(a => this.dismissedAlerts.add(this.dismissKey(a)));
+    this.alerts.forEach((a) => this.dismissedAlerts.add(this.dismissKey(a)));
     this.saveDismissedAlerts();
     this.hasCritical = false;
     this.alertCount = 0;
   }
 
   get unreadNotifications(): AppNotification[] {
-    return this.notifications.filter(n => !n.is_read);
+    return this.notifications.filter((n) => !n.is_read);
   }
 
   // Says what the list below holds, so one generic "Some warnings" is not shown for a single alert.
   get alertsHeading(): string {
     const visible = this.visibleAlerts;
     // Unread server notifications are listed above, so the heading cannot claim "All good!" over them.
-    if (visible.length === 0) return this.unreadNotifications.length > 0 ? 'New notifications' : 'All good!';
+    if (visible.length === 0)
+      return this.unreadNotifications.length > 0 ? 'New notifications' : 'All good!';
     if (this.hasCritical) return 'Attention needed';
-    const warnings = visible.filter(a => a.type === 'warning').length;
+    const warnings = visible.filter((a) => a.type === 'warning').length;
     if (warnings === 0) return 'On track';
     return warnings === 1 ? '1 warning' : `${warnings} warnings`;
   }
@@ -328,7 +445,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (this.showAlerts && !target.closest('.alerts-panel-wrapper')) this.showAlerts = false;
-    if (this.showMonthPicker && !target.closest('.month-picker-wrapper')) this.showMonthPicker = false;
+    if (this.showMonthPicker && !target.closest('.month-picker-wrapper'))
+      this.showMonthPicker = false;
   }
 
   @HostListener('document:keydown.escape')
@@ -340,20 +458,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   loadExpensesByCategory(): void {
     const month = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
     this.financialService.getExpensesByCategory(month).subscribe({
-      next: data => {
+      next: (data) => {
         this.expensesByCategory = data;
-        this.maxExpense = data.length ? Math.max(...data.map(d => d.total)) : 1;
+        this.maxExpense = data.length ? Math.max(...data.map((d) => d.total)) : 1;
         this.updateCategoryBreakdownChart();
         this.cdr.markForCheck();
       },
-      error: () => { this.expensesByCategory = []; this.cdr.markForCheck(); }
+      error: () => {
+        this.expensesByCategory = [];
+        this.cdr.markForCheck();
+      },
     });
   }
 
   updateMonthBreakdown(): void {
     this.monthBreakdown = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
-      const record = this.yearlyRecords.find(r => r.year === this.overviewYear && r.month === month);
+      const record = this.yearlyRecords.find(
+        (r) => r.year === this.overviewYear && r.month === month,
+      );
       const income = parseFloat(String(record?.monthly_income || 0));
       const expenses = parseFloat(String(record?.monthly_expenses || 0));
       return { month, income, expenses, balance: income - expenses };
@@ -406,37 +529,57 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private submitMonthBase(change: Partial<FinancialRecord>): void {
     this.savingBase = true;
     this.baseError = '';
-    this.financialService.saveRecord({ year: this.overviewYear, month: this.overviewMonth, ...change }).subscribe({
-      next: (record) => {
-        const index = this.yearlyRecords.findIndex(r => r.year === record.year && r.month === record.month);
-        if (index >= 0) { this.yearlyRecords[index] = record; } else { this.yearlyRecords.push(record); }
-        this.savingBase = false;
-        this.editingBase = false;
-        this.updateMonthBreakdown();
-        this.updateOverviewFromRecord(record);
-        this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
-        this.updateChartsWithRealData();
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.savingBase = false;
-        this.baseError = error?.message || 'Could not save this month. Please try again.';
-        this.cdr.markForCheck();
-      }
-    });
+    this.financialService
+      .saveRecord({ year: this.overviewYear, month: this.overviewMonth, ...change })
+      .subscribe({
+        next: (record) => {
+          const index = this.yearlyRecords.findIndex(
+            (r) => r.year === record.year && r.month === record.month,
+          );
+          if (index >= 0) {
+            this.yearlyRecords[index] = record;
+          } else {
+            this.yearlyRecords.push(record);
+          }
+          this.savingBase = false;
+          this.editingBase = false;
+          this.updateMonthBreakdown();
+          this.updateOverviewFromRecord(record);
+          this.computeAlerts(
+            this.overviewYear,
+            this.overviewMonth,
+            this.overviewIncome,
+            this.overviewExpenses,
+            this.overviewSavings,
+          );
+          this.updateChartsWithRealData();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.savingBase = false;
+          this.baseError = error?.message || 'Could not save this month. Please try again.';
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   prevMonth(): void {
     let year = this.overviewYear;
     let month = this.overviewMonth - 1;
-    if (month < 1) { month = 12; year--; }
+    if (month < 1) {
+      month = 12;
+      year--;
+    }
     this.setMonth(year, month);
   }
 
   nextMonth(): void {
     let year = this.overviewYear;
     let month = this.overviewMonth + 1;
-    if (month > 12) { month = 1; year++; }
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
     this.setMonth(year, month);
   }
 
@@ -457,32 +600,55 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   loadOverviewMonth(): void {
-    const record = this.yearlyRecords.find(r => r.year === this.overviewYear && r.month === this.overviewMonth);
+    const record = this.yearlyRecords.find(
+      (r) => r.year === this.overviewYear && r.month === this.overviewMonth,
+    );
     if (record) {
       this.updateMonthBreakdown();
       this.updateOverviewFromRecord(record);
-      this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+      this.computeAlerts(
+        this.overviewYear,
+        this.overviewMonth,
+        this.overviewIncome,
+        this.overviewExpenses,
+        this.overviewSavings,
+      );
       this.updateChartsWithRealData();
     } else {
       this.financialService.getYearRecords(this.overviewYear).subscribe({
         next: (records) => {
           this.yearlyRecords = records;
           this.updateMonthBreakdown();
-          const r = records.find(rec => rec.month === this.overviewMonth);
-          if (r) { this.updateOverviewFromRecord(r); }
-          else { this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart(); }
-          this.computeAlerts(this.overviewYear, this.overviewMonth, this.overviewIncome, this.overviewExpenses, this.overviewSavings);
+          const r = records.find((rec) => rec.month === this.overviewMonth);
+          if (r) {
+            this.updateOverviewFromRecord(r);
+          } else {
+            this.overviewIncome = 0;
+            this.overviewExpenses = 0;
+            this.overviewSavings = 0;
+            this.updateOverviewChart();
+          }
+          this.computeAlerts(
+            this.overviewYear,
+            this.overviewMonth,
+            this.overviewIncome,
+            this.overviewExpenses,
+            this.overviewSavings,
+          );
           this.updateChartsWithRealData();
           this.cdr.markForCheck();
         },
         error: () => {
           this.yearlyRecords = [];
           this.updateMonthBreakdown();
-          this.overviewIncome = 0; this.overviewExpenses = 0; this.overviewSavings = 0; this.updateOverviewChart();
+          this.overviewIncome = 0;
+          this.overviewExpenses = 0;
+          this.overviewSavings = 0;
+          this.updateOverviewChart();
           this.computeAlerts(this.overviewYear, this.overviewMonth, 0, 0, 0);
           this.updateChartsWithRealData();
           this.cdr.markForCheck();
-        }
+        },
       });
     }
   }
@@ -493,11 +659,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   updateChartsWithRealData(): void {
     if (this.incomeExpenseChartInstance && this.yearlyRecords.length > 0) {
-      const labels = this.monthNames.map(m => m.slice(0, 3));
+      const labels = this.monthNames.map((m) => m.slice(0, 3));
       this.incomeExpenseChartInstance.data.labels = labels;
-      this.incomeExpenseChartInstance.data.datasets[0].data = this.monthBreakdown.map(m => m.income);
-      this.incomeExpenseChartInstance.data.datasets[1].data = this.monthBreakdown.map(m => m.expenses);
-      this.incomeExpenseChartInstance.data.datasets[2].data = this.monthBreakdown.map(m => Math.max(0, m.balance));
+      this.incomeExpenseChartInstance.data.datasets[0].data = this.monthBreakdown.map(
+        (m) => m.income,
+      );
+      this.incomeExpenseChartInstance.data.datasets[1].data = this.monthBreakdown.map(
+        (m) => m.expenses,
+      );
+      this.incomeExpenseChartInstance.data.datasets[2].data = this.monthBreakdown.map((m) =>
+        Math.max(0, m.balance),
+      );
       this.incomeExpenseChartInstance.update();
     }
     this.updateOverviewChart();
@@ -507,7 +679,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   updateOverviewChart(): void {
     if (this.categoryChartInstance) {
       this.categoryChartInstance.data.datasets[0].data = [
-        this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)
+        this.overviewIncome,
+        this.overviewExpenses,
+        Math.max(0, this.overviewSavings),
       ];
       this.categoryChartInstance.update();
     }
@@ -548,58 +722,80 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.incomeExpenseChartInstance = new (chartConstructor())(ctx, {
       type: 'bar',
       data: {
-        labels: this.monthNames.map(m => m.slice(0, 3)),
+        labels: this.monthNames.map((m) => m.slice(0, 3)),
         datasets: [
           {
             label: 'Income',
-            data: this.monthBreakdown.map(m => m.income),
+            data: this.monthBreakdown.map((m) => m.income),
             backgroundColor: '#2dd4bf',
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.7,
-            categoryPercentage: 0.8
+            categoryPercentage: 0.8,
           },
           {
             label: 'Expenses',
-            data: this.monthBreakdown.map(m => m.expenses),
+            data: this.monthBreakdown.map((m) => m.expenses),
             backgroundColor: '#f87171',
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.7,
-            categoryPercentage: 0.8
+            categoryPercentage: 0.8,
           },
           {
             label: 'Balance',
-            data: this.monthBreakdown.map(m => Math.max(0, m.balance)),
+            data: this.monthBreakdown.map((m) => Math.max(0, m.balance)),
             backgroundColor: '#818cf8',
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.7,
-            categoryPercentage: 0.8
-          }
-        ]
+            categoryPercentage: 0.8,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { display: true, labels: { usePointStyle: true, boxWidth: 8, padding: 10, font: { size: 11 }, color: this.chartColors().legend } },
+          legend: {
+            display: true,
+            labels: {
+              usePointStyle: true,
+              boxWidth: 8,
+              padding: 10,
+              font: { size: 11 },
+              color: this.chartColors().legend,
+            },
+          },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: CartesianTooltipItem) => ` ${c.dataset.label}: ${symbol}${c.parsed.y.toFixed(2)}` }
-          }
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: (c: CartesianTooltipItem) =>
+                ` ${c.dataset.label}: ${symbol}${c.parsed.y.toFixed(2)}`,
+            },
+          },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: this.chartColors().tick, font: { size: 11 } } },
+          x: {
+            grid: { display: false },
+            ticks: { color: this.chartColors().tick, font: { size: 11 } },
+          },
           y: {
-            beginAtZero: true, grid: { color: this.chartColors().grid },
-            ticks: { color: this.chartColors().tick, font: { size: 11 }, callback: (v: number | string) => symbol + v }
-          }
-        }
-      }
+            beginAtZero: true,
+            grid: { color: this.chartColors().grid },
+            ticks: {
+              color: this.chartColors().tick,
+              font: { size: 11 },
+              callback: (v: number | string) => symbol + v,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -611,14 +807,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       type: 'doughnut',
       data: {
         labels: ['Income', 'Expenses', 'Savings'],
-        datasets: [{
-          data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
-          backgroundColor: ['#2dd4bf', '#f87171', '#818cf8'],
-          borderColor: 'transparent',
-          borderWidth: 3,
-          hoverOffset: 6,
-          borderRadius: 4
-        }]
+        datasets: [
+          {
+            data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
+            backgroundColor: ['#2dd4bf', '#f87171', '#818cf8'],
+            borderColor: 'transparent',
+            borderWidth: 3,
+            hoverOffset: 6,
+            borderRadius: 4,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -628,12 +826,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: RadialTooltipItem) => ` ${c.label}: €${c.parsed.toFixed(2)}` }
-          }
-        }
-      }
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: { label: (c: RadialTooltipItem) => ` ${c.label}: €${c.parsed.toFixed(2)}` },
+          },
+        },
+      },
     });
   }
 
@@ -644,30 +844,42 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.categoryBreakdownChartInstance = new (chartConstructor())(ctx, {
       type: 'doughnut',
       data: {
-        labels: this.expensesByCategory.map(e => e.category),
-        datasets: [{
-          data: this.expensesByCategory.map(e => e.total),
-          backgroundColor: this.expensesByCategory.map(e => e.color),
-          borderColor: 'transparent',
-          borderWidth: 2,
-          hoverOffset: 6,
-          borderRadius: 3
-        }]
+        labels: this.expensesByCategory.map((e) => e.category),
+        datasets: [
+          {
+            data: this.expensesByCategory.map((e) => e.total),
+            backgroundColor: this.expensesByCategory.map((e) => e.color),
+            borderColor: 'transparent',
+            borderWidth: 2,
+            hoverOffset: 6,
+            borderRadius: 3,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
         cutout: '60%',
         plugins: {
-          legend: { position: 'right', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: this.chartColors().legend } },
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 10,
+              padding: 10,
+              font: { size: 11 },
+              color: this.chartColors().legend,
+            },
+          },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: RadialTooltipItem) => ` ${c.label}: €${c.parsed.toFixed(2)}` }
-          }
-        }
-      }
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: { label: (c: RadialTooltipItem) => ` ${c.label}: €${c.parsed.toFixed(2)}` },
+          },
+        },
+      },
     });
   }
 
@@ -676,9 +888,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.initCategoryBreakdownChart();
       return;
     }
-    this.categoryBreakdownChartInstance.data.labels = this.expensesByCategory.map(e => e.category);
-    this.categoryBreakdownChartInstance.data.datasets[0].data = this.expensesByCategory.map(e => e.total);
-    this.categoryBreakdownChartInstance.data.datasets[0].backgroundColor = this.expensesByCategory.map(e => e.color);
+    this.categoryBreakdownChartInstance.data.labels = this.expensesByCategory.map(
+      (e) => e.category,
+    );
+    this.categoryBreakdownChartInstance.data.datasets[0].data = this.expensesByCategory.map(
+      (e) => e.total,
+    );
+    this.categoryBreakdownChartInstance.data.datasets[0].backgroundColor =
+      this.expensesByCategory.map((e) => e.color);
     this.categoryBreakdownChartInstance.update();
   }
 
@@ -687,21 +904,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.monthlyBalanceChartInstance?.destroy();
     const ctx = this.monthlyBalanceChart.nativeElement.getContext('2d');
     const symbol = this.currencyService.symbol;
-    const data = this.monthBreakdown.map(m => m.balance);
-    const colors = this.monthBreakdown.map(m => m.balance >= 0 ? '#10b981' : '#ef4444');
+    const data = this.monthBreakdown.map((m) => m.balance);
+    const colors = this.monthBreakdown.map((m) => (m.balance >= 0 ? '#10b981' : '#ef4444'));
 
     this.monthlyBalanceChartInstance = new (chartConstructor())(ctx, {
       type: 'bar',
       data: {
-        labels: this.monthNames.map(m => m.slice(0, 3)),
-        datasets: [{
-          label: 'Balance',
-          data,
-          backgroundColor: colors,
-          borderRadius: 6,
-          borderSkipped: false,
-          barPercentage: 0.6
-        }]
+        labels: this.monthNames.map((m) => m.slice(0, 3)),
+        datasets: [
+          {
+            label: 'Balance',
+            data,
+            backgroundColor: colors,
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.6,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -710,16 +929,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: CartesianTooltipItem) => ` Balance: ${symbol}${c.parsed.y.toFixed(2)}` }
-          }
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: (c: CartesianTooltipItem) => ` Balance: ${symbol}${c.parsed.y.toFixed(2)}`,
+            },
+          },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: this.chartColors().tick, font: { size: 11 } } },
-          y: { grid: { color: this.chartColors().grid }, ticks: { color: this.chartColors().tick, font: { size: 11 }, callback: (v: number | string) => symbol + v } }
-        }
-      }
+          x: {
+            grid: { display: false },
+            ticks: { color: this.chartColors().tick, font: { size: 11 } },
+          },
+          y: {
+            grid: { color: this.chartColors().grid },
+            ticks: {
+              color: this.chartColors().tick,
+              font: { size: 11 },
+              callback: (v: number | string) => symbol + v,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -728,8 +961,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.initMonthlyBalanceChart();
       return;
     }
-    this.monthlyBalanceChartInstance.data.datasets[0].data = this.monthBreakdown.map(m => m.balance);
-    this.monthlyBalanceChartInstance.data.datasets[0].backgroundColor = this.monthBreakdown.map(m => m.balance >= 0 ? '#10b981' : '#ef4444');
+    this.monthlyBalanceChartInstance.data.datasets[0].data = this.monthBreakdown.map(
+      (m) => m.balance,
+    );
+    this.monthlyBalanceChartInstance.data.datasets[0].backgroundColor = this.monthBreakdown.map(
+      (m) => (m.balance >= 0 ? '#10b981' : '#ef4444'),
+    );
     this.monthlyBalanceChartInstance.update();
   }
 }

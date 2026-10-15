@@ -19,7 +19,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const auth = inject(AuthService);
   const router = inject(Router);
-  const isPublic = PUBLIC_PATHS.some(path => req.url === `${environment.apiUrl}${path}`);
+  const isPublic = PUBLIC_PATHS.some((path) => req.url === `${environment.apiUrl}${path}`);
   const token = auth.getTokenValue();
 
   if (token && !isPublic && !req.headers.has('Authorization')) {
@@ -30,9 +30,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !isPublic && auth.getTokenValue()) {
         auth.clearAuth();
-        router.navigate(['/login'], { queryParams: { error: 'Your session has expired. Please log in again.' } });
+        router.navigate(['/login'], {
+          queryParams: { error: 'Your session has expired. Please log in again.' },
+        });
       }
       return throwError(() => error);
-    })
+    }),
   );
 };

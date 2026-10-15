@@ -34,6 +34,6 @@ class OwnedByUserPolicy
     {
         return (int) $record->getAttribute('user_id') === $user->id
             ? Response::allow()
-            : Response::denyAsNotFound('No query results for model [' . $record::class . '] ' . $record->getKey());
+            : Response::denyAsNotFound('No query results for model ['.$record::class.'] '.$record->getKey());
     }
 }

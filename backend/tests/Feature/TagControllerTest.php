@@ -12,6 +12,7 @@ class TagControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -23,7 +24,7 @@ class TagControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_tags_require_authentication(): void

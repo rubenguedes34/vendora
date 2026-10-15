@@ -20,8 +20,16 @@ import { ApiError } from '../../models/api';
   selector: 'app-account',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, ThemePickerComponent, CurrencyPickerComponent, CurrencySymbolPipe],
-  templateUrl: './account.component.html'
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SidebarComponent,
+    ThemePickerComponent,
+    CurrencyPickerComponent,
+    CurrencySymbolPipe,
+  ],
+  templateUrl: './account.component.html',
 })
 export class AccountComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -47,25 +55,28 @@ export class AccountComponent implements OnInit {
     private authService: AuthService,
     private http: HttpClient,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
   ) {}
 
   ngOnInit(): void {
     this.user = this.authService.getUserValue();
     this.updateInitials();
 
-    this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => {
-      this.user = u;
-      this.updateInitials();
-      if (u) {
-        this.profileForm.patchValue({
-          name: u.name,
-          email: u.email,
-          monthly_income: u.monthly_income ?? '',
-          monthly_expenses: u.monthly_expenses ?? '',
-        });
-      }
-    });
+    this.authService
+      .getUserObservable()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((u) => {
+        this.user = u;
+        this.updateInitials();
+        if (u) {
+          this.profileForm.patchValue({
+            name: u.name,
+            email: u.email,
+            monthly_income: u.monthly_income ?? '',
+            monthly_expenses: u.monthly_expenses ?? '',
+          });
+        }
+      });
 
     this.profileForm = this.fb.group({
       name: [this.user?.name || '', Validators.required],
@@ -75,11 +86,14 @@ export class AccountComponent implements OnInit {
       current_password: [''],
     });
 
-    this.passwordForm = this.fb.group({
-      current_password: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      password_confirmation: ['', Validators.required],
-    }, { validators: this.passwordMatchValidator });
+    this.passwordForm = this.fb.group(
+      {
+        current_password: ['', Validators.required],
+        password: ['', [Validators.required, Validators.minLength(8)]],
+        password_confirmation: ['', Validators.required],
+      },
+      { validators: this.passwordMatchValidator },
+    );
   }
 
   get emailChanged(): boolean {
@@ -88,7 +102,13 @@ export class AccountComponent implements OnInit {
 
   private updateInitials(): void {
     const name: string = this.user?.name || '';
-    this.initials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+    this.initials =
+      name
+        .split(' ')
+        .map((w: string) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase() || '?';
   }
 
   private passwordMatchValidator(group: FormGroup) {
@@ -107,22 +127,28 @@ export class AccountComponent implements OnInit {
     const { current_password, ...profile } = this.profileForm.value;
     const payload = this.emailChanged ? { ...profile, current_password } : profile;
 
-    this.http.put(`${this.apiUrl}/user/profile`, payload)
-      .pipe(timeout(10000), catchError(err => throwError(() => err)))
+    this.http
+      .put(`${this.apiUrl}/user/profile`, payload)
+      .pipe(
+        timeout(10000),
+        catchError((err) => throwError(() => err)),
+      )
       .subscribe({
         next: () => {
           this.savingProfile = false;
           this.authService.setUser({ ...this.user, ...profile });
           this.profileForm.patchValue({ current_password: '' });
           this.profileSuccess = 'Profile updated successfully.';
-          setTimeout(() => this.profileSuccess = '', 4000);
+          setTimeout(() => (this.profileSuccess = ''), 4000);
         },
         error: (err: ApiError) => {
           this.savingProfile = false;
-          this.profileError = err?.error?.errors?.['current_password']?.[0]
-            || err?.error?.message || 'Failed to update profile. Please try again.';
-          setTimeout(() => this.profileError = '', 5000);
-        }
+          this.profileError =
+            err?.error?.errors?.['current_password']?.[0] ||
+            err?.error?.message ||
+            'Failed to update profile. Please try again.';
+          setTimeout(() => (this.profileError = ''), 5000);
+        },
       });
   }
 
@@ -132,27 +158,38 @@ export class AccountComponent implements OnInit {
     this.passwordSuccess = '';
     this.passwordError = '';
 
-    this.http.put(`${this.apiUrl}/user/password`, this.passwordForm.value)
-      .pipe(timeout(8000), catchError(err => throwError(() => err)))
+    this.http
+      .put(`${this.apiUrl}/user/password`, this.passwordForm.value)
+      .pipe(
+        timeout(8000),
+        catchError((err) => throwError(() => err)),
+      )
       .subscribe({
         next: () => {
           this.savingPassword = false;
           this.passwordSuccess = 'Password updated successfully.';
           this.passwordForm.reset();
-          setTimeout(() => this.passwordSuccess = '', 4000);
+          setTimeout(() => (this.passwordSuccess = ''), 4000);
         },
         error: (err: ApiError) => {
           this.savingPassword = false;
-          this.passwordError = err?.error?.message || 'Failed to update password. Check your current password.';
-          setTimeout(() => this.passwordError = '', 5000);
-        }
+          this.passwordError =
+            err?.error?.message || 'Failed to update password. Check your current password.';
+          setTimeout(() => (this.passwordError = ''), 5000);
+        },
       });
   }
 
   logoutAll(): void {
     this.authService.logout().subscribe({
-      next: () => { this.authService.clearAuth(); this.router.navigate(['/login']); },
-      error: () => { this.authService.clearAuth(); this.router.navigate(['/login']); }
+      next: () => {
+        this.authService.clearAuth();
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        this.authService.clearAuth();
+        this.router.navigate(['/login']);
+      },
     });
   }
 }

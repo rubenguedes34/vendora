@@ -24,17 +24,18 @@ class TokenService
      */
     public static function find(?string $token): ?PersonalAccessToken
     {
-        if (!is_string($token) || $token === '') {
+        if (! is_string($token) || $token === '') {
             return null;
         }
 
         $accessToken = PersonalAccessToken::findToken($token);
-        if (!$accessToken) {
+        if (! $accessToken) {
             return null;
         }
 
         if ($accessToken->expires_at && $accessToken->expires_at->isPast()) {
             $accessToken->delete();
+
             return null;
         }
 

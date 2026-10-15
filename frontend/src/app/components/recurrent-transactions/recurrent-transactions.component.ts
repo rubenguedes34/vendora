@@ -1,6 +1,12 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
@@ -27,7 +33,7 @@ interface RecurrentTransaction {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
-  templateUrl: './recurrent-transactions.component.html'
+  templateUrl: './recurrent-transactions.component.html',
 })
 export class RecurrentTransactionsComponent implements OnInit {
   @Input() embedded = false;
@@ -50,7 +56,7 @@ export class RecurrentTransactionsComponent implements OnInit {
     private financialService: FinancialService,
     private http: HttpClient,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
   ) {
     this.form = this.fb.group({
       description: ['', Validators.required],
@@ -84,11 +90,12 @@ export class RecurrentTransactionsComponent implements OnInit {
 
   loadRecurrent(): void {
     this.http.get<RecurrentTransaction[]>(`${this.apiUrl}/recurrent-transactions`).subscribe({
-      next: data => {
+      next: (data) => {
         this.recurrentList = data;
         this.errorMessage = '';
       },
-      error: err => this.errorMessage = err.error?.message || 'Failed to load recurrent transactions'
+      error: (err) =>
+        (this.errorMessage = err.error?.message || 'Failed to load recurrent transactions'),
     });
   }
 
@@ -97,23 +104,30 @@ export class RecurrentTransactionsComponent implements OnInit {
     const payload = this.form.value;
 
     if (this.editing) {
-      this.http.put<RecurrentTransaction>(`${this.apiUrl}/recurrent-transactions/${this.editing.id}`, payload).subscribe({
-        next: (item) => {
-          this.recurrentList = this.recurrentList.map(i => i.id === item.id ? item : i);
-          this.cancelEdit();
-          this.errorMessage = '';
-        },
-        error: err => this.errorMessage = err.error?.message || 'Failed to update'
-      });
+      this.http
+        .put<RecurrentTransaction>(
+          `${this.apiUrl}/recurrent-transactions/${this.editing.id}`,
+          payload,
+        )
+        .subscribe({
+          next: (item) => {
+            this.recurrentList = this.recurrentList.map((i) => (i.id === item.id ? item : i));
+            this.cancelEdit();
+            this.errorMessage = '';
+          },
+          error: (err) => (this.errorMessage = err.error?.message || 'Failed to update'),
+        });
     } else {
-      this.http.post<RecurrentTransaction>(`${this.apiUrl}/recurrent-transactions`, payload).subscribe({
-        next: (item) => {
-          this.recurrentList = [...this.recurrentList, item];
-          this.form.reset({ type: 'expense' });
-          this.errorMessage = '';
-        },
-        error: err => this.errorMessage = err.error?.message || 'Failed to add'
-      });
+      this.http
+        .post<RecurrentTransaction>(`${this.apiUrl}/recurrent-transactions`, payload)
+        .subscribe({
+          next: (item) => {
+            this.recurrentList = [...this.recurrentList, item];
+            this.form.reset({ type: 'expense' });
+            this.errorMessage = '';
+          },
+          error: (err) => (this.errorMessage = err.error?.message || 'Failed to add'),
+        });
     }
   }
 
@@ -134,24 +148,29 @@ export class RecurrentTransactionsComponent implements OnInit {
     if (!confirm('Delete this recurrent transaction?')) return;
     this.http.delete(`${this.apiUrl}/recurrent-transactions/${id}`).subscribe({
       next: () => this.loadRecurrent(),
-      error: err => this.errorMessage = err.error?.message || 'Failed to delete'
+      error: (err) => (this.errorMessage = err.error?.message || 'Failed to delete'),
     });
   }
 
   copyToMonth(): void {
     this.isCopying = true;
     this.copyMessage = '';
-    this.http.post<{ created: number; month: string }>(`${this.apiUrl}/recurrent-transactions/copy`, { month: this.copyTargetMonth }).subscribe({
-      next: (res) => {
-        this.isCopying = false;
-        this.copySuccess = true;
-        this.copyMessage = `Copied ${res.created} transaction(s) to ${this.copyTargetMonth}.`;
-      },
-      error: err => {
-        this.isCopying = false;
-        this.copySuccess = false;
-        this.copyMessage = err.error?.message || 'Failed to copy transactions';
-      }
-    });
+    this.http
+      .post<{
+        created: number;
+        month: string;
+      }>(`${this.apiUrl}/recurrent-transactions/copy`, { month: this.copyTargetMonth })
+      .subscribe({
+        next: (res) => {
+          this.isCopying = false;
+          this.copySuccess = true;
+          this.copyMessage = `Copied ${res.created} transaction(s) to ${this.copyTargetMonth}.`;
+        },
+        error: (err) => {
+          this.isCopying = false;
+          this.copySuccess = false;
+          this.copyMessage = err.error?.message || 'Failed to copy transactions';
+        },
+      });
   }
 }

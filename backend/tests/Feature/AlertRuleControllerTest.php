@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AlertRule;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\TokenService;
@@ -15,6 +14,7 @@ class AlertRuleControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -26,7 +26,7 @@ class AlertRuleControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     private function spend(Category $category, float $amount): void

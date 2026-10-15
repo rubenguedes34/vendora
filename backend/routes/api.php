@@ -1,21 +1,20 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\AlertRuleController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SetupController;
-use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FinancialRecordController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\MarketDataController;
-use App\Http\Controllers\RecurrentTransactionController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\AlertRuleController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\RecurrentTransactionController;
+use App\Http\Controllers\SetupController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -69,7 +68,7 @@ Route::middleware('auth.custom')->group(function () {
 
     // Market data (live price lookup, symbol search, candle chart)
     Route::middleware('throttle:market')->group(function () {
-        Route::get('/market/quote',  [MarketDataController::class, 'quote']);
+        Route::get('/market/quote', [MarketDataController::class, 'quote']);
         Route::get('/market/search', [MarketDataController::class, 'search']);
         Route::get('/market/candle', [MarketDataController::class, 'candle']);
     });

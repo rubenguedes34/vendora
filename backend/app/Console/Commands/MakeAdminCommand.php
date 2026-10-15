@@ -22,6 +22,7 @@ class MakeAdminCommand extends Command
 
         if (! in_array($roleName, ['admin', 'manager', 'user'], true)) {
             $this->error('Role must be admin, manager or user.');
+
             return self::FAILURE;
         }
 
@@ -41,6 +42,7 @@ class MakeAdminCommand extends Command
 
         if (! $user) {
             $this->error("User [{$email}] not found.");
+
             return self::FAILURE;
         }
 
@@ -49,6 +51,7 @@ class MakeAdminCommand extends Command
         $user->syncRoles([$roleName]);
 
         $this->info("User [{$email}] is now a {$roleName}.");
+
         return self::SUCCESS;
     }
 }

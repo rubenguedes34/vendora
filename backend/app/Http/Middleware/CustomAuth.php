@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TokenService;
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\TokenService;
 
 class CustomAuth
 {
@@ -12,13 +12,13 @@ class CustomAuth
     {
         $token = $request->bearerToken();
 
-        if (!$token) {
+        if (! $token) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         $accessToken = TokenService::find($token);
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             return response()->json(['message' => 'Invalid or expired token'], 401);
         }
 

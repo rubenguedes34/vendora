@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\User;
 use App\Services\TokenService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class SetupControllerTest extends TestCase
 {
@@ -74,7 +74,7 @@ class SetupControllerTest extends TestCase
         /** @var User $user */
         $user = User::factory()->create();
         // A token in the old unsigned base64 format must no longer be accepted.
-        $forged = base64_encode($user->id . ':' . time() . ':' . $user->email);
+        $forged = base64_encode($user->id.':'.time().':'.$user->email);
 
         $response = $this->postJson('/api/setup', [
             'token' => $forged,

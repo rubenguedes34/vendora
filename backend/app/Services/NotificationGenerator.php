@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\AlertRule;
-use App\Models\User;
 use App\Models\Budget;
 use App\Models\RecurrentTransaction;
+use App\Models\User;
 use Carbon\Carbon;
 
 class NotificationGenerator
@@ -32,12 +32,12 @@ class NotificationGenerator
             ->where('data->key', $key)
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             $user->appNotifications()->create([
-                'type'  => $type,
+                'type' => $type,
                 'title' => $title,
-                'body'  => $body,
-                'data'  => array_merge($data, ['key' => $key]),
+                'body' => $body,
+                'data' => array_merge($data, ['key' => $key]),
             ]);
         }
     }
@@ -60,11 +60,13 @@ class NotificationGenerator
             ->pluck('total', 'category_id');
 
         foreach ($budgets as $budget) {
-            $limit  = (float) $budget->amount;
-            if ($limit <= 0) continue;
+            $limit = (float) $budget->amount;
+            if ($limit <= 0) {
+                continue;
+            }
 
             $actual = (float) ($actuals[$budget->category_id] ?? 0);
-            $key    = "budget-{$budget->id}-{$month}";
+            $key = "budget-{$budget->id}-{$month}";
 
             if ($actual > $limit) {
                 // Superseded, not dismissed: hard delete so it can come back if spending drops below the limit.
@@ -98,7 +100,9 @@ class NotificationGenerator
     private function generateAlertRuleNotifications(User $user): void
     {
         $rules = $user->alertRules()->with('category')->where('is_active', true)->get();
-        if ($rules->isEmpty()) return;
+        if ($rules->isEmpty()) {
+            return;
+        }
 
         $now = Carbon::now();
         $month = $now->format('Y-m');
@@ -116,14 +120,16 @@ class NotificationGenerator
             $isCategory = $rule->type === AlertRule::TYPE_CATEGORY_LIMIT;
             $spent = $isCategory ? (float) ($byCategory[$rule->category_id] ?? 0) : $total;
 
-            if ($spent < $limit) continue;
+            if ($spent < $limit) {
+                continue;
+            }
 
             $what = $isCategory ? "on {$rule->category?->name}" : 'this month';
             // The limit is in the key, so raising it later can alert again for the same month.
             $this->addOnce(
                 $user,
                 'alert_rule_triggered',
-                "alert-rule-{$rule->id}-{$month}-" . number_format($limit, 2, '.', ''),
+                "alert-rule-{$rule->id}-{$month}-".number_format($limit, 2, '.', ''),
                 'Spending limit reached',
                 "You have spent {$this->money($spent)} {$what}, reaching your limit of {$this->money($limit)}.",
                 ['alert_rule_id' => $rule->id, 'category' => $rule->category?->name]
@@ -152,7 +158,7 @@ class NotificationGenerator
             $this->addOnce(
                 $user,
                 'recurring_due',
-                'recurring-' . $dueDate->format('Y-m') . "-{$rt->id}",
+                'recurring-'.$dueDate->format('Y-m')."-{$rt->id}",
                 'Recurring transaction due',
                 $dueDate->isSameDay($today)
                     ? "{$rt->description} is due today."
@@ -165,7 +171,7 @@ class NotificationGenerator
     private function generateMonthlyReport(User $user): void
     {
         $month = Carbon::now()->format('F Y');
-        $key   = 'monthly-report-' . Carbon::now()->format('Y-m');
+        $key = 'monthly-report-'.Carbon::now()->format('Y-m');
 
         $this->addOnce(
             $user,
@@ -180,11 +186,11 @@ class NotificationGenerator
     private function generateSavingsGoalNotifications(User $user): void
     {
         $month = Carbon::now()->format('Y-m');
-        $key   = 'savings-goal-' . $month;
+        $key = 'savings-goal-'.$month;
 
-        $income  = (float) $user->transactions()->where('type', 'income')->whereMonth('transaction_date', Carbon::now()->month)->whereYear('transaction_date', Carbon::now()->year)->sum('amount');
+        $income = (float) $user->transactions()->where('type', 'income')->whereMonth('transaction_date', Carbon::now()->month)->whereYear('transaction_date', Carbon::now()->year)->sum('amount');
         $expense = (float) $user->transactions()->where('type', 'expense')->whereMonth('transaction_date', Carbon::now()->month)->whereYear('transaction_date', Carbon::now()->year)->sum('amount');
-        $saved   = max(0, $income - $expense);
+        $saved = max(0, $income - $expense);
 
         $target = (float) $user->monthly_income;
         if ($target > 0 && $saved >= $target * 0.2) {
@@ -202,13 +208,15 @@ class NotificationGenerator
     private function generateInvestmentTargetNotifications(User $user): void
     {
         $month = Carbon::now()->format('Y-m');
-        $key   = 'investment-target-' . $month;
+        $key = 'investment-target-'.$month;
 
         $investments = $user->investments()->get();
-        if ($investments->isEmpty()) return;
+        if ($investments->isEmpty()) {
+            return;
+        }
 
         $totalCurrent = (float) $investments->sum('current_amount');
-        $totalCost    = (float) $investments->sum('initial_amount');
+        $totalCost = (float) $investments->sum('initial_amount');
 
         if ($totalCost > 0 && $totalCurrent >= $totalCost * 1.10) {
             $gain = $totalCurrent - $totalCost;
@@ -226,13 +234,16 @@ class NotificationGenerator
     // Currency is a client-side preference, so amounts carry a '$' placeholder that the SPA swaps (currencyText pipe).
     private function money(float $amount): string
     {
-        return '$' . number_format($amount, 2);
+        return '$'.number_format($amount, 2);
     }
 
     private function pct(float $part, float $whole, bool $asGain = false): string
     {
-        if ($whole <= 0) return '0%';
+        if ($whole <= 0) {
+            return '0%';
+        }
         $value = round((($part - ($asGain ? $whole : 0)) / $whole) * 100, 1);
-        return number_format($value, 1) . '%';
+
+        return number_format($value, 1).'%';
     }
 }

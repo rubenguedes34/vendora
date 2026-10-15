@@ -3,11 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -20,12 +21,12 @@ use Spatie\Permission\Traits\HasRoles;
  * @property float|null $monthly_income
  * @property float|null $monthly_expenses
  * @property string|null $google_id
- * @property \Carbon\Carbon|null $blacklisted_at
+ * @property Carbon|null $blacklisted_at
  * @property float $savings
  */
 class User extends Authenticatable implements FilamentUser
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -113,7 +114,7 @@ class User extends Authenticatable implements FilamentUser
     {
         // Database rows cascade, but receipt files and API tokens do not.
         static::deleting(function (self $user): void {
-            Storage::deleteDirectory('receipts/' . $user->id);
+            Storage::deleteDirectory('receipts/'.$user->id);
             $user->tokens()->delete();
         });
 

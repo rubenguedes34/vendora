@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Market\CandleRequest;
 use App\Http\Requests\Market\QuoteRequest;
 use App\Http\Requests\Market\SearchRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -19,7 +20,7 @@ class MarketDataController extends Controller
      * Cache successful provider responses briefly so repeated lookups do not
      * burn third-party API quota.
      */
-    private function cached(string $key, int $seconds, \Closure $resolve): \Illuminate\Http\JsonResponse
+    private function cached(string $key, int $seconds, \Closure $resolve): JsonResponse
     {
         $hit = Cache::get($key);
         if ($hit !== null) {
@@ -45,7 +46,9 @@ class MarketDataController extends Controller
      *     tags={"Market Data"},
      *     summary="Get live quote for a symbol",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="symbol", in="query", required=true, @OA\Schema(type="string", example="AAPL")),
+     *
      *     @OA\Response(response=200, description="Quote data")
      * )
      */
@@ -65,38 +68,40 @@ class MarketDataController extends Controller
      *     tags={"Market Data"},
      *     summary="Search for market symbols",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="q", in="query", required=true, @OA\Schema(type="string", example="apple")),
+     *
      *     @OA\Response(response=200, description="Search results")
      * )
      */
     // GET /market/search?q=apple
     public function search(SearchRequest $request)
     {
-        $q   = trim($request->q);
+        $q = trim($request->q);
         $key = $this->finnhubKey();
 
-        if (!$key) {
+        if (! $key) {
             return response()->json(['error' => 'Finnhub API key not configured'], 503);
         }
 
         try {
             $res = Http::timeout(6)->get('https://finnhub.io/api/v1/search', [
-                'q'     => $q,
+                'q' => $q,
                 'token' => $key,
             ]);
 
-            if (!$res->ok()) {
+            if (! $res->ok()) {
                 return response()->json(['error' => 'Search failed'], 502);
             }
 
             $results = collect($res->json('result') ?? [])
-                ->filter(fn($r) => in_array($r['type'] ?? '', ['Common Stock', 'ETP', 'ETF']))
+                ->filter(fn ($r) => in_array($r['type'] ?? '', ['Common Stock', 'ETP', 'ETF']))
                 ->take(10)
-                ->map(fn($r) => [
-                    'symbol'      => $r['symbol'],
-                    'name'        => $r['description'],
-                    'type'        => in_array($r['type'] ?? '', ['ETP', 'ETF']) ? 'ETF' : 'Stocks',
-                    'exchange'    => $r['primaryExchange'] ?? '',
+                ->map(fn ($r) => [
+                    'symbol' => $r['symbol'],
+                    'name' => $r['description'],
+                    'type' => in_array($r['type'] ?? '', ['ETP', 'ETF']) ? 'ETF' : 'Stocks',
+                    'exchange' => $r['primaryExchange'] ?? '',
                 ])
                 ->values();
 
@@ -112,8 +117,10 @@ class MarketDataController extends Controller
      *     tags={"Market Data"},
      *     summary="Get candle/sparkline data for a symbol",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="symbol", in="query", required=true, @OA\Schema(type="string", example="AAPL")),
      *     @OA\Parameter(name="days", in="query", required=false, @OA\Schema(type="integer", example=7)),
+     *
      *     @OA\Response(response=200, description="Sparkline data")
      * )
      */
@@ -121,23 +128,23 @@ class MarketDataController extends Controller
     public function candle(CandleRequest $request)
     {
         $symbol = strtoupper(trim($request->symbol));
-        $days   = $request->integer('days', 7);
-        $key    = $this->finnhubKey();
+        $days = $request->integer('days', 7);
+        $key = $this->finnhubKey();
 
-        if (!$key) {
+        if (! $key) {
             return response()->json(['error' => 'Finnhub API key not configured'], 503);
         }
 
-        $to   = time();
+        $to = time();
         $from = $to - ($days * 24 * 3600);
 
         try {
             $res = Http::timeout(8)->get('https://finnhub.io/api/v1/stock/candle', [
-                'symbol'     => $symbol,
+                'symbol' => $symbol,
                 'resolution' => 'D',
-                'from'       => $from,
-                'to'         => $to,
-                'token'      => $key,
+                'from' => $from,
+                'to' => $to,
+                'token' => $key,
             ]);
 
             $data = $res->json();
@@ -146,7 +153,7 @@ class MarketDataController extends Controller
                 return response()->json(['sparkline' => []]);
             }
 
-            $closes = array_map(fn($v) => round($v, 4), $data['c'] ?? []);
+            $closes = array_map(fn ($v) => round($v, 4), $data['c'] ?? []);
 
             return response()->json(['sparkline' => $closes]);
         } catch (\Exception $e) {
@@ -156,11 +163,11 @@ class MarketDataController extends Controller
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
-    private function quoteFromFinnhub(string $symbol): \Illuminate\Http\JsonResponse
+    private function quoteFromFinnhub(string $symbol): JsonResponse
     {
         $key = $this->finnhubKey();
 
-        if (!$key) {
+        if (! $key) {
             return $this->quoteFromYahoo($symbol);
         }
 
@@ -175,7 +182,7 @@ class MarketDataController extends Controller
             ];
 
             $price = round($quote['c'] ?? 0, 4);
-            $prev  = round($quote['pc'] ?? 0, 4);
+            $prev = round($quote['pc'] ?? 0, 4);
             $change24h = $prev > 0 ? round((($price - $prev) / $prev) * 100, 2) : null;
 
             if ($price <= 0) {
@@ -186,14 +193,14 @@ class MarketDataController extends Controller
             $sparkline = $this->fetchFinnhubSparkline($symbol, $key, 7);
 
             return response()->json([
-                'symbol'     => $symbol,
-                'name'       => $profile['name'] ?? $symbol,
-                'price'      => $price,
-                'currency'   => $profile['currency'] ?? 'USD',
-                'exchange'   => $profile['exchange'] ?? '',
+                'symbol' => $symbol,
+                'name' => $profile['name'] ?? $symbol,
+                'price' => $price,
+                'currency' => $profile['currency'] ?? 'USD',
+                'exchange' => $profile['exchange'] ?? '',
                 'change_24h' => $change24h,
-                'sparkline'  => $sparkline,
-                'logo'       => $profile['logo'] ?? null,
+                'sparkline' => $sparkline,
+                'logo' => $profile['logo'] ?? null,
             ]);
         } catch (\Exception $e) {
             return $this->quoteFromYahoo($symbol);
@@ -203,21 +210,24 @@ class MarketDataController extends Controller
     private function fetchFinnhubSparkline(string $symbol, string $key, int $days): array
     {
         try {
-            $to   = time();
+            $to = time();
             $from = $to - ($days * 24 * 3600);
-            $res  = Http::timeout(6)->get('https://finnhub.io/api/v1/stock/candle', [
+            $res = Http::timeout(6)->get('https://finnhub.io/api/v1/stock/candle', [
                 'symbol' => $symbol, 'resolution' => 'D',
                 'from' => $from, 'to' => $to, 'token' => $key,
             ])->json();
 
-            if (($res['s'] ?? '') !== 'ok') return [];
-            return array_map(fn($v) => round($v, 4), $res['c'] ?? []);
+            if (($res['s'] ?? '') !== 'ok') {
+                return [];
+            }
+
+            return array_map(fn ($v) => round($v, 4), $res['c'] ?? []);
         } catch (\Exception) {
             return [];
         }
     }
 
-    private function quoteFromYahoo(string $symbol): \Illuminate\Http\JsonResponse
+    private function quoteFromYahoo(string $symbol): JsonResponse
     {
         try {
             $response = Http::timeout(10)
@@ -226,49 +236,49 @@ class MarketDataController extends Controller
                     'interval' => '1d', 'range' => '7d',
                 ]);
 
-            if (!$response->ok()) {
+            if (! $response->ok()) {
                 return response()->json(['error' => 'Symbol not found'], 404);
             }
 
-            $data   = $response->json();
+            $data = $response->json();
             $result = $data['chart']['result'][0] ?? null;
-            $meta   = $result['meta'] ?? null;
+            $meta = $result['meta'] ?? null;
 
-            if (!$meta) {
+            if (! $meta) {
                 return response()->json(['error' => 'No data for this symbol'], 404);
             }
 
             $rawCloses = $result['indicators']['quote'][0]['close'] ?? [];
-            $closes    = [];
+            $closes = [];
             foreach ($rawCloses as $close) {
                 if ($close !== null) {
                     $closes[] = $close;
                 }
             }
-            $sparkline = array_map(fn($v) => round($v, 4), $closes);
-            $price     = round($meta['regularMarketPrice'] ?? 0, 4);
-            $prev      = $meta['chartPreviousClose'] ?? $meta['previousClose'] ?? null;
+            $sparkline = array_map(fn ($v) => round($v, 4), $closes);
+            $price = round($meta['regularMarketPrice'] ?? 0, 4);
+            $prev = $meta['chartPreviousClose'] ?? $meta['previousClose'] ?? null;
             $change24h = $prev && $prev > 0 ? round((($price - $prev) / $prev) * 100, 2) : null;
 
             return response()->json([
-                'symbol'     => $symbol,
-                'name'       => $meta['longName'] ?? $meta['shortName'] ?? $symbol,
-                'price'      => $price,
-                'currency'   => $meta['currency'] ?? 'USD',
-                'exchange'   => $meta['exchangeName'] ?? '',
+                'symbol' => $symbol,
+                'name' => $meta['longName'] ?? $meta['shortName'] ?? $symbol,
+                'price' => $price,
+                'currency' => $meta['currency'] ?? 'USD',
+                'exchange' => $meta['exchangeName'] ?? '',
                 'change_24h' => $change24h,
-                'sparkline'  => $sparkline,
-                'logo'       => null,
+                'sparkline' => $sparkline,
+                'logo' => null,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch market data'], 500);
         }
     }
 
-    private function quoteFromCoinGecko(string $symbol): \Illuminate\Http\JsonResponse
+    private function quoteFromCoinGecko(string $symbol): JsonResponse
     {
         // e.g. BTC-USD → bitcoin
-        $base  = strtolower(explode('-', $symbol)[0]);
+        $base = strtolower(explode('-', $symbol)[0]);
         $idMap = [
             'btc' => 'bitcoin', 'eth' => 'ethereum', 'sol' => 'solana',
             'bnb' => 'binancecoin', 'xrp' => 'ripple', 'ada' => 'cardano',
@@ -279,41 +289,41 @@ class MarketDataController extends Controller
 
         try {
             $res = Http::timeout(8)->get("https://api.coingecko.com/api/v3/coins/{$coinId}", [
-                'localization'   => 'false',
-                'tickers'        => 'false',
-                'market_data'    => 'true',
+                'localization' => 'false',
+                'tickers' => 'false',
+                'market_data' => 'true',
                 'community_data' => 'false',
-                'sparkline'      => 'true',
+                'sparkline' => 'true',
             ]);
 
-            if (!$res->ok()) {
+            if (! $res->ok()) {
                 return response()->json(['error' => 'Crypto symbol not found'], 404);
             }
 
-            $coin      = $res->json();
-            $price     = round($coin['market_data']['current_price']['usd'] ?? 0, 6);
+            $coin = $res->json();
+            $price = round($coin['market_data']['current_price']['usd'] ?? 0, 6);
             $change24h = round($coin['market_data']['price_change_percentage_24h'] ?? 0, 2);
             $sparkline = array_map(
-                fn($v) => round($v, 6),
+                fn ($v) => round($v, 6),
                 $coin['market_data']['sparkline_7d']['price'] ?? []
             );
             // Downsample to ~14 points
-            $step      = max(1, (int)(count($sparkline) / 14));
+            $step = max(1, (int) (count($sparkline) / 14));
             $sparkline = array_values(array_filter(
                 $sparkline,
-                fn($k) => $k % $step === 0,
+                fn ($k) => $k % $step === 0,
                 ARRAY_FILTER_USE_KEY
             ));
 
             return response()->json([
-                'symbol'     => $symbol,
-                'name'       => $coin['name'] ?? $symbol,
-                'price'      => $price,
-                'currency'   => 'USD',
-                'exchange'   => 'CoinGecko',
+                'symbol' => $symbol,
+                'name' => $coin['name'] ?? $symbol,
+                'price' => $price,
+                'currency' => 'USD',
+                'exchange' => 'CoinGecko',
                 'change_24h' => $change24h,
-                'sparkline'  => $sparkline,
-                'logo'       => $coin['image']['small'] ?? null,
+                'sparkline' => $sparkline,
+                'logo' => $coin['image']['small'] ?? null,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch crypto data'], 500);

@@ -45,12 +45,15 @@ export interface PaginatedResponse<T> {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TransactionService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   private handleError(error: ApiError): ApiErrorMessage {
     if (error.status === 401) return { message: 'Session expired. Please log in again.' };
@@ -76,32 +79,39 @@ export class TransactionService {
     let params = '';
     if (filters) {
       const parts: string[] = [];
-      if (filters.search)                           parts.push(`search=${encodeURIComponent(filters.search)}`);
-      if (filters.notes_search)                     parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
-      if (filters.type)                             parts.push(`type=${filters.type}`);
-      if (filters.category_id)                    parts.push(`category_id=${filters.category_id}`);
-      if (filters.date_from)                        parts.push(`date_from=${filters.date_from}`);
-      if (filters.date_to)                          parts.push(`date_to=${filters.date_to}`);
-      if (filters.amount_min != null)               parts.push(`amount_min=${filters.amount_min}`);
-      if (filters.amount_max != null)               parts.push(`amount_max=${filters.amount_max}`);
+      if (filters.search) parts.push(`search=${encodeURIComponent(filters.search)}`);
+      if (filters.notes_search)
+        parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
+      if (filters.type) parts.push(`type=${filters.type}`);
+      if (filters.category_id) parts.push(`category_id=${filters.category_id}`);
+      if (filters.date_from) parts.push(`date_from=${filters.date_from}`);
+      if (filters.date_to) parts.push(`date_to=${filters.date_to}`);
+      if (filters.amount_min != null) parts.push(`amount_min=${filters.amount_min}`);
+      if (filters.amount_max != null) parts.push(`amount_max=${filters.amount_max}`);
       if (filters.tag_ids) {
-        const tagIds = Array.isArray(filters.tag_ids) ? filters.tag_ids : String(filters.tag_ids).split(',').map(s => s.trim());
+        const tagIds = Array.isArray(filters.tag_ids)
+          ? filters.tag_ids
+          : String(filters.tag_ids)
+              .split(',')
+              .map((s) => s.trim());
         if (tagIds.length) parts.push(`tag_ids=${tagIds.join(',')}`);
       }
-      if (filters.page)                             parts.push(`page=${filters.page}`);
-      if (filters.per_page)                         parts.push(`per_page=${filters.per_page}`);
+      if (filters.page) parts.push(`page=${filters.page}`);
+      if (filters.per_page) parts.push(`per_page=${filters.per_page}`);
       if (parts.length) params = '?' + parts.join('&');
     }
-    return this.http.get<PaginatedResponse<Transaction>>(`${this.apiUrl}/transactions${params}`).pipe(
-      timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
-    );
+    return this.http
+      .get<PaginatedResponse<Transaction>>(`${this.apiUrl}/transactions${params}`)
+      .pipe(
+        timeout(5000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   getTransaction(id: number): Observable<Transaction> {
     return this.http.get<Transaction>(`${this.apiUrl}/transactions/${id}`).pipe(
       timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
@@ -109,12 +119,12 @@ export class TransactionService {
     if (data instanceof FormData) {
       return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data).pipe(
         timeout(10000),
-        catchError(err => throwError(() => this.handleError(err)))
+        catchError((err) => throwError(() => this.handleError(err))),
       );
     }
     return this.http.post<Transaction>(`${this.apiUrl}/transactions`, data).pipe(
       timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
@@ -123,35 +133,39 @@ export class TransactionService {
       data.append('_method', 'PUT');
       return this.http.post<Transaction>(`${this.apiUrl}/transactions/${id}`, data).pipe(
         timeout(10000),
-        catchError(err => throwError(() => this.handleError(err)))
+        catchError((err) => throwError(() => this.handleError(err))),
       );
     }
     return this.http.put<Transaction>(`${this.apiUrl}/transactions/${id}`, data).pipe(
       timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
   deleteAttachment(transactionId: number): Observable<MessageResponse> {
-    return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/${transactionId}/attachment`).pipe(
-      timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
-    );
+    return this.http
+      .delete<MessageResponse>(`${this.apiUrl}/transactions/${transactionId}/attachment`)
+      .pipe(
+        timeout(5000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   getAttachment(transactionId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/transactions/${transactionId}/attachment`, {
-      responseType: 'blob'
-    }).pipe(
-      timeout(8000),
-      catchError(err => throwError(() => this.handleError(err)))
-    );
+    return this.http
+      .get(`${this.apiUrl}/transactions/${transactionId}/attachment`, {
+        responseType: 'blob',
+      })
+      .pipe(
+        timeout(8000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   deleteTransaction(id: number): Observable<MessageResponse> {
     return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/${id}`).pipe(
       timeout(5000),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
@@ -167,23 +181,25 @@ export class TransactionService {
     tag_ids?: number[];
   }): void {
     const parts: string[] = [];
-    if (filters?.search)                           parts.push(`search=${encodeURIComponent(filters.search)}`);
-    if (filters?.notes_search)                     parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
-    if (filters?.type)                             parts.push(`type=${filters.type}`);
-    if (filters?.category_id)                      parts.push(`category_id=${filters.category_id}`);
-    if (filters?.date_from)                        parts.push(`date_from=${filters.date_from}`);
-    if (filters?.date_to)                          parts.push(`date_to=${filters.date_to}`);
-    if (filters?.amount_min != null)               parts.push(`amount_min=${filters.amount_min}`);
-    if (filters?.amount_max != null)               parts.push(`amount_max=${filters.amount_max}`);
-    if (filters?.tag_ids && filters.tag_ids.length) parts.push(`tag_ids=${filters.tag_ids.join(',')}`);
+    if (filters?.search) parts.push(`search=${encodeURIComponent(filters.search)}`);
+    if (filters?.notes_search)
+      parts.push(`notes_search=${encodeURIComponent(filters.notes_search)}`);
+    if (filters?.type) parts.push(`type=${filters.type}`);
+    if (filters?.category_id) parts.push(`category_id=${filters.category_id}`);
+    if (filters?.date_from) parts.push(`date_from=${filters.date_from}`);
+    if (filters?.date_to) parts.push(`date_to=${filters.date_to}`);
+    if (filters?.amount_min != null) parts.push(`amount_min=${filters.amount_min}`);
+    if (filters?.amount_max != null) parts.push(`amount_max=${filters.amount_max}`);
+    if (filters?.tag_ids && filters.tag_ids.length)
+      parts.push(`tag_ids=${filters.tag_ids.join(',')}`);
 
     const qs = parts.length ? '?' + parts.join('&') : '';
     const url = `${this.apiUrl}/transactions/export${qs}`;
     const token = this.authService.getTokenValue();
 
-    fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.blob())
-      .then(blob => {
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.blob())
+      .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;

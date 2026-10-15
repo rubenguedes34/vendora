@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -13,6 +13,7 @@ class CategoryController extends Controller
      *     tags={"Categories"},
      *     summary="List all categories",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of categories")
      * )
      */
@@ -35,13 +36,16 @@ class CategoryController extends Controller
      *     tags={"Categories"},
      *     summary="Get a single category",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="category", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Category object")
      * )
      */
     public function show(Request $request, $id)
     {
         $category = Category::findOrFail($id);
+
         return response()->json($category);
     }
 
@@ -51,7 +55,9 @@ class CategoryController extends Controller
      *     tags={"Categories"},
      *     summary="List categories by type",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="type", in="path", required=true, @OA\Schema(type="string", enum={"income","expense","savings"})),
+     *
      *     @OA\Response(response=200, description="Array of categories")
      * )
      */
@@ -59,7 +65,7 @@ class CategoryController extends Controller
     {
         $validTypes = ['income', 'expense', 'savings'];
 
-        if (!in_array($type, $validTypes)) {
+        if (! in_array($type, $validTypes)) {
             return response()->json(['message' => 'Invalid category type'], 400);
         }
 

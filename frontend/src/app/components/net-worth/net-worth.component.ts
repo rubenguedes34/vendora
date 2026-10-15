@@ -1,4 +1,13 @@
-import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewChecked,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -6,17 +15,22 @@ import { FinancialService, NetWorth } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
-import { CartesianTooltipItem, ChartInstance, RadialTooltipItem, chartConstructor } from '../../models/chart';
+import {
+  CartesianTooltipItem,
+  ChartInstance,
+  RadialTooltipItem,
+  chartConstructor,
+} from '../../models/chart';
 
 const ALLOCATION_COLORS: Record<string, string> = {
-  'Cash':            '#2dd4bf',
-  'Stocks':          '#8b5cf6',
-  'ETF':             '#3b82f6',
-  'Crypto':          '#f59e0b',
-  'Real Estate':     '#10b981',
-  'Bonds':           '#6366f1',
+  Cash: '#2dd4bf',
+  Stocks: '#8b5cf6',
+  ETF: '#3b82f6',
+  Crypto: '#f59e0b',
+  'Real Estate': '#10b981',
+  Bonds: '#6366f1',
   'Savings Account': '#14b8a6',
-  'Other':           '#94a3b8',
+  Other: '#94a3b8',
 };
 
 function allocationColor(type: string): string {
@@ -28,17 +42,17 @@ function allocationColor(type: string): string {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, SidebarComponent, CurrencySymbolPipe],
-  templateUrl: './net-worth.component.html'
+  templateUrl: './net-worth.component.html',
 })
 export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
-  @ViewChild('historyChart')    historyChartRef!:    ElementRef<HTMLCanvasElement>;
+  @ViewChild('historyChart') historyChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('allocationChart') allocationChartRef!: ElementRef<HTMLCanvasElement>;
 
   data: NetWorth | null = null;
   isLoading = false;
   errorMessage = '';
 
-  private historyChartInstance:    any = null;
+  private historyChartInstance: any = null;
   private allocationChartInstance: ChartInstance | null = null;
   private needsRender = false;
 
@@ -51,7 +65,10 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; }
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.load();
   }
 
@@ -76,7 +93,11 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.needsRender = true;
         this.cd.markForCheck();
       },
-      error: (e) => { this.errorMessage = e?.message || 'Failed to load net worth'; this.isLoading = false; this.cd.markForCheck(); }
+      error: (e) => {
+        this.errorMessage = e?.message || 'Failed to load net worth';
+        this.isLoading = false;
+        this.cd.markForCheck();
+      },
     });
   }
 
@@ -103,10 +124,10 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
     const ctx = this.historyChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels      = this.data.history.map(h => h.label);
-    const nwData      = this.data.history.map(h => h.net_worth);
-    const cashData    = this.data.history.map(h => h.cash);
-    const investData  = this.data.history.map(h => h.investments);
+    const labels = this.data.history.map((h) => h.label);
+    const nwData = this.data.history.map((h) => h.net_worth);
+    const cashData = this.data.history.map((h) => h.cash);
+    const investData = this.data.history.map((h) => h.investments);
 
     const mkGrad = (r: number, g: number, b: number) => {
       const gr = ctx.createLinearGradient(0, 0, 0, 220);
@@ -132,25 +153,40 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
           {
             label: 'Net Worth',
             data: nwData,
-            borderColor: '#7c3aed', backgroundColor: mkGrad(124,58,237),
-            borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#7c3aed',
-            tension: 0.4, fill: true, order: 1,
+            borderColor: '#7c3aed',
+            backgroundColor: mkGrad(124, 58, 237),
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointBackgroundColor: '#7c3aed',
+            tension: 0.4,
+            fill: true,
+            order: 1,
           },
           {
             label: 'Cash',
             data: cashData,
-            borderColor: '#2dd4bf', backgroundColor: mkGrad(45,212,191),
-            borderWidth: 2, pointRadius: 2, pointBackgroundColor: '#2dd4bf',
-            tension: 0.4, fill: true, order: 2,
+            borderColor: '#2dd4bf',
+            backgroundColor: mkGrad(45, 212, 191),
+            borderWidth: 2,
+            pointRadius: 2,
+            pointBackgroundColor: '#2dd4bf',
+            tension: 0.4,
+            fill: true,
+            order: 2,
           },
           {
             label: 'Invested',
             data: investData,
-            borderColor: '#a78bfa', backgroundColor: mkGrad(167,139,250),
-            borderWidth: 2, pointRadius: 2, pointBackgroundColor: '#a78bfa',
-            tension: 0.4, fill: true, order: 3,
+            borderColor: '#a78bfa',
+            backgroundColor: mkGrad(167, 139, 250),
+            borderWidth: 2,
+            pointRadius: 2,
+            pointBackgroundColor: '#a78bfa',
+            tension: 0.4,
+            fill: true,
+            order: 3,
           },
-        ]
+        ],
       },
       options: {
         responsive: true,
@@ -160,15 +196,17 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.88)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
             callbacks: {
               label: (c: CartesianTooltipItem) => {
                 const sym = this.currencyService.symbol;
                 return ` ${c.dataset.label}: ${sym}${Number(c.parsed.y).toFixed(2)}`;
-              }
-            }
-          }
+              },
+            },
+          },
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
@@ -176,12 +214,14 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
             beginAtZero: false,
             grid: { color: 'rgba(0,0,0,0.04)' },
             ticks: {
-              color: '#9ca3af', font: { size: 10 },
-              callback: (v: number | string) => `${this.currencyService.symbol}${Number(v).toLocaleString()}`
-            }
-          }
-        }
-      }
+              color: '#9ca3af',
+              font: { size: 10 },
+              callback: (v: number | string) =>
+                `${this.currencyService.symbol}${Number(v).toLocaleString()}`,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -190,9 +230,9 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
     const ctx = this.allocationChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.allocation.map(a => a.type);
-    const values = this.data.allocation.map(a => a.value);
-    const colors = this.data.allocation.map(a => allocationColor(a.type));
+    const labels = this.data.allocation.map((a) => a.type);
+    const values = this.data.allocation.map((a) => a.value);
+    const colors = this.data.allocation.map((a) => allocationColor(a.type));
 
     if (this.allocationChartInstance) {
       this.allocationChartInstance.data.labels = labels;
@@ -206,14 +246,16 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{
-          data: values,
-          backgroundColor: colors,
-          borderColor: 'transparent',
-          borderWidth: 2,
-          hoverOffset: 6,
-          borderRadius: 3,
-        }]
+        datasets: [
+          {
+            data: values,
+            backgroundColor: colors,
+            borderColor: 'transparent',
+            borderWidth: 2,
+            hoverOffset: 6,
+            borderRadius: 3,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -223,17 +265,19 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.88)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
             callbacks: {
               label: (c: RadialTooltipItem) => {
                 const sym = this.currencyService.symbol;
                 return ` ${c.label}: ${sym}${Number(c.parsed).toFixed(2)}`;
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

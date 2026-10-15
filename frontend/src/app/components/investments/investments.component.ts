@@ -1,7 +1,20 @@
-import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FinancialService } from '../../services/financial.service';
@@ -14,19 +27,45 @@ import { ApiError } from '../../models/api';
 import { CoinMarket } from '../../models/investment';
 import { MarketSearchResult } from '../../services/market-data.service';
 
-const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
+const INVESTMENT_TYPES = [
+  'Stocks',
+  'ETF',
+  'Crypto',
+  'Real Estate',
+  'Bonds',
+  'Savings Account',
+  'Other',
+];
 const TYPE_COLORS: Record<string, string> = {
-  'Stocks': '#8b5cf6', 'ETF': '#3b82f6', 'Crypto': '#f59e0b',
-  'Real Estate': '#10b981', 'Bonds': '#6366f1', 'Savings Account': '#14b8a6', 'Other': '#94a3b8'
+  Stocks: '#8b5cf6',
+  ETF: '#3b82f6',
+  Crypto: '#f59e0b',
+  'Real Estate': '#10b981',
+  Bonds: '#6366f1',
+  'Savings Account': '#14b8a6',
+  Other: '#94a3b8',
 };
-const ACCOUNT_COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#14b8a6', '#ec4899', '#f43f5e', '#06b6d4', '#84cc16', '#a855f7', '#f97316'];
+const ACCOUNT_COLORS = [
+  '#8b5cf6',
+  '#3b82f6',
+  '#f59e0b',
+  '#10b981',
+  '#6366f1',
+  '#14b8a6',
+  '#ec4899',
+  '#f43f5e',
+  '#06b6d4',
+  '#84cc16',
+  '#a855f7',
+  '#f97316',
+];
 
 @Component({
   selector: 'app-investments',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
-  templateUrl: './investments.component.html'
+  templateUrl: './investments.component.html',
 })
 export class InvestmentsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -51,12 +90,26 @@ export class InvestmentsComponent implements OnInit {
   filterPerf = '';
   groupBy: 'type' | 'account' = 'type';
 
-  donutSegments: { type: string; color: string; pct: number; dash: number; gap: number; offset: number }[] = [];
+  donutSegments: {
+    type: string;
+    color: string;
+    pct: number;
+    dash: number;
+    gap: number;
+    offset: number;
+  }[] = [];
   readonly Math = Math;
 
   tickerSymbol = '';
   fetchingPrice = false;
-  quoteResult: { name: string; price: number; currency: string; exchange: string; change_24h: number | null; sparkline: number[] } | null = null;
+  quoteResult: {
+    name: string;
+    price: number;
+    currency: string;
+    exchange: string;
+    change_24h: number | null;
+    sparkline: number[];
+  } | null = null;
   quoteError = '';
 
   // Market explorer
@@ -72,33 +125,34 @@ export class InvestmentsComponent implements OnInit {
 
   // Asset quick-pick catalogue (used in the Add form)
   readonly presetAssets = [
-    { symbol: 'AAPL',    name: 'Apple',       type: 'Stocks', icon: '🍎', color: '#1d1d1f' },
-    { symbol: 'MSFT',    name: 'Microsoft',   type: 'Stocks', icon: '🪟', color: '#00a4ef' },
-    { symbol: 'GOOGL',   name: 'Alphabet',    type: 'Stocks', icon: '🔍', color: '#4285f4' },
-    { symbol: 'NVDA',    name: 'NVIDIA',      type: 'Stocks', icon: '💚', color: '#76b900' },
-    { symbol: 'AMZN',    name: 'Amazon',      type: 'Stocks', icon: '📦', color: '#ff9900' },
-    { symbol: 'TSLA',    name: 'Tesla',       type: 'Stocks', icon: '⚡', color: '#e31937' },
-    { symbol: 'META',    name: 'Meta',        type: 'Stocks', icon: '👤', color: '#0082fb' },
-    { symbol: 'BRK-B',   name: 'Berkshire',   type: 'Stocks', icon: '🏦', color: '#6b46c1' },
-    { symbol: 'VOO',     name: 'VOO ETF',     type: 'ETF',    icon: '📊', color: '#e53e3e' },
-    { symbol: 'SPY',     name: 'S&P 500 ETF', type: 'ETF',    icon: '📊', color: '#dd6b20' },
-    { symbol: 'QQQ',     name: 'Nasdaq ETF',  type: 'ETF',    icon: '📊', color: '#2b6cb0' },
-    { symbol: 'VWCE.DE', name: 'VWCE',        type: 'ETF',    icon: '🌍', color: '#2f855a' },
-    { symbol: 'IWDA.AS', name: 'IWDA',        type: 'ETF',    icon: '🌐', color: '#276749' },
-    { symbol: 'BTC-USD', name: 'Bitcoin',     type: 'Crypto', icon: '₿',  color: '#f7931a' },
-    { symbol: 'ETH-USD', name: 'Ethereum',    type: 'Crypto', icon: 'Ξ',  color: '#627eea' },
-    { symbol: 'SOL-USD', name: 'Solana',      type: 'Crypto', icon: '◎',  color: '#9945ff' },
-    { symbol: 'BNB-USD', name: 'BNB',         type: 'Crypto', icon: '🔶', color: '#f3ba2f' },
-    { symbol: 'XRP-USD', name: 'XRP',         type: 'Crypto', icon: '✕',  color: '#346aa9' },
+    { symbol: 'AAPL', name: 'Apple', type: 'Stocks', icon: '🍎', color: '#1d1d1f' },
+    { symbol: 'MSFT', name: 'Microsoft', type: 'Stocks', icon: '🪟', color: '#00a4ef' },
+    { symbol: 'GOOGL', name: 'Alphabet', type: 'Stocks', icon: '🔍', color: '#4285f4' },
+    { symbol: 'NVDA', name: 'NVIDIA', type: 'Stocks', icon: '💚', color: '#76b900' },
+    { symbol: 'AMZN', name: 'Amazon', type: 'Stocks', icon: '📦', color: '#ff9900' },
+    { symbol: 'TSLA', name: 'Tesla', type: 'Stocks', icon: '⚡', color: '#e31937' },
+    { symbol: 'META', name: 'Meta', type: 'Stocks', icon: '👤', color: '#0082fb' },
+    { symbol: 'BRK-B', name: 'Berkshire', type: 'Stocks', icon: '🏦', color: '#6b46c1' },
+    { symbol: 'VOO', name: 'VOO ETF', type: 'ETF', icon: '📊', color: '#e53e3e' },
+    { symbol: 'SPY', name: 'S&P 500 ETF', type: 'ETF', icon: '📊', color: '#dd6b20' },
+    { symbol: 'QQQ', name: 'Nasdaq ETF', type: 'ETF', icon: '📊', color: '#2b6cb0' },
+    { symbol: 'VWCE.DE', name: 'VWCE', type: 'ETF', icon: '🌍', color: '#2f855a' },
+    { symbol: 'IWDA.AS', name: 'IWDA', type: 'ETF', icon: '🌐', color: '#276749' },
+    { symbol: 'BTC-USD', name: 'Bitcoin', type: 'Crypto', icon: '₿', color: '#f7931a' },
+    { symbol: 'ETH-USD', name: 'Ethereum', type: 'Crypto', icon: 'Ξ', color: '#627eea' },
+    { symbol: 'SOL-USD', name: 'Solana', type: 'Crypto', icon: '◎', color: '#9945ff' },
+    { symbol: 'BNB-USD', name: 'BNB', type: 'Crypto', icon: '🔶', color: '#f3ba2f' },
+    { symbol: 'XRP-USD', name: 'XRP', type: 'Crypto', icon: '✕', color: '#346aa9' },
   ];
   assetSearch = '';
   assetFilterType: 'All' | 'Stocks' | 'ETF' | 'Crypto' = 'All';
 
   get filteredPresetAssets() {
     const q = this.assetSearch.toLowerCase();
-    return this.presetAssets.filter(a =>
-      (this.assetFilterType === 'All' || a.type === this.assetFilterType) &&
-      (!q || a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q))
+    return this.presetAssets.filter(
+      (a) =>
+        (this.assetFilterType === 'All' || a.type === this.assetFilterType) &&
+        (!q || a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q)),
     );
   }
 
@@ -107,34 +161,55 @@ export class InvestmentsComponent implements OnInit {
     this.fetchingPrice = true;
     this.quoteResult = null;
     this.quoteError = '';
-    this.http.get<any>(this.apiUrl + '/market/quote', { params: { symbol: asset.symbol } }).subscribe({
-      next: (data) => {
-        this.fetchingPrice = false;
-        this.quoteResult = data;
-        // auto-apply immediately
-        const patch: any = { name: data.name, type: asset.type, price_per_unit: data.price };
-        const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
-        if (invested > 0 && data.price > 0) {
-          patch.units = invested / data.price;
-          patch.current_amount = (patch.units * data.price).toFixed(2);
-        }
-        this.investmentForm.patchValue(patch);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.fetchingPrice = false;
-        this.quoteError = err?.error?.error || 'Could not fetch price for ' + asset.symbol;
-        this.cdr.detectChanges();
-      }
-    });
+    this.http
+      .get<any>(this.apiUrl + '/market/quote', { params: { symbol: asset.symbol } })
+      .subscribe({
+        next: (data) => {
+          this.fetchingPrice = false;
+          this.quoteResult = data;
+          // auto-apply immediately
+          const patch: any = { name: data.name, type: asset.type, price_per_unit: data.price };
+          const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
+          if (invested > 0 && data.price > 0) {
+            patch.units = invested / data.price;
+            patch.current_amount = (patch.units * data.price).toFixed(2);
+          }
+          this.investmentForm.patchValue(patch);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.fetchingPrice = false;
+          this.quoteError = err?.error?.error || 'Could not fetch price for ' + asset.symbol;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   // Stocks
-  popularTickers = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'VOO', 'SPY', 'QQQ', 'VWCE.DE', 'IWDA.AS', 'BRK-B'];
+  popularTickers = [
+    'AAPL',
+    'MSFT',
+    'GOOGL',
+    'NVDA',
+    'VOO',
+    'SPY',
+    'QQQ',
+    'VWCE.DE',
+    'IWDA.AS',
+    'BRK-B',
+  ];
   stockSearch = '';
   stockLoading = false;
   stockError = '';
-  stockQuote: { name: string; price: number; currency: string; exchange: string; change_24h: number | null; sparkline: number[]; logo: string | null } | null = null;
+  stockQuote: {
+    name: string;
+    price: number;
+    currency: string;
+    exchange: string;
+    change_24h: number | null;
+    sparkline: number[];
+    logo: string | null;
+  } | null = null;
   stockSearchResults: { symbol: string; name: string; type: string; exchange: string }[] = [];
   showStockDropdown = false;
   private stockSearchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -148,7 +223,7 @@ export class InvestmentsComponent implements OnInit {
     private http: HttpClient,
     private router: Router,
     public currencyService: CurrencyService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
     this.investmentForm = this.fb.group({
       name: ['', Validators.required],
@@ -158,20 +233,23 @@ export class InvestmentsComponent implements OnInit {
       units: [null],
       price_per_unit: [null],
       current_amount: ['', [Validators.required, Validators.min(0)]],
-      purchase_date: ['', Validators.required]
+      purchase_date: ['', Validators.required],
     });
 
-    this.investmentForm.get('initial_amount')!.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
-      if (price <= 0) return;
-      const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
-      if (invested <= 0) return;
-      const units = invested / price;
-      this.investmentForm.patchValue(
-        { units, current_amount: (units * price).toFixed(2) },
-        { emitEvent: false }
-      );
-    });
+    this.investmentForm
+      .get('initial_amount')!
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const price = parseFloat(this.investmentForm.get('price_per_unit')?.value) || 0;
+        if (price <= 0) return;
+        const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
+        if (invested <= 0) return;
+        const units = invested / price;
+        this.investmentForm.patchValue(
+          { units, current_amount: (units * price).toFixed(2) },
+          { emitEvent: false },
+        );
+      });
   }
 
   ngOnInit(): void {
@@ -202,36 +280,44 @@ export class InvestmentsComponent implements OnInit {
       error: (err: ApiError) => {
         this.isLoading = false;
         const status = err?.status ? ' (HTTP ' + err.status + ')' : '';
-        this.loadError = (err?.message || err?.error?.message || JSON.stringify(err) || 'Failed to load investments') + status;
+        this.loadError =
+          (err?.message ||
+            err?.error?.message ||
+            JSON.stringify(err) ||
+            'Failed to load investments') + status;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
   autoRefreshPrices(investments: any[]): void {
-    const withTicker = investments.filter(inv => inv.ticker_symbol && +inv.units > 0);
+    const withTicker = investments.filter((inv) => inv.ticker_symbol && +inv.units > 0);
     if (withTicker.length === 0) return;
-    withTicker.forEach(inv => {
-      this.http.get<any>(this.apiUrl + '/market/quote', {
-        params: { symbol: inv.ticker_symbol }
-      }).subscribe({
-        next: (data) => {
-          const newCurrent = (+inv.units * data.price).toFixed(2);
-          if (Math.abs(parseFloat(newCurrent) - parseFloat(inv.current_amount)) < 0.01) return;
-          this.financialService.updateInvestment(inv.id, {
-            ...inv,
-            price_per_unit: data.price,
-            current_amount: newCurrent,
-          }).subscribe({
-            next: () => {
-              inv.current_amount = newCurrent;
-              inv.price_per_unit = data.price;
-              this.recalcTotals();
-              this.cdr.detectChanges();
-            }
-          });
-        }
-      });
+    withTicker.forEach((inv) => {
+      this.http
+        .get<any>(this.apiUrl + '/market/quote', {
+          params: { symbol: inv.ticker_symbol },
+        })
+        .subscribe({
+          next: (data) => {
+            const newCurrent = (+inv.units * data.price).toFixed(2);
+            if (Math.abs(parseFloat(newCurrent) - parseFloat(inv.current_amount)) < 0.01) return;
+            this.financialService
+              .updateInvestment(inv.id, {
+                ...inv,
+                price_per_unit: data.price,
+                current_amount: newCurrent,
+              })
+              .subscribe({
+                next: () => {
+                  inv.current_amount = newCurrent;
+                  inv.price_per_unit = data.price;
+                  this.recalcTotals();
+                  this.cdr.detectChanges();
+                },
+              });
+          },
+        });
     });
   }
 
@@ -249,18 +335,20 @@ export class InvestmentsComponent implements OnInit {
     this.quoteResult = null;
     this.quoteError = '';
 
-    this.http.get<any>(this.apiUrl + '/market/quote', {
-      params: { symbol: this.tickerSymbol.toUpperCase() }
-    }).subscribe({
-      next: (data) => {
-        this.fetchingPrice = false;
-        this.quoteResult = data;
-      },
-      error: (err) => {
-        this.fetchingPrice = false;
-        this.quoteError = err?.error?.error || 'Symbol not found. Try: AAPL, BTC-USD, VWCE.DE';
-      }
-    });
+    this.http
+      .get<any>(this.apiUrl + '/market/quote', {
+        params: { symbol: this.tickerSymbol.toUpperCase() },
+      })
+      .subscribe({
+        next: (data) => {
+          this.fetchingPrice = false;
+          this.quoteResult = data;
+        },
+        error: (err) => {
+          this.fetchingPrice = false;
+          this.quoteError = err?.error?.error || 'Symbol not found. Try: AAPL, BTC-USD, VWCE.DE';
+        },
+      });
   }
 
   get pricePerUnitForDisplay(): string {
@@ -295,7 +383,8 @@ export class InvestmentsComponent implements OnInit {
       patch.type = sym.includes('-USD') || sym.includes('-EUR') ? 'Crypto' : 'Stocks';
     }
     const invested = parseFloat(this.investmentForm.get('initial_amount')?.value) || 0;
-    const units = invested > 0 && this.quoteResult.price > 0 ? invested / this.quoteResult.price : null;
+    const units =
+      invested > 0 && this.quoteResult.price > 0 ? invested / this.quoteResult.price : null;
     if (units !== null) {
       patch.units = units;
       patch.current_amount = (units * this.quoteResult.price).toFixed(2);
@@ -312,26 +401,35 @@ export class InvestmentsComponent implements OnInit {
     this.http.get<any>(this.apiUrl + '/market/quote', { params: { symbol: sym } }).subscribe({
       next: (data) => {
         this.refreshingId = null;
-        const units = +inv.units > 0 ? +inv.units : (+inv.initial_amount / data.price);
+        const units = +inv.units > 0 ? +inv.units : +inv.initial_amount / data.price;
         const newCurrent = (units * data.price).toFixed(2);
-        this.financialService.updateInvestment(inv.id, {
-          ...inv,
-          units,
-          price_per_unit: data.price,
-          current_amount: newCurrent,
-        }).subscribe({
-          next: () => this.loadInvestments(true),
-          error: () => { this.refreshingId = null; this.cdr.detectChanges(); }
-        });
+        this.financialService
+          .updateInvestment(inv.id, {
+            ...inv,
+            units,
+            price_per_unit: data.price,
+            current_amount: newCurrent,
+          })
+          .subscribe({
+            next: () => this.loadInvestments(true),
+            error: () => {
+              this.refreshingId = null;
+              this.cdr.detectChanges();
+            },
+          });
       },
-      error: () => { this.refreshingId = null; this.cdr.detectChanges(); }
+      error: () => {
+        this.refreshingId = null;
+        this.cdr.detectChanges();
+      },
     });
   }
 
   get filteredInvestments(): any[] {
-    return this.investments.filter(inv => {
+    return this.investments.filter((inv) => {
       const q = this.searchQuery.toLowerCase();
-      if (q && !inv.name.toLowerCase().includes(q) && !inv.type.toLowerCase().includes(q)) return false;
+      if (q && !inv.name.toLowerCase().includes(q) && !inv.type.toLowerCase().includes(q))
+        return false;
       if (this.filterType && inv.type !== this.filterType) return false;
       if (this.filterPerf === 'gain' && this.roi(inv) < 0) return false;
       if (this.filterPerf === 'loss' && this.roi(inv) >= 0) return false;
@@ -348,11 +446,14 @@ export class InvestmentsComponent implements OnInit {
   }
 
   recalcDonut(): void {
-    if (this.totalCurrent === 0) { this.donutSegments = []; return; }
+    if (this.totalCurrent === 0) {
+      this.donutSegments = [];
+      return;
+    }
     const circumference = 2 * Math.PI * 54;
     const grouped: Record<string, number> = {};
     for (const inv of this.investments) {
-      const key = this.groupBy === 'account' ? (inv.account || 'No account') : inv.type;
+      const key = this.groupBy === 'account' ? inv.account || 'No account' : inv.type;
       grouped[key] = (grouped[key] || 0) + +inv.current_amount;
     }
     let offset = 0;
@@ -389,8 +490,13 @@ export class InvestmentsComponent implements OnInit {
 
   typeIcon(type: string): string {
     const map: Record<string, string> = {
-      'Stocks': '📈', 'ETF': '📊', 'Crypto': '₿', 'Real Estate': '🏠',
-      'Bonds': '📜', 'Savings Account': '🏦', 'Other': '💼'
+      Stocks: '📈',
+      ETF: '📊',
+      Crypto: '₿',
+      'Real Estate': '🏠',
+      Bonds: '📜',
+      'Savings Account': '🏦',
+      Other: '💼',
     };
     return map[type] || '💼';
   }
@@ -403,8 +509,10 @@ export class InvestmentsComponent implements OnInit {
     const v = this.investmentForm.value;
     const pricePerUnit = parseFloat(v.price_per_unit) || null;
     const invested = parseFloat(v.initial_amount) || 0;
-    const units = pricePerUnit && invested > 0 ? invested / pricePerUnit : (parseFloat(v.units) || null);
-    const currentAmount = pricePerUnit && units ? (units * pricePerUnit).toFixed(2) : v.current_amount;
+    const units =
+      pricePerUnit && invested > 0 ? invested / pricePerUnit : parseFloat(v.units) || null;
+    const currentAmount =
+      pricePerUnit && units ? (units * pricePerUnit).toFixed(2) : v.current_amount;
 
     const payload = {
       name: v.name,
@@ -423,8 +531,16 @@ export class InvestmentsComponent implements OnInit {
       : this.financialService.createInvestment(payload);
 
     obs.subscribe({
-      next: () => { this.isSaving = false; this.loadInvestments(true); this.cancelEdit(); },
-      error: (err: ApiError) => { this.isSaving = false; this.errorMessage = err.message || 'Failed to save investment'; this.cdr.detectChanges(); }
+      next: () => {
+        this.isSaving = false;
+        this.loadInvestments(true);
+        this.cancelEdit();
+      },
+      error: (err: ApiError) => {
+        this.isSaving = false;
+        this.errorMessage = err.message || 'Failed to save investment';
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -435,7 +551,9 @@ export class InvestmentsComponent implements OnInit {
     this.quoteResult = null;
     this.quoteError = '';
     this.investmentForm.patchValue({
-      name: inv.name, type: inv.type, account: inv.account ?? null,
+      name: inv.name,
+      type: inv.type,
+      account: inv.account ?? null,
       initial_amount: inv.initial_amount,
       units: inv.units ?? null,
       price_per_unit: inv.price_per_unit ?? null,
@@ -450,7 +568,10 @@ export class InvestmentsComponent implements OnInit {
     if (!confirm('Delete this investment?')) return;
     this.financialService.deleteInvestment(id).subscribe({
       next: () => this.loadInvestments(true),
-      error: (err: ApiError) => { this.errorMessage = err.message || 'Failed to delete'; this.cdr.detectChanges(); }
+      error: (err: ApiError) => {
+        this.errorMessage = err.message || 'Failed to delete';
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -470,31 +591,37 @@ export class InvestmentsComponent implements OnInit {
   loadCrypto(): void {
     this.cryptoLoading = true;
     this.cryptoError = '';
-    this.http.get<CoinMarket[]>(
-      'https://api.coingecko.com/api/v3/coins/markets',
-      { params: {
+    this.http
+      .get<CoinMarket[]>('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
           vs_currency: 'usd',
           order: 'market_cap_desc',
           per_page: '30',
           page: '1',
           sparkline: 'true',
-          price_change_percentage: '24h'
-        }
-      }
-    ).subscribe({
-      next: (data) => { this.coins = data; this.cryptoLoading = false; this.cdr.detectChanges(); },
-      error: () => {
-        this.cryptoLoading = false;
-        this.cryptoError = 'Failed to load crypto data. CoinGecko may be rate-limiting — try again in a minute.';
-        this.cdr.detectChanges();
-      }
-    });
+          price_change_percentage: '24h',
+        },
+      })
+      .subscribe({
+        next: (data) => {
+          this.coins = data;
+          this.cryptoLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.cryptoLoading = false;
+          this.cryptoError =
+            'Failed to load crypto data. CoinGecko may be rate-limiting — try again in a minute.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   get filteredCoins(): CoinMarket[] {
-    return this.coins.filter(c => {
+    return this.coins.filter((c) => {
       const q = this.cryptoSearch.toLowerCase();
-      if (q && !c.name.toLowerCase().includes(q) && !c.symbol.toLowerCase().includes(q)) return false;
+      if (q && !c.name.toLowerCase().includes(q) && !c.symbol.toLowerCase().includes(q))
+        return false;
       if (this.cryptoFilter === 'gain' && c.price_change_percentage_24h < 0) return false;
       if (this.cryptoFilter === 'loss' && c.price_change_percentage_24h >= 0) return false;
       return true;
@@ -507,7 +634,9 @@ export class InvestmentsComponent implements OnInit {
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const range = max - min || 1;
-    return prices.map((p, i) => (i * step).toFixed(1) + ',' + (40 - ((p - min) / range) * 36).toFixed(1)).join(' ');
+    return prices
+      .map((p, i) => (i * step).toFixed(1) + ',' + (40 - ((p - min) / range) * 36).toFixed(1))
+      .join(' ');
   }
 
   formatPrice(p: number): string {
@@ -542,14 +671,19 @@ export class InvestmentsComponent implements OnInit {
     this.stockSearchResults = [];
     if (!value || value.length < 2) return;
     this.stockSearchTimer = setTimeout(() => {
-      this.http.get<MarketSearchResult[]>(this.apiUrl + '/market/search', { params: { q: value } }).subscribe({
-        next: (results) => {
-          this.stockSearchResults = results || [];
-          this.showStockDropdown = this.stockSearchResults.length > 0;
-          this.cdr.detectChanges();
-        },
-        error: () => { this.stockSearchResults = []; this.cdr.detectChanges(); }
-      });
+      this.http
+        .get<MarketSearchResult[]>(this.apiUrl + '/market/search', { params: { q: value } })
+        .subscribe({
+          next: (results) => {
+            this.stockSearchResults = results || [];
+            this.showStockDropdown = this.stockSearchResults.length > 0;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.stockSearchResults = [];
+            this.cdr.detectChanges();
+          },
+        });
     }, 350);
   }
 
@@ -561,7 +695,9 @@ export class InvestmentsComponent implements OnInit {
   }
 
   hideStockDropdown(): void {
-    setTimeout(() => { this.showStockDropdown = false; }, 200);
+    setTimeout(() => {
+      this.showStockDropdown = false;
+    }, 200);
   }
 
   fetchStockQuote(): void {
@@ -570,16 +706,24 @@ export class InvestmentsComponent implements OnInit {
     this.stockError = '';
     this.stockQuote = null;
     this.showStockDropdown = false;
-    this.http.get<any>(this.apiUrl + '/market/quote', {
-      params: { symbol: this.stockSearch.toUpperCase() }
-    }).subscribe({
-      next: (data) => { this.stockQuote = data; this.stockLoading = false; this.cdr.detectChanges(); },
-      error: (err) => {
-        this.stockLoading = false;
-        this.stockError = err?.error?.error || ('"' + this.stockSearch + '" not found. Try a valid ticker like AAPL or VOO.');
-        this.cdr.detectChanges();
-      }
-    });
+    this.http
+      .get<any>(this.apiUrl + '/market/quote', {
+        params: { symbol: this.stockSearch.toUpperCase() },
+      })
+      .subscribe({
+        next: (data) => {
+          this.stockQuote = data;
+          this.stockLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.stockLoading = false;
+          this.stockError =
+            err?.error?.error ||
+            '"' + this.stockSearch + '" not found. Try a valid ticker like AAPL or VOO.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   sparklineArea(prices: number[]): string {
@@ -602,7 +746,10 @@ export class InvestmentsComponent implements OnInit {
     const sym = this.stockSearch.toUpperCase();
     this.investmentForm.patchValue({
       name: this.stockQuote.name,
-      type: sym.includes('ETF') || ['VOO','SPY','QQQ','VWCE.DE','IWDA.AS'].includes(sym) ? 'ETF' : 'Stocks',
+      type:
+        sym.includes('ETF') || ['VOO', 'SPY', 'QQQ', 'VWCE.DE', 'IWDA.AS'].includes(sym)
+          ? 'ETF'
+          : 'Stocks',
       price_per_unit: this.stockQuote.price,
       purchase_date: new Date().toISOString().slice(0, 10),
     });

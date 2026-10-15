@@ -13,6 +13,7 @@ use App\Models\Investment;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TokenService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Laravel\Ai\Models\Conversation;
 use Spatie\Permission\Models\Role;
@@ -27,11 +28,12 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Get admin dashboard metrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Dashboard metrics"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function dashboardMetrics(): \Illuminate\Http\JsonResponse
+    public function dashboardMetrics(): JsonResponse
     {
         $usersQuery = User::query();
         $activeUsers = (clone $usersQuery)->whereNull('blacklisted_at')->count();
@@ -68,12 +70,14 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="List users with pagination",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Paginated users"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function users(ListUsersRequest $request): \Illuminate\Http\JsonResponse
+    public function users(ListUsersRequest $request): JsonResponse
     {
         $search = $request->query('search');
 
@@ -98,18 +102,23 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Update a user's role",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"role"},
+     *
      *             @OA\Property(property="role", type="string", enum={"admin","manager","user"})
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Role updated"),
      *     @OA\Response(response=403, description="Forbidden"),
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function updateRole(UpdateUserRoleRequest $request, User $user): \Illuminate\Http\JsonResponse
+    public function updateRole(UpdateUserRoleRequest $request, User $user): JsonResponse
     {
         if ($request->role !== 'admin' && $this->isLastAdmin($user)) {
             return response()->json(['message' => 'You cannot demote the last admin.'], 422);
@@ -130,12 +139,14 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Toggle user blacklist status",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Blacklist toggled"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function toggleBlacklist(User $user): \Illuminate\Http\JsonResponse
+    public function toggleBlacklist(User $user): JsonResponse
     {
         $this->authorizeOrJson('toggleBlacklist', $user);
 
@@ -158,13 +169,15 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Delete a user",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="User deleted"),
      *     @OA\Response(response=403, description="Forbidden"),
      *     @OA\Response(response=422, description="Cannot delete self")
      * )
      */
-    public function destroyUser(User $user): \Illuminate\Http\JsonResponse
+    public function destroyUser(User $user): JsonResponse
     {
         $this->authorizeOrJson('delete', $user);
 
@@ -202,14 +215,16 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Get admin budget metrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Budget metrics"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function budgetsMetrics(BudgetsMetricsRequest $request): \Illuminate\Http\JsonResponse
+    public function budgetsMetrics(BudgetsMetricsRequest $request): JsonResponse
     {
         $year = $request->query('year');
         $month = $request->query('month');
@@ -227,7 +242,7 @@ class AdminController extends Controller
                 });
             })
             ->when($year, function ($query, $year) {
-                $query->where('budgets.month', 'like', $year . '-%');
+                $query->where('budgets.month', 'like', $year.'-%');
             })
             ->when($month, function ($query, $month) {
                 $query->where('budgets.month', $month);
@@ -264,14 +279,16 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Get admin investment metrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Investment metrics"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function investmentsMetrics(InvestmentsMetricsRequest $request): \Illuminate\Http\JsonResponse
+    public function investmentsMetrics(InvestmentsMetricsRequest $request): JsonResponse
     {
         $year = $request->query('year');
         $type = $request->query('type');
@@ -310,7 +327,7 @@ class AdminController extends Controller
             ->get();
 
         $byMonth = Investment::query()
-            ->selectRaw($this->yearMonth('purchase_date') . ' as month, COALESCE(SUM(initial_amount), 0) as total_initial, COALESCE(SUM(current_amount), 0) as total_current')
+            ->selectRaw($this->yearMonth('purchase_date').' as month, COALESCE(SUM(initial_amount), 0) as total_initial, COALESCE(SUM(current_amount), 0) as total_current')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -331,15 +348,17 @@ class AdminController extends Controller
      *     tags={"Admin"},
      *     summary="Get admin transaction metrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="year", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Transaction metrics"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function transactionsMetrics(TransactionsMetricsRequest $request): \Illuminate\Http\JsonResponse
+    public function transactionsMetrics(TransactionsMetricsRequest $request): JsonResponse
     {
         $year = $request->query('year');
         $month = $request->query('month');
@@ -395,7 +414,7 @@ class AdminController extends Controller
             });
 
         $byMonth = Transaction::query()
-            ->selectRaw($this->yearMonth('transaction_date') . ' as month, type, COALESCE(SUM(amount), 0) as total')
+            ->selectRaw($this->yearMonth('transaction_date').' as month, type, COALESCE(SUM(amount), 0) as total')
             ->groupBy('month', 'type')
             ->orderBy('month')
             ->get();

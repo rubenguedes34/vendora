@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\FinancialRecord\AllocationRequest;
 use App\Http\Requests\FinancialRecord\StoreFinancialRecordRequest;
 use App\Http\Requests\FinancialRecord\UpdateFinancialRecordRequest;
 use App\Models\FinancialRecord;
+use App\Models\User;
 use App\Services\HealthScoreCalculator;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class FinancialRecordController extends Controller
 {
@@ -19,6 +20,7 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="List all financial records",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of financial records")
      * )
      */
@@ -39,6 +41,7 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get current month financial record",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Current month record")
      * )
      */
@@ -55,7 +58,9 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get financial records for a year",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="year", in="path", required=true, @OA\Schema(type="integer", example=2025)),
+     *
      *     @OA\Response(response=200, description="Array of monthly records for the year")
      * )
      */
@@ -87,8 +92,11 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Create or update a financial record",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"year","month"},
+     *
      *             @OA\Property(property="year", type="integer"),
      *             @OA\Property(property="month", type="integer"),
      *             @OA\Property(property="is_custom", type="boolean", description="Month uses its own base instead of the profile default"),
@@ -98,6 +106,7 @@ class FinancialRecordController extends Controller
      *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Financial record saved")
      * )
      */
@@ -116,6 +125,7 @@ class FinancialRecordController extends Controller
             return response()->json($record, 201);
         } catch (\Exception $e) {
             Log::error('Saving financial record failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Failed to save financial record. Please try again.',
             ], 500);
@@ -128,7 +138,9 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get a single financial record",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Financial record object")
      * )
      */
@@ -146,9 +158,13 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Update a financial record",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="is_custom", type="boolean", description="Month uses its own base instead of the profile default"),
      *             @OA\Property(property="base_income", type="number", description="Base income when is_custom is true"),
      *             @OA\Property(property="base_expenses", type="number", description="Base expenses when is_custom is true"),
@@ -156,6 +172,7 @@ class FinancialRecordController extends Controller
      *             @OA\Property(property="savings_goal_type", type="string", enum={"percentage","fixed"})
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Financial record updated")
      * )
      */
@@ -172,6 +189,7 @@ class FinancialRecordController extends Controller
             return response()->json($record);
         } catch (\Exception $e) {
             Log::error('Updating financial record failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Failed to update financial record. Please try again.',
             ], 500);
@@ -182,9 +200,9 @@ class FinancialRecordController extends Controller
      * Applies the savings goal and the custom-month flag. Income and expenses are never
      * taken from the request: they are always the base plus the month's transactions.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
-    private function applyMonthSettings(FinancialRecord $record, array $data, \App\Models\User $user): void
+    private function applyMonthSettings(FinancialRecord $record, array $data, User $user): void
     {
         $wasCustom = (bool) $record->is_custom;
 
@@ -217,7 +235,9 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Delete a financial record",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="financial_record", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Financial record deleted")
      * )
      */
@@ -237,6 +257,7 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get net worth overview",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Net worth data")
      * )
      */
@@ -253,23 +274,23 @@ class FinancialRecordController extends Controller
 
                 // Aggregates are far cheaper than hydrating every row.
                 $totals = $user->transactions()
-                    ->selectRaw("type, SUM(amount) as total")
+                    ->selectRaw('type, SUM(amount) as total')
                     ->groupBy('type')
                     ->pluck('total', 'type')
                     ->toArray();
 
-                $totalIncome   = (float) ($totals['income'] ?? 0);
+                $totalIncome = (float) ($totals['income'] ?? 0);
                 $totalExpenses = (float) ($totals['expense'] ?? 0);
-                $cashBalance   = round($totalIncome - $totalExpenses, 2);
+                $cashBalance = round($totalIncome - $totalExpenses, 2);
 
                 $investmentSummary = $user->investments()
-                    ->selectRaw("SUM(initial_amount) as cost, SUM(current_amount) as value")
+                    ->selectRaw('SUM(initial_amount) as cost, SUM(current_amount) as value')
                     ->first();
 
                 $investmentValue = (float) $investmentSummary?->value;
-                $investmentCost  = (float) $investmentSummary?->cost;
-                $investGain      = round($investmentValue - $investmentCost, 2);
-                $investRoi       = $investmentCost > 0
+                $investmentCost = (float) $investmentSummary?->cost;
+                $investGain = round($investmentValue - $investmentCost, 2);
+                $investRoi = $investmentCost > 0
                     ? round(($investGain / $investmentCost) * 100, 2)
                     : 0;
 
@@ -277,7 +298,7 @@ class FinancialRecordController extends Controller
 
                 // Monthly / yearly deltas use filtered aggregates instead of in-memory loops.
                 $monthStart = $now->copy()->startOfMonth();
-                $yearStart  = $now->copy()->startOfYear();
+                $yearStart = $now->copy()->startOfYear();
 
                 $monthlyIncome = (float) $user->transactions()
                     ->where('type', 'income')
@@ -301,7 +322,7 @@ class FinancialRecordController extends Controller
 
                 // Only the last 13 months are loaded row by row; everything older
                 // is folded into opening balances so the series ends at the real total.
-                $transactions  = $user->transactions()
+                $transactions = $user->transactions()
                     ->whereDate('transaction_date', '>=', $historyWindowStart)
                     ->get(['type', 'transaction_date', 'amount']);
                 $openingTotals = $user->transactions()
@@ -312,26 +333,26 @@ class FinancialRecordController extends Controller
                 $investmentRows = $user->investments()
                     ->get(['type', 'purchase_date', 'current_amount', 'initial_amount']);
 
-                $incomeRows   = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
-                $expenseRows  = $transactions->where('type', 'expense')->sortBy('transaction_date')->values();
+                $incomeRows = $transactions->where('type', 'income')->sortBy('transaction_date')->values();
+                $expenseRows = $transactions->where('type', 'expense')->sortBy('transaction_date')->values();
                 $investSorted = $investmentRows
                     ->filter(fn ($inv) => $inv->purchase_date)
                     ->sortBy('purchase_date')
                     ->values();
 
-                $incomeIdx  = 0;
+                $incomeIdx = 0;
                 $expenseIdx = 0;
-                $investIdx  = 0;
-                $cumulativeIncome  = (float) ($openingTotals['income'] ?? 0);
+                $investIdx = 0;
+                $cumulativeIncome = (float) ($openingTotals['income'] ?? 0);
                 $cumulativeExpense = (float) ($openingTotals['expense'] ?? 0);
-                $cumulativeInvest  = (float) $investmentRows
-                    ->filter(fn ($inv) => !$inv->purchase_date)
+                $cumulativeInvest = (float) $investmentRows
+                    ->filter(fn ($inv) => ! $inv->purchase_date)
                     ->sum('current_amount');
 
                 $history = [];
                 for ($i = 12; $i >= 0; $i--) {
                     $pointEnd = $now->copy()->subMonths($i)->endOfMonth();
-                    $label    = $now->copy()->subMonths($i)->format('M y');
+                    $label = $now->copy()->subMonths($i)->format('M y');
 
                     while ($incomeIdx < $incomeRows->count() && $incomeRows[$incomeIdx]->transaction_date <= $pointEnd) {
                         $cumulativeIncome += (float) $incomeRows[$incomeIdx]->amount;
@@ -349,9 +370,9 @@ class FinancialRecordController extends Controller
                     $cash = round($cumulativeIncome - $cumulativeExpense, 2);
 
                     $history[] = [
-                        'label'       => $label,
-                        'net_worth'   => round($cash + $cumulativeInvest, 2),
-                        'cash'        => $cash,
+                        'label' => $label,
+                        'net_worth' => round($cash + $cumulativeInvest, 2),
+                        'cash' => $cash,
                         'investments' => round($cumulativeInvest, 2),
                     ];
                 }
@@ -363,7 +384,7 @@ class FinancialRecordController extends Controller
                     ->orderByDesc('value')
                     ->get()
                     ->map(fn ($row) => [
-                        'type'  => $row->type,
+                        'type' => $row->type,
                         'value' => round((float) $row->value, 2),
                     ])
                     ->values();
@@ -373,18 +394,18 @@ class FinancialRecordController extends Controller
                     ->values();
 
                 return [
-                    'net_worth'        => $netWorth,
-                    'cash_balance'     => $cashBalance,
+                    'net_worth' => $netWorth,
+                    'cash_balance' => $cashBalance,
                     'investment_value' => $investmentValue,
-                    'investment_cost'  => $investmentCost,
-                    'investment_gain'  => $investGain,
-                    'investment_roi'   => $investRoi,
-                    'total_income'     => round($totalIncome, 2),
-                    'total_expenses'   => round($totalExpenses, 2),
-                    'monthly_change'   => $monthlyChange,
-                    'yearly_change'    => $yearlyChange,
-                    'history'          => $history,
-                    'allocation'       => $allocationFull,
+                    'investment_cost' => $investmentCost,
+                    'investment_gain' => $investGain,
+                    'investment_roi' => $investRoi,
+                    'total_income' => round($totalIncome, 2),
+                    'total_expenses' => round($totalExpenses, 2),
+                    'monthly_change' => $monthlyChange,
+                    'yearly_change' => $yearlyChange,
+                    'history' => $history,
+                    'allocation' => $allocationFull,
                 ];
             }
         );
@@ -398,10 +419,12 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get investment allocation breakdown",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="account", in="query", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(name="date_from", in="query", required=false, @OA\Schema(type="string", format="date")),
      *     @OA\Parameter(name="date_to", in="query", required=false, @OA\Schema(type="string", format="date")),
      *     @OA\Parameter(name="type", in="query", required=false, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Allocation data")
      * )
      */
@@ -433,20 +456,20 @@ class FinancialRecordController extends Controller
             ->get();
 
         $breakdown = $rows->map(fn ($row) => [
-            'type'       => $row->type,
-            'total'      => round((float) $row->total, 2),
+            'type' => $row->type,
+            'total' => round((float) $row->total, 2),
             'percentage' => $total > 0 ? round(((float) $row->total / $total) * 100, 2) : 0,
-            'count'      => (int) $row->count,
+            'count' => (int) $row->count,
         ])->values();
 
         return response()->json([
-            'total'      => round($total, 2),
-            'breakdown'  => $breakdown,
-            'filters'    => [
-                'account'   => $request->account,
+            'total' => round($total, 2),
+            'breakdown' => $breakdown,
+            'filters' => [
+                'account' => $request->account,
                 'date_from' => $request->date_from,
-                'date_to'   => $request->date_to,
-                'type'      => $request->type,
+                'date_to' => $request->date_to,
+                'type' => $request->type,
             ],
         ]);
     }
@@ -457,6 +480,7 @@ class FinancialRecordController extends Controller
      *     tags={"Financial Records"},
      *     summary="Get financial health score",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Health score data")
      * )
      */

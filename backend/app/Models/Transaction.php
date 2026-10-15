@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Services\FinancialCacheService;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -14,10 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $description
  * @property string $amount
  * @property string $type
- * @property \Carbon\Carbon $transaction_date
+ * @property Carbon $transaction_date
  * @property string|null $notes
  * @property string|null $attachment_path
- * @property \Illuminate\Database\Eloquent\Collection<Tag> $tags
+ * @property Collection<Tag> $tags
  * @property-read User $user
  */
 class Transaction extends Model

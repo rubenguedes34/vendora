@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
 
 class AuthControllerTest extends TestCase
 {
@@ -56,7 +57,7 @@ class AuthControllerTest extends TestCase
     }
 
     public function test_login_returns_token_for_valid_credentials(): void
-    {        
+    {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => bcrypt('password123'),
@@ -120,20 +121,20 @@ class AuthControllerTest extends TestCase
             ->assertJson(['message' => 'Invalid credentials']);
     }
 
-    //public function test_logout_returns_success_message(): void
-    //{
+    // public function test_logout_returns_success_message(): void
+    // {
     //    $user = User::factory()->create();
     //    $response = $this->actingAs($user)->postJson('/api/logout');
 
     //    $response->assertStatus(200)
     //        ->assertJson(['message' => 'Logged out successfully']);
-    //}
+    // }
 
     public function test_logout_revokes_the_token(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
-        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+        $header = ['Authorization' => 'Bearer '.TokenService::issue($user)];
 
         $this->getJson('/api/user', $header)->assertStatus(200);
         $this->postJson('/api/logout', [], $header)->assertStatus(200);
@@ -148,16 +149,16 @@ class AuthControllerTest extends TestCase
     {
         /** @var User $user */
         $user = User::factory()->create();
-        $token = \App\Services\TokenService::issue($user);
+        $token = TokenService::issue($user);
 
-        $this->getJson('/api/user?token=' . urlencode($token))->assertStatus(401);
+        $this->getJson('/api/user?token='.urlencode($token))->assertStatus(401);
     }
 
     public function test_expired_token_is_rejected(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
-        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+        $header = ['Authorization' => 'Bearer '.TokenService::issue($user)];
 
         $this->travel((int) config('sanctum.expiration') + 1)->minutes();
 
@@ -168,7 +169,7 @@ class AuthControllerTest extends TestCase
     {
         /** @var User $user */
         $user = User::factory()->create();
-        $header = ['Authorization' => 'Bearer ' . \App\Services\TokenService::issue($user)];
+        $header = ['Authorization' => 'Bearer '.TokenService::issue($user)];
 
         $user->forceFill(['blacklisted_at' => now()])->save();
 

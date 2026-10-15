@@ -2,20 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Category;
-use App\Services\TokenService;
 
 class TransactionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Category $category;
 
     protected function setUp(): void
@@ -33,7 +36,7 @@ class TransactionControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_unauthenticated_request_returns_401(): void
@@ -144,12 +147,12 @@ class TransactionControllerTest extends TestCase
     public function test_store_saves_notes(): void
     {
         $response = $this->postJson('/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Bonus payment',
-            'amount'           => 500,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Bonus payment',
+            'amount' => 500,
+            'type' => 'income',
             'transaction_date' => '2025-07-15',
-            'notes'            => 'Q2 performance bonus',
+            'notes' => 'Q2 performance bonus',
         ], $this->authHeader());
 
         $response->assertStatus(201)
@@ -157,17 +160,17 @@ class TransactionControllerTest extends TestCase
 
         $this->assertDatabaseHas('transactions', [
             'description' => 'Bonus payment',
-            'notes'       => 'Q2 performance bonus',
+            'notes' => 'Q2 performance bonus',
         ]);
     }
 
     public function test_store_without_notes_stores_null(): void
     {
         $response = $this->postJson('/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'No notes transaction',
-            'amount'           => 100,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'No notes transaction',
+            'amount' => 100,
+            'type' => 'income',
             'transaction_date' => '2025-07-15',
         ], $this->authHeader());
 
@@ -178,10 +181,10 @@ class TransactionControllerTest extends TestCase
     public function test_update_can_set_notes(): void
     {
         $tx = $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Grocery run',
-            'amount'           => 45,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Grocery run',
+            'amount' => 45,
+            'type' => 'income',
             'transaction_date' => '2025-07-10',
         ]);
 
@@ -195,12 +198,12 @@ class TransactionControllerTest extends TestCase
     public function test_update_can_clear_notes(): void
     {
         $tx = $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'With notes',
-            'amount'           => 20,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'With notes',
+            'amount' => 20,
+            'type' => 'income',
             'transaction_date' => '2025-07-10',
-            'notes'            => 'Some note',
+            'notes' => 'Some note',
         ]);
 
         $this->putJson("/api/transactions/{$tx->id}", [
@@ -213,21 +216,21 @@ class TransactionControllerTest extends TestCase
     public function test_search_matches_notes(): void
     {
         $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Regular expense',
-            'amount'           => 30,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Regular expense',
+            'amount' => 30,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-            'notes'            => 'reimbursement from John',
+            'notes' => 'reimbursement from John',
         ]);
 
         $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Another transaction',
-            'amount'           => 50,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Another transaction',
+            'amount' => 50,
+            'type' => 'income',
             'transaction_date' => '2025-07-02',
-            'notes'            => null,
+            'notes' => null,
         ]);
 
         $response = $this->getJson('/api/transactions?search=reimbursement', $this->authHeader());
@@ -241,20 +244,20 @@ class TransactionControllerTest extends TestCase
     public function test_search_matches_description_and_notes(): void
     {
         $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'electric bill',
-            'amount'           => 80,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'electric bill',
+            'amount' => 80,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
         ]);
 
         $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Other',
-            'amount'           => 25,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Other',
+            'amount' => 25,
+            'type' => 'income',
             'transaction_date' => '2025-07-02',
-            'notes'            => 'paid electric bill with card',
+            'notes' => 'paid electric bill with card',
         ]);
 
         $response = $this->getJson('/api/transactions?search=electric', $this->authHeader());
@@ -266,12 +269,12 @@ class TransactionControllerTest extends TestCase
     public function test_notes_rejects_string_over_1000_characters(): void
     {
         $this->postJson('/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Too long notes',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Too long notes',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-            'notes'            => str_repeat('a', 1001),
+            'notes' => str_repeat('a', 1001),
         ], $this->authHeader())
             ->assertStatus(422)
             ->assertJsonValidationErrors(['notes']);
@@ -284,12 +287,12 @@ class TransactionControllerTest extends TestCase
         $file = UploadedFile::fake()->create('receipt.jpg', 100, 'image/jpeg');
 
         $response = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Receipt test',
-            'amount'           => 50,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Receipt test',
+            'amount' => 50,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
         $response->assertStatus(201);
         $path = $response->json('attachment_path');
@@ -300,10 +303,10 @@ class TransactionControllerTest extends TestCase
     public function test_store_without_attachment_stores_null(): void
     {
         $response = $this->postJson('/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'No attachment',
-            'amount'           => 20,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'No attachment',
+            'amount' => 20,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
         ], $this->authHeader());
 
@@ -317,26 +320,26 @@ class TransactionControllerTest extends TestCase
 
         $oldFile = UploadedFile::fake()->create('old.jpg', 100, 'image/jpeg');
         $storeResponse = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'With attachment',
-            'amount'           => 30,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'With attachment',
+            'amount' => 30,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $oldFile], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $oldFile], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
-        $txId    = $storeResponse->json('id');
+        $txId = $storeResponse->json('id');
         $oldPath = $storeResponse->json('attachment_path');
         Storage::disk('local')->assertExists($oldPath);
 
         $newFile = UploadedFile::fake()->create('new.png', 100, 'image/png');
         $this->call('POST', "/api/transactions/{$txId}", [
             'description' => 'Updated',
-            '_method'     => 'PUT',
-        ], [], ['attachment' => $newFile], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json'])
+            '_method' => 'PUT',
+        ], [], ['attachment' => $newFile], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json'])
             ->assertStatus(200);
 
         Storage::disk('local')->assertMissing($oldPath);
-        $newPath = \App\Models\Transaction::find($txId)->attachment_path;
+        $newPath = Transaction::find($txId)->attachment_path;
         $this->assertNotNull($newPath);
         Storage::disk('local')->assertExists($newPath);
     }
@@ -347,12 +350,12 @@ class TransactionControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('doc.pdf', 100, 'application/pdf');
         $storeResponse = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'PDF receipt',
-            'amount'           => 99,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'PDF receipt',
+            'amount' => 99,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
         $txId = $storeResponse->json('id');
         $path = $storeResponse->json('attachment_path');
@@ -371,12 +374,12 @@ class TransactionControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('receipt.png', 100, 'image/png');
         $storeResponse = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Serve test',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Serve test',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
         $txId = $storeResponse->json('id');
 
@@ -391,20 +394,20 @@ class TransactionControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('private.jpg', 100, 'image/jpeg');
         $storeResponse = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Private',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Private',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
         $txId = $storeResponse->json('id');
 
-        $other      = User::factory()->createOne();
+        $other = User::factory()->createOne();
         $otherToken = TokenService::issue($other);
 
         $this->getJson("/api/transactions/{$txId}/attachment", [
-            'Authorization' => 'Bearer ' . $otherToken,
+            'Authorization' => 'Bearer '.$otherToken,
         ])->assertStatus(404);
     }
 
@@ -414,12 +417,12 @@ class TransactionControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('to-delete.jpg', 100, 'image/jpeg');
         $storeResponse = $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Delete attachment',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Delete attachment',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json']);
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json']);
 
         $txId = $storeResponse->json('id');
         $path = $storeResponse->json('attachment_path');
@@ -438,12 +441,12 @@ class TransactionControllerTest extends TestCase
         $file = UploadedFile::fake()->create('script.exe', 10, 'application/octet-stream');
 
         $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Bad file',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Bad file',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json'])
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['attachment']);
     }
@@ -455,12 +458,12 @@ class TransactionControllerTest extends TestCase
         $file = UploadedFile::fake()->create('big.jpg', 6000, 'image/jpeg');
 
         $this->call('POST', '/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Big file',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Big file',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
-        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer ' . $this->token, 'HTTP_ACCEPT' => 'application/json'])
+        ], [], ['attachment' => $file], ['HTTP_Authorization' => 'Bearer '.$this->token, 'HTTP_ACCEPT' => 'application/json'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['attachment']);
     }
@@ -470,10 +473,10 @@ class TransactionControllerTest extends TestCase
     private function makeTransaction(array $overrides = []): void
     {
         $this->user->transactions()->create(array_merge([
-            'category_id'      => $this->category->id,
-            'description'      => 'Test',
-            'amount'           => 100,
-            'type'             => 'expense',
+            'category_id' => $this->category->id,
+            'description' => 'Test',
+            'amount' => 100,
+            'type' => 'expense',
             'transaction_date' => '2025-07-01',
         ], $overrides));
     }
@@ -548,7 +551,7 @@ class TransactionControllerTest extends TestCase
     public function test_combined_filters_work_together(): void
     {
         $this->makeTransaction(['description' => 'Coffee', 'amount' => 5,   'type' => 'expense', 'transaction_date' => '2025-07-01']);
-        $this->makeTransaction(['description' => 'Salary', 'amount' => 3000,'type' => 'income',  'transaction_date' => '2025-07-01']);
+        $this->makeTransaction(['description' => 'Salary', 'amount' => 3000, 'type' => 'income',  'transaction_date' => '2025-07-01']);
         $this->makeTransaction(['description' => 'Lunch',  'amount' => 15,  'type' => 'expense', 'transaction_date' => '2025-07-15']);
 
         $response = $this->getJson(
@@ -566,10 +569,10 @@ class TransactionControllerTest extends TestCase
         $tag = $this->user->tags()->create(['name' => 'Work', 'color' => '#ff0000']);
 
         $t1 = $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Tagged',
-            'amount'           => 100,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Tagged',
+            'amount' => 100,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
         ]);
         $t1->tags()->attach($tag->id);
@@ -587,10 +590,10 @@ class TransactionControllerTest extends TestCase
     {
         for ($i = 1; $i <= 25; $i++) {
             $this->user->transactions()->create([
-                'category_id'      => $this->category->id,
-                'description'      => "Tx $i",
-                'amount'           => 10,
-                'type'             => 'expense',
+                'category_id' => $this->category->id,
+                'description' => "Tx $i",
+                'amount' => 10,
+                'type' => 'expense',
                 'transaction_date' => '2025-07-01',
             ]);
         }
@@ -614,10 +617,10 @@ class TransactionControllerTest extends TestCase
     public function test_store_rejects_category_of_the_wrong_type(): void
     {
         $this->postJson('/api/transactions', [
-            'category_id'      => $this->category->id,
-            'description'      => 'Mismatch',
-            'amount'           => 10,
-            'type'             => 'expense',
+            'category_id' => $this->category->id,
+            'description' => 'Mismatch',
+            'amount' => 10,
+            'type' => 'expense',
             'transaction_date' => '2025-07-01',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -627,10 +630,10 @@ class TransactionControllerTest extends TestCase
     public function test_export_neutralises_spreadsheet_formulas(): void
     {
         $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => '=HYPERLINK("http://evil.test")',
-            'amount'           => 10,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => '=HYPERLINK("http://evil.test")',
+            'amount' => 10,
+            'type' => 'income',
             'transaction_date' => '2025-07-01',
         ]);
 
@@ -645,10 +648,10 @@ class TransactionControllerTest extends TestCase
     public function test_moving_a_transaction_to_another_month_resyncs_both_months(): void
     {
         $transaction = $this->user->transactions()->create([
-            'category_id'      => $this->category->id,
-            'description'      => 'Pay',
-            'amount'           => 500,
-            'type'             => 'income',
+            'category_id' => $this->category->id,
+            'description' => 'Pay',
+            'amount' => 500,
+            'type' => 'income',
             'transaction_date' => '2025-07-10',
         ]);
 

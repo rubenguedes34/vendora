@@ -15,13 +15,13 @@ import { AuthService } from '../../services/auth.service';
         <div class="text-gray-600">Please wait while we redirect you.</div>
       </div>
     </div>
-  `
+  `,
 })
 export class AuthCallbackComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -47,8 +47,10 @@ export class AuthCallbackComponent implements OnInit {
         this.router.navigate([user.needs_setup ? '/setup' : '/dashboard'], { replaceUrl: true });
       },
       error: () => {
-        this.router.navigate(['/login'], { queryParams: { error: 'Google login failed. Please try again.' } });
-      }
+        this.router.navigate(['/login'], {
+          queryParams: { error: 'Google login failed. Please try again.' },
+        });
+      },
     });
   }
 }

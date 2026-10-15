@@ -2,17 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
-use App\Models\User;
-use App\Services\TokenService;
 
 class AccountControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -32,7 +33,7 @@ class AccountControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     // --- updateProfile ---
@@ -46,7 +47,7 @@ class AccountControllerTest extends TestCase
     public function test_update_profile_changes_name_and_email(): void
     {
         $this->putJson('/api/user/profile', [
-            'name'  => 'Jane Doe',
+            'name' => 'Jane Doe',
             'email' => 'jane@example.com',
             'current_password' => 'password123',
         ], $this->authHeader())
@@ -56,8 +57,8 @@ class AccountControllerTest extends TestCase
             ->assertJsonPath('user.email', 'jane@example.com');
 
         $this->assertDatabaseHas('users', [
-            'id'    => $this->user->id,
-            'name'  => 'Jane Doe',
+            'id' => $this->user->id,
+            'name' => 'Jane Doe',
             'email' => 'jane@example.com',
         ]);
     }
@@ -65,16 +66,16 @@ class AccountControllerTest extends TestCase
     public function test_update_profile_updates_monthly_financials(): void
     {
         $this->putJson('/api/user/profile', [
-            'name'             => 'John Doe',
-            'email'            => 'john@example.com',
-            'monthly_income'   => 5000,
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'monthly_income' => 5000,
             'monthly_expenses' => 2000,
         ], $this->authHeader())
             ->assertStatus(200);
 
         $this->assertDatabaseHas('users', [
-            'id'               => $this->user->id,
-            'monthly_income'   => 5000,
+            'id' => $this->user->id,
+            'monthly_income' => 5000,
             'monthly_expenses' => 2000,
         ]);
     }
@@ -93,7 +94,7 @@ class AccountControllerTest extends TestCase
         unset($other);
 
         $this->putJson('/api/user/profile', [
-            'name'  => 'John Doe',
+            'name' => 'John Doe',
             'email' => 'taken@example.com',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -103,7 +104,7 @@ class AccountControllerTest extends TestCase
     public function test_update_profile_allows_keeping_same_email(): void
     {
         $this->putJson('/api/user/profile', [
-            'name'  => 'John Updated',
+            'name' => 'John Updated',
             'email' => 'john@example.com',
         ], $this->authHeader())
             ->assertStatus(200)
@@ -115,8 +116,8 @@ class AccountControllerTest extends TestCase
     public function test_update_password_requires_auth(): void
     {
         $this->putJson('/api/user/password', [
-            'current_password'      => 'password123',
-            'password'              => 'newpassword1',
+            'current_password' => 'password123',
+            'password' => 'newpassword1',
             'password_confirmation' => 'newpassword1',
         ])->assertStatus(401);
     }
@@ -124,8 +125,8 @@ class AccountControllerTest extends TestCase
     public function test_update_password_succeeds_with_correct_current_password(): void
     {
         $this->putJson('/api/user/password', [
-            'current_password'      => 'password123',
-            'password'              => 'newpassword1',
+            'current_password' => 'password123',
+            'password' => 'newpassword1',
             'password_confirmation' => 'newpassword1',
         ], $this->authHeader())
             ->assertStatus(200)
@@ -138,8 +139,8 @@ class AccountControllerTest extends TestCase
     public function test_update_password_rejects_wrong_current_password(): void
     {
         $this->putJson('/api/user/password', [
-            'current_password'      => 'wrongpassword',
-            'password'              => 'newpassword1',
+            'current_password' => 'wrongpassword',
+            'password' => 'newpassword1',
             'password_confirmation' => 'newpassword1',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -149,8 +150,8 @@ class AccountControllerTest extends TestCase
     public function test_update_password_rejects_mismatched_confirmation(): void
     {
         $this->putJson('/api/user/password', [
-            'current_password'      => 'password123',
-            'password'              => 'newpassword1',
+            'current_password' => 'password123',
+            'password' => 'newpassword1',
             'password_confirmation' => 'different123',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -160,8 +161,8 @@ class AccountControllerTest extends TestCase
     public function test_update_password_rejects_short_password(): void
     {
         $this->putJson('/api/user/password', [
-            'current_password'      => 'password123',
-            'password'              => 'short',
+            'current_password' => 'password123',
+            'password' => 'short',
             'password_confirmation' => 'short',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -171,7 +172,7 @@ class AccountControllerTest extends TestCase
     public function test_changing_email_requires_current_password(): void
     {
         $this->putJson('/api/user/profile', [
-            'name'  => 'Jane Doe',
+            'name' => 'Jane Doe',
             'email' => 'jane@example.com',
         ], $this->authHeader())
             ->assertStatus(422)
@@ -183,7 +184,7 @@ class AccountControllerTest extends TestCase
     public function test_token_still_works_after_changing_email(): void
     {
         $this->putJson('/api/user/profile', [
-            'name'  => 'Jane Doe',
+            'name' => 'Jane Doe',
             'email' => 'jane@example.com',
             'current_password' => 'password123',
         ], $this->authHeader())->assertStatus(200);
@@ -198,12 +199,12 @@ class AccountControllerTest extends TestCase
         $otherToken = TokenService::issue($this->user);
 
         $this->putJson('/api/user/password', [
-            'current_password'      => 'password123',
-            'password'              => 'new-password-123',
+            'current_password' => 'password123',
+            'password' => 'new-password-123',
             'password_confirmation' => 'new-password-123',
         ], $this->authHeader())->assertStatus(200);
 
         $this->getJson('/api/user', $this->authHeader())->assertStatus(200);
-        $this->getJson('/api/user', ['Authorization' => 'Bearer ' . $otherToken])->assertStatus(401);
+        $this->getJson('/api/user', ['Authorization' => 'Bearer '.$otherToken])->assertStatus(401);
     }
 }
