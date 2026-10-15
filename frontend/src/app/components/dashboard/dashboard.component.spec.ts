@@ -78,7 +78,13 @@ describe('DashboardComponent month handling', () => {
     localStorage.setItem('token', 't');
     localStorage.setItem(
       'user',
-      JSON.stringify({ id: 1, name: 'A', email: 'a@a.com', current_year: String(now.getFullYear()), current_month: String(now.getMonth() + 1) })
+      JSON.stringify({
+        id: 1,
+        name: 'A',
+        email: 'a@a.com',
+        current_year: String(now.getFullYear()),
+        current_month: String(now.getMonth() + 1),
+      }),
     );
     const component = create();
     component.ngOnInit();
@@ -119,7 +125,13 @@ describe('DashboardComponent month handling', () => {
   it('projects only transaction spend, not the monthly base, over the remaining days', () => {
     const now = new Date();
     const component = create();
-    component.user = { id: 1, name: 'A', email: 'a@a.com', monthly_income: 1350, monthly_expenses: 1300 } as never;
+    component.user = {
+      id: 1,
+      name: 'A',
+      email: 'a@a.com',
+      monthly_income: 1350,
+      monthly_expenses: 1300,
+    } as never;
 
     // Base 1300 plus 0 in transactions: nothing to extrapolate, so the month ends on its plan.
     component.computeAlerts(now.getFullYear(), now.getMonth() + 1, 1350, 1300, 50);
@@ -137,18 +149,42 @@ describe('DashboardComponent month handling', () => {
     component.alertCount = 2;
     component.unreadCount = 3;
     component.notifications = [
-      { id: 1, type: 't', title: 'a', body: null, data: {}, is_read: false, read_at: null, created_at: '' },
-      { id: 2, type: 't', title: 'b', body: null, data: {}, is_read: true, read_at: null, created_at: '' },
+      {
+        id: 1,
+        type: 't',
+        title: 'a',
+        body: null,
+        data: {},
+        is_read: false,
+        read_at: null,
+        created_at: '',
+      },
+      {
+        id: 2,
+        type: 't',
+        title: 'b',
+        body: null,
+        data: {},
+        is_read: true,
+        read_at: null,
+        created_at: '',
+      },
     ];
 
     expect(component.bellCount).toBe(5);
-    expect(component.unreadNotifications.map(n => n.id)).toEqual([1]);
+    expect(component.unreadNotifications.map((n) => n.id)).toEqual([1]);
   });
 
   it('alert heading reflects what is listed', () => {
     const component = create();
     // Everything spent is the monthly base, so nothing is extrapolated: 90%+ spending, low savings and a tight projected balance.
-    component.user = { id: 1, name: 'A', email: 'a@a.com', monthly_income: 1000, monthly_expenses: 950 } as never;
+    component.user = {
+      id: 1,
+      name: 'A',
+      email: 'a@a.com',
+      monthly_income: 1000,
+      monthly_expenses: 950,
+    } as never;
     // A past month, so the "month ending soon" warning (current month only) cannot make this date-dependent.
     component.overviewYear = 2025;
     component.overviewMonth = 1;
@@ -166,7 +202,9 @@ describe('DashboardComponent month handling', () => {
     const component = create();
     component.ngOnInit();
 
-    const req = TestBed.inject(HttpTestingController).expectOne(r => /\/transactions\?per_page=\d+$/.test(r.url));
+    const req = TestBed.inject(HttpTestingController).expectOne((r) =>
+      /\/transactions\?per_page=\d+$/.test(r.url),
+    );
     // IndexTransactionRequest only allows 10, 20, 50 or 100.
     expect(['10', '20', '50', '100']).toContain(req.request.url.split('per_page=')[1]);
 
@@ -179,7 +217,16 @@ describe('DashboardComponent month handling', () => {
     const component = create();
     component.alerts = [];
     component.notifications = [
-      { id: 1, type: 'budget_exceeded', title: 'Budget exceeded', body: null, data: {}, is_read: false, read_at: null, created_at: '' },
+      {
+        id: 1,
+        type: 'budget_exceeded',
+        title: 'Budget exceeded',
+        body: null,
+        data: {},
+        is_read: false,
+        read_at: null,
+        created_at: '',
+      },
     ];
     expect(component.alertsHeading).toBe('New notifications');
 

@@ -18,8 +18,11 @@ class AdminControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $user;
+
     private string $adminToken;
+
     private string $userToken;
 
     protected function setUp(): void
@@ -51,7 +54,7 @@ class AdminControllerTest extends TestCase
 
     private function authHeader(string $token): array
     {
-        return ['Authorization' => 'Bearer ' . $token];
+        return ['Authorization' => 'Bearer '.$token];
     }
 
     public function test_dashboard_metrics_requires_admin_or_manager_role(): void
@@ -66,14 +69,14 @@ class AdminControllerTest extends TestCase
 
     public function test_users_list_is_paginated_and_searchable(): void
     {
-        $response = $this->getJson('/api/admin/users?search=' . urlencode($this->user->email), $this->authHeader($this->adminToken));
+        $response = $this->getJson('/api/admin/users?search='.urlencode($this->user->email), $this->authHeader($this->adminToken));
         $response->assertStatus(200)
             ->assertJsonPath('data.0.email', $this->user->email);
     }
 
     public function test_admin_can_change_user_role(): void
     {
-        $this->patchJson('/api/admin/users/' . $this->user->id . '/role', ['role' => 'manager'], $this->authHeader($this->adminToken))
+        $this->patchJson('/api/admin/users/'.$this->user->id.'/role', ['role' => 'manager'], $this->authHeader($this->adminToken))
             ->assertStatus(200);
 
         $this->assertTrue($this->user->fresh()->hasRole('manager'));
@@ -81,7 +84,7 @@ class AdminControllerTest extends TestCase
 
     public function test_admin_can_toggle_blacklist(): void
     {
-        $this->patchJson('/api/admin/users/' . $this->user->id . '/blacklist', [], $this->authHeader($this->adminToken))
+        $this->patchJson('/api/admin/users/'.$this->user->id.'/blacklist', [], $this->authHeader($this->adminToken))
             ->assertStatus(200);
 
         $this->assertNotNull($this->user->fresh()->blacklisted_at);
@@ -89,7 +92,7 @@ class AdminControllerTest extends TestCase
 
     public function test_admin_can_delete_user(): void
     {
-        $this->deleteJson('/api/admin/users/' . $this->user->id, [], $this->authHeader($this->adminToken))
+        $this->deleteJson('/api/admin/users/'.$this->user->id, [], $this->authHeader($this->adminToken))
             ->assertStatus(200);
 
         $this->assertModelMissing($this->user);
@@ -97,7 +100,7 @@ class AdminControllerTest extends TestCase
 
     public function test_admin_cannot_delete_self(): void
     {
-        $this->deleteJson('/api/admin/users/' . $this->admin->id, [], $this->authHeader($this->adminToken))
+        $this->deleteJson('/api/admin/users/'.$this->admin->id, [], $this->authHeader($this->adminToken))
             ->assertStatus(422);
     }
 
@@ -114,16 +117,16 @@ class AdminControllerTest extends TestCase
 
         $this->getJson('/api/admin/dashboard-metrics', $header)->assertStatus(200);
         $this->getJson('/api/admin/users', $header)->assertStatus(403);
-        $this->patchJson('/api/admin/users/' . $this->user->id . '/role', ['role' => 'admin'], $header)->assertStatus(403);
-        $this->patchJson('/api/admin/users/' . $this->admin->id . '/blacklist', [], $header)->assertStatus(403);
-        $this->deleteJson('/api/admin/users/' . $this->admin->id, [], $header)->assertStatus(403);
+        $this->patchJson('/api/admin/users/'.$this->user->id.'/role', ['role' => 'admin'], $header)->assertStatus(403);
+        $this->patchJson('/api/admin/users/'.$this->admin->id.'/blacklist', [], $header)->assertStatus(403);
+        $this->deleteJson('/api/admin/users/'.$this->admin->id, [], $header)->assertStatus(403);
 
         $this->assertFalse($this->user->fresh()->hasRole('admin'));
     }
 
     public function test_blacklisting_a_user_revokes_their_tokens(): void
     {
-        $this->patchJson('/api/admin/users/' . $this->user->id . '/blacklist', [], $this->authHeader($this->adminToken))
+        $this->patchJson('/api/admin/users/'.$this->user->id.'/blacklist', [], $this->authHeader($this->adminToken))
             ->assertStatus(200);
 
         $this->assertSame(0, $this->user->tokens()->count());
@@ -132,7 +135,7 @@ class AdminControllerTest extends TestCase
     public function test_metrics_endpoints_respond(): void
     {
         foreach (['budgets-metrics', 'investments-metrics', 'transactions-metrics'] as $endpoint) {
-            $this->getJson('/api/admin/' . $endpoint . '?year=2025&search=a', $this->authHeader($this->adminToken))
+            $this->getJson('/api/admin/'.$endpoint.'?year=2025&search=a', $this->authHeader($this->adminToken))
                 ->assertStatus(200);
         }
     }
@@ -154,7 +157,7 @@ class AdminControllerTest extends TestCase
             'purchase_date' => '2025-01-15',
         ]);
 
-        $managerView = $this->getJson('/api/admin/investments-metrics?search=' . $this->user->email, $this->authHeader($managerToken))
+        $managerView = $this->getJson('/api/admin/investments-metrics?search='.$this->user->email, $this->authHeader($managerToken))
             ->assertStatus(200);
         $this->assertNull($managerView->json('investments'));
         $this->assertNotNull($managerView->json('summary'));
@@ -168,7 +171,7 @@ class AdminControllerTest extends TestCase
         $unfiltered = $this->getJson('/api/admin/investments-metrics', $this->authHeader($managerToken))->json('summary.count');
         $this->getJson('/api/admin/investments-metrics?search=nothing-matches-this', $this->authHeader($managerToken))
             ->assertJsonPath('summary.count', $unfiltered);
-        $this->getJson('/api/admin/budgets-metrics?search=' . $this->user->email, $this->authHeader($managerToken))
+        $this->getJson('/api/admin/budgets-metrics?search='.$this->user->email, $this->authHeader($managerToken))
             ->assertStatus(200);
 
         $adminView = $this->getJson('/api/admin/investments-metrics', $this->authHeader($this->adminToken))
@@ -189,7 +192,7 @@ class AdminControllerTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $this->deleteJson('/api/admin/users/' . $this->user->id, [], $this->authHeader($this->adminToken))
+        $this->deleteJson('/api/admin/users/'.$this->user->id, [], $this->authHeader($this->adminToken))
             ->assertStatus(200);
 
         $this->assertDatabaseMissing('agent_conversations', ['id' => $id]);
@@ -201,7 +204,7 @@ class AdminControllerTest extends TestCase
             ->assertStatus(200)
             ->json('url');
 
-        $path = parse_url($url, PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
+        $path = parse_url($url, PHP_URL_PATH).'?'.parse_url($url, PHP_URL_QUERY);
 
         $this->get($path)->assertRedirect('/admin');
         $this->assertAuthenticatedAs($this->admin, 'web');
@@ -219,7 +222,7 @@ class AdminControllerTest extends TestCase
 
     public function test_admin_panel_entry_rejects_an_unknown_code(): void
     {
-        $this->get('/auth/admin-panel?code=' . str_repeat('a', 64))
+        $this->get('/auth/admin-panel?code='.str_repeat('a', 64))
             ->assertRedirect(route('filament.admin.auth.login'));
         $this->assertGuest('web');
     }

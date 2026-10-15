@@ -22,7 +22,7 @@ describe('ThemeService', () => {
 
   it('provides a list of theme options including teal', () => {
     expect(service.themes.length).toBeGreaterThan(0);
-    expect(service.themes.some(t => t.id === 'teal')).toBe(true);
+    expect(service.themes.some((t) => t.id === 'teal')).toBe(true);
   });
 
   it('defaults to teal theme when nothing is saved', () => {

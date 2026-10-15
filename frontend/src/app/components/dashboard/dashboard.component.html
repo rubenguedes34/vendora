@@ -8,68 +8,183 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <div>
-            <h2 class="text-xl font-semibold tracking-tight">Good {{ greeting }}{{ firstName ? ', ' + firstName : '' }}</h2>
-            <p class="text-primary-200 text-xs">Here is how {{ monthNames[overviewMonth - 1] }} is going.</p>
+            <h2 class="text-xl font-semibold tracking-tight">
+              Good {{ greeting }}{{ firstName ? ', ' + firstName : '' }}
+            </h2>
+            <p class="text-primary-200 text-xs">
+              Here is how {{ monthNames[overviewMonth - 1] }} is going.
+            </p>
           </div>
           <div class="flex items-center gap-3">
             <!-- Month picker -->
             <div class="relative month-picker-wrapper">
               <div class="flex items-center bg-white border border-gray-200 rounded-xl p-0.5">
-                <button type="button" (click)="prevMonth()" aria-label="Previous month" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
-                <button type="button" (click)="toggleMonthPicker()" aria-haspopup="true" [attr.aria-expanded]="showMonthPicker"
-                  class="px-2 text-sm font-semibold text-gray-800 tabular-nums min-w-[8.5rem] text-center">
+                <button
+                  type="button"
+                  (click)="prevMonth()"
+                  aria-label="Previous month"
+                  class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="toggleMonthPicker()"
+                  aria-haspopup="true"
+                  [attr.aria-expanded]="showMonthPicker"
+                  class="px-2 text-sm font-semibold text-gray-800 tabular-nums min-w-[8.5rem] text-center"
+                >
                   {{ monthNames[overviewMonth - 1] }} {{ overviewYear }}
                 </button>
-                <button type="button" (click)="nextMonth()" aria-label="Next month" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                <button
+                  type="button"
+                  (click)="nextMonth()"
+                  aria-label="Next month"
+                  class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
               </div>
 
-              <div *ngIf="showMonthPicker"
-                class="absolute right-0 top-12 z-50 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-3">
+              <div
+                *ngIf="showMonthPicker"
+                class="absolute right-0 top-12 z-50 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-3"
+              >
                 <div class="flex items-center justify-between mb-2">
-                  <button type="button" (click)="pickerYear = pickerYear - 1" aria-label="Previous year" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
-                  <span class="text-sm font-semibold text-gray-800 tabular-nums">{{ pickerYear }}</span>
-                  <button type="button" (click)="pickerYear = pickerYear + 1" aria-label="Next year" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                  <button
+                    type="button"
+                    (click)="pickerYear = pickerYear - 1"
+                    aria-label="Previous year"
+                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-sm font-semibold text-gray-800 tabular-nums">{{
+                    pickerYear
+                  }}</span>
+                  <button
+                    type="button"
+                    (click)="pickerYear = pickerYear + 1"
+                    aria-label="Next year"
+                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5">
-                  <button type="button" *ngFor="let name of monthNames; let i = index" (click)="pickMonth(i + 1)"
+                  <button
+                    type="button"
+                    *ngFor="let name of monthNames; let i = index"
+                    (click)="pickMonth(i + 1)"
                     class="py-2 rounded-lg text-sm font-medium transition-colors"
                     [class.bg-primary-600]="pickerYear === overviewYear && i + 1 === overviewMonth"
                     [class.text-white]="pickerYear === overviewYear && i + 1 === overviewMonth"
-                    [class.text-gray-700]="!(pickerYear === overviewYear && i + 1 === overviewMonth)"
-                    [class.hover:bg-gray-100]="!(pickerYear === overviewYear && i + 1 === overviewMonth)"
+                    [class.text-gray-700]="
+                      !(pickerYear === overviewYear && i + 1 === overviewMonth)
+                    "
+                    [class.hover:bg-gray-100]="
+                      !(pickerYear === overviewYear && i + 1 === overviewMonth)
+                    "
                     [class.ring-1]="pickerYear === todayYear && i + 1 === todayMonth"
-                    [class.ring-primary-300]="pickerYear === todayYear && i + 1 === todayMonth">
+                    [class.ring-primary-300]="pickerYear === todayYear && i + 1 === todayMonth"
+                  >
                     {{ name.slice(0, 3) }}
                   </button>
                 </div>
                 <div class="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                  <button type="button" (click)="pickMonth(todayMonth, todayYear)"
-                    class="text-xs font-semibold text-primary-600 hover:text-primary-700">This month</button>
+                  <button
+                    type="button"
+                    (click)="pickMonth(todayMonth, todayYear)"
+                    class="text-xs font-semibold text-primary-600 hover:text-primary-700"
+                  >
+                    This month
+                  </button>
                 </div>
               </div>
             </div>
 
             <!-- Notification Bell -->
             <div class="relative alerts-panel-wrapper">
-              <button (click)="toggleAlerts()" class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              <button
+                (click)="toggleAlerts()"
+                class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
                 </svg>
-                <span *ngIf="bellCount > 0"
-                  class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-0.5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                <span
+                  *ngIf="bellCount > 0"
+                  class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-0.5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                >
                   {{ bellCount > 9 ? '9+' : bellCount }}
                 </span>
               </button>
 
               <!-- Alerts Panel -->
-              <div *ngIf="showAlerts"
-                class="fixed left-4 right-4 top-20 z-50 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-96 sm:max-w-sm">
+              <div
+                *ngIf="showAlerts"
+                class="fixed left-4 right-4 top-20 z-50 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-96 sm:max-w-sm"
+              >
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                   <h3 class="font-semibold text-gray-800 text-base">Alerts</h3>
                   <div class="flex items-center gap-3">
-                    <button *ngIf="visibleAlerts.length > 0" (click)="clearAllAlerts()" class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors">Clear all</button>
-                    <button (click)="showAlerts = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button
+                      *ngIf="visibleAlerts.length > 0"
+                      (click)="clearAllAlerts()"
+                      class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors"
+                    >
+                      Clear all
+                    </button>
+                    <button
+                      (click)="showAlerts = false"
+                      class="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -77,74 +192,191 @@
                 <div class="max-h-96 overflow-y-auto">
                   <!-- Server notifications (budgets, your alert rules, ...) -->
                   <div *ngIf="unreadNotifications.length > 0" class="border-b border-gray-100">
-                    <p class="px-5 pt-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Notifications</p>
-                    <div *ngFor="let n of unreadNotifications.slice(0, 5)" class="px-5 py-3 border-b border-gray-50 last:border-0">
+                    <p
+                      class="px-5 pt-3 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >
+                      Notifications
+                    </p>
+                    <div
+                      *ngFor="let n of unreadNotifications.slice(0, 5)"
+                      class="px-5 py-3 border-b border-gray-50 last:border-0"
+                    >
                       <div class="flex items-start gap-3">
                         <div class="flex-1 min-w-0">
                           <p class="text-sm font-medium text-gray-800">{{ n.title }}</p>
                           <p class="text-xs text-gray-500 mt-0.5">{{ n.body | currencyText }}</p>
                         </div>
-                        <button type="button" (click)="markNotificationRead(n)" class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors" title="Mark as read" aria-label="Mark as read">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <button
+                          type="button"
+                          (click)="markNotificationRead(n)"
+                          class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors"
+                          title="Mark as read"
+                          aria-label="Mark as read"
+                        >
+                          <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
                         </button>
                       </div>
                     </div>
-                    <a routerLink="/notifications" class="block px-5 py-2 text-xs font-semibold text-primary-600 hover:text-primary-700">View all notifications</a>
+                    <a
+                      routerLink="/notifications"
+                      class="block px-5 py-2 text-xs font-semibold text-primary-600 hover:text-primary-700"
+                      >View all notifications</a
+                    >
                   </div>
 
                   <!-- Status badge -->
                   <div class="px-5 py-4 border-b border-gray-50">
                     <div class="flex items-center gap-2">
-                      <span [class]="visibleAlerts.length === 0 ? 'text-green-500' : (hasCritical ? 'text-red-500' : 'text-yellow-500')">
+                      <span
+                        [class]="
+                          visibleAlerts.length === 0
+                            ? 'text-green-500'
+                            : hasCritical
+                              ? 'text-red-500'
+                              : 'text-yellow-500'
+                        "
+                      >
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path *ngIf="visibleAlerts.length === 0" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                          <path *ngIf="visibleAlerts.length > 0" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                          <path
+                            *ngIf="visibleAlerts.length === 0"
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          />
+                          <path
+                            *ngIf="visibleAlerts.length > 0"
+                            fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd"
+                          />
                         </svg>
                       </span>
                       <span class="font-semibold text-gray-800 text-sm">{{ alertsHeading }}</span>
                     </div>
-                    <p *ngIf="visibleAlerts.length === 0 && unreadNotifications.length === 0" class="text-xs text-green-600 mt-1 ml-7">Your finances look healthy this month.</p>
+                    <p
+                      *ngIf="visibleAlerts.length === 0 && unreadNotifications.length === 0"
+                      class="text-xs text-green-600 mt-1 ml-7"
+                    >
+                      Your finances look healthy this month.
+                    </p>
                   </div>
 
                   <!-- Alert items -->
-                  <div *ngFor="let alert of visibleAlerts; let i = index" class="px-5 py-3 border-b border-gray-50 last:border-0">
+                  <div
+                    *ngFor="let alert of visibleAlerts; let i = index"
+                    class="px-5 py-3 border-b border-gray-50 last:border-0"
+                  >
                     <div class="flex items-start gap-3">
-                      <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-500 mt-0.5' : 'text-primary-600 mt-0.5'">
+                      <span
+                        [class]="
+                          alert.type === 'danger'
+                            ? 'text-red-400 mt-0.5'
+                            : alert.type === 'warning'
+                              ? 'text-yellow-500 mt-0.5'
+                              : 'text-primary-600 mt-0.5'
+                        "
+                      >
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path *ngIf="alert.type === 'danger'" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                          <path *ngIf="alert.type === 'warning'" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                          <path *ngIf="alert.type === 'info'" fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                          <path
+                            *ngIf="alert.type === 'danger'"
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd"
+                          />
+                          <path
+                            *ngIf="alert.type === 'warning'"
+                            fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd"
+                          />
+                          <path
+                            *ngIf="alert.type === 'info'"
+                            fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd"
+                          />
                         </svg>
                       </span>
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-800">{{ alert.title }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">{{ alert.message }}</p>
                       </div>
-                      <button (click)="dismissAlert(alert)" class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors" title="Dismiss">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      <button
+                        (click)="dismissAlert(alert)"
+                        class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors"
+                        title="Dismiss"
+                      >
+                        <svg
+                          class="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </div>
 
                   <!-- Monthly projection -->
                   <div class="px-5 py-4 bg-gray-50">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Monthly Projection</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                      Monthly Projection
+                    </p>
                     <div class="space-y-2">
                       <div class="flex justify-between items-center gap-2 text-xs">
                         <span class="text-gray-500 whitespace-nowrap">Projected balance</span>
-                        <span class="whitespace-nowrap shrink-0" [class]="projectedBalance >= 0 ? 'font-semibold text-primary-600' : 'font-semibold text-red-500'">{{ projectedBalance | currencySymbol }}</span>
+                        <span
+                          class="whitespace-nowrap shrink-0"
+                          [class]="
+                            projectedBalance >= 0
+                              ? 'font-semibold text-primary-600'
+                              : 'font-semibold text-red-500'
+                          "
+                          >{{ projectedBalance | currencySymbol }}</span
+                        >
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
                         <span class="text-gray-500 whitespace-nowrap">Daily avg spend</span>
-                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{ dailyAvgSpend | currencySymbol }}</span>
+                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{
+                          dailyAvgSpend | currencySymbol
+                        }}</span>
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
                         <span class="text-gray-500 whitespace-nowrap">Days remaining</span>
-                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{ daysRemaining }} days</span>
+                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0"
+                          >{{ daysRemaining }} days</span
+                        >
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
                         <span class="text-gray-500 whitespace-nowrap">Savings rate</span>
-                        <span class="whitespace-nowrap shrink-0" [class]="savingsRate >= 20 ? 'font-semibold text-primary-600' : savingsRate >= 10 ? 'font-semibold text-yellow-600' : 'font-semibold text-red-500'">
+                        <span
+                          class="whitespace-nowrap shrink-0"
+                          [class]="
+                            savingsRate >= 20
+                              ? 'font-semibold text-primary-600'
+                              : savingsRate >= 10
+                                ? 'font-semibold text-yellow-600'
+                                : 'font-semibold text-red-500'
+                          "
+                        >
                           {{ savingsRate.toFixed(1) }}%
                         </span>
                       </div>
@@ -154,11 +386,18 @@
               </div>
             </div>
 
-            <a routerLink="/account" class="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 transition-colors px-2 py-1 rounded-lg">
-              <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold">
+            <a
+              routerLink="/account"
+              class="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 transition-colors px-2 py-1 rounded-lg"
+            >
+              <div
+                class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold"
+              >
                 {{ userInitials }}
               </div>
-              <span class="text-sm text-gray-700 font-medium hidden sm:block">{{ user?.name }}</span>
+              <span class="text-sm text-gray-700 font-medium hidden sm:block">{{
+                user?.name
+              }}</span>
             </a>
           </div>
         </div>
@@ -166,48 +405,131 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
       <!-- Quick Actions (top) -->
       <div class="flex flex-wrap gap-3 mb-6">
-        <a routerLink="/budgets"
-          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
-          <span class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
+        <a
+          routerLink="/budgets"
+          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group"
+        >
+          <span
+            class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
             </svg>
           </span>
           <span>Budget</span>
-          <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <svg
+            class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </a>
-        <a routerLink="/transactions"
-          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
-          <span class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+        <a
+          routerLink="/transactions"
+          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group"
+        >
+          <span
+            class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
             </svg>
           </span>
           <span>Transactions</span>
-          <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <svg
+            class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </a>
-        <a routerLink="/recurrent-transactions"
-          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
-          <span class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+        <a
+          routerLink="/recurrent-transactions"
+          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group"
+        >
+          <span
+            class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </span>
           <span>Recurrent</span>
-          <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <svg
+            class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </a>
-        <a routerLink="/investments"
-          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group">
-          <span class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+        <a
+          routerLink="/investments"
+          class="flex items-center gap-3 bg-white border border-gray-100 text-gray-800 px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group"
+        >
+          <span
+            class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
             </svg>
           </span>
           <span>Investments</span>
-          <svg class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <svg
+            class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </a>
       </div>
 
@@ -215,41 +537,62 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 class="text-sm font-medium text-gray-500">Income</h3>
-          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewIncome | currencySymbol }}</p>
+          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
+            {{ overviewIncome | currencySymbol }}
+          </p>
           <div class="h-6 mt-2">
-            <span *ngIf="deltaPct('income') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d.pct >= 0" [class.text-green-700]="d.pct >= 0"
-              [class.bg-red-100]="!(d.pct >= 0)" [class.text-red-700]="!(d.pct >= 0)">
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
+            <span
+              *ngIf="deltaPct('income') as d"
+              class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class.bg-green-100]="d.pct >= 0"
+              [class.text-green-700]="d.pct >= 0"
+              [class.bg-red-100]="!(d.pct >= 0)"
+              [class.text-red-700]="!(d.pct >= 0)"
+            >
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
             </span>
           </div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 class="text-sm font-medium text-gray-500">Expenses</h3>
-          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewExpenses | currencySymbol }}</p>
+          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
+            {{ overviewExpenses | currencySymbol }}
+          </p>
           <div class="h-6 mt-2">
-            <span *ngIf="deltaPct('expenses') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d.pct <= 0" [class.text-green-700]="d.pct <= 0"
-              [class.bg-red-100]="!(d.pct <= 0)" [class.text-red-700]="!(d.pct <= 0)">
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
+            <span
+              *ngIf="deltaPct('expenses') as d"
+              class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class.bg-green-100]="d.pct <= 0"
+              [class.text-green-700]="d.pct <= 0"
+              [class.bg-red-100]="!(d.pct <= 0)"
+              [class.text-red-700]="!(d.pct <= 0)"
+            >
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
             </span>
           </div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 class="text-sm font-medium text-gray-500">Savings</h3>
-          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewSavings | currencySymbol }}</p>
-          <div class="h-6 mt-2">
-            
-          </div>
+          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
+            {{ overviewSavings | currencySymbol }}
+          </p>
+          <div class="h-6 mt-2"></div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 class="text-sm font-medium text-gray-500">Balance</h3>
-          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewBalance | currencySymbol }}</p>
+          <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
+            {{ overviewBalance | currencySymbol }}
+          </p>
           <div class="h-6 mt-2">
-            <span *ngIf="deltaPct('balance') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d.pct >= 0" [class.text-green-700]="d.pct >= 0"
-              [class.bg-red-100]="!(d.pct >= 0)" [class.text-red-700]="!(d.pct >= 0)">
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
+            <span
+              *ngIf="deltaPct('balance') as d"
+              class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class.bg-green-100]="d.pct >= 0"
+              [class.text-green-700]="d.pct >= 0"
+              [class.bg-red-100]="!(d.pct >= 0)"
+              [class.text-red-700]="!(d.pct >= 0)"
+            >
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
             </span>
           </div>
         </div>
@@ -258,21 +601,44 @@
       <!-- Month base: the profile default unless this month is customised -->
       <div class="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3 mb-6 text-sm">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span *ngIf="monthRecord?.is_custom" class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">Custom month</span>
+          <span
+            *ngIf="monthRecord?.is_custom"
+            class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold"
+            >Custom month</span
+          >
           <span class="text-gray-600">
             Base for {{ monthNames[overviewMonth - 1] }}:
             <strong>{{ baseIncomeValue | currencySymbol }}</strong> income,
             <strong>{{ baseExpensesValue | currencySymbol }}</strong> expenses
-            <span class="text-gray-400">{{ monthRecord?.is_custom ? '(set for this month)' : '(your default)' }}, plus transactions</span>
+            <span class="text-gray-400"
+              >{{ monthRecord?.is_custom ? '(set for this month)' : '(your default)' }}, plus
+              transactions</span
+            >
           </span>
           <span class="flex items-center gap-2 ml-auto">
-            <button type="button" *ngIf="!editingBase" (click)="editingBase = true"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <button
+              type="button"
+              *ngIf="!editingBase"
+              (click)="editingBase = true"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
               {{ monthRecord?.is_custom ? 'Edit this month' : 'Customize this month' }}
             </button>
-            <button type="button" *ngIf="monthRecord?.is_custom && !editingBase" (click)="resetMonthToDefault()" [disabled]="savingBase"
-              class="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50">
+            <button
+              type="button"
+              *ngIf="monthRecord?.is_custom && !editingBase"
+              (click)="resetMonthToDefault()"
+              [disabled]="savingBase"
+              class="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50"
+            >
               Reset to default
             </button>
           </span>
@@ -281,19 +647,41 @@
         <div *ngIf="editingBase" class="flex flex-wrap items-end gap-3 mt-3">
           <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
             Income base
-            <input #baseIncomeInput type="number" min="0" step="any" [value]="baseIncomeValue"
-              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal" />
+            <input
+              #baseIncomeInput
+              type="number"
+              min="0"
+              step="any"
+              [value]="baseIncomeValue"
+              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal"
+            />
           </label>
           <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
             Expenses base
-            <input #baseExpensesInput type="number" min="0" step="any" [value]="baseExpensesValue"
-              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal" />
+            <input
+              #baseExpensesInput
+              type="number"
+              min="0"
+              step="any"
+              [value]="baseExpensesValue"
+              class="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 font-normal"
+            />
           </label>
-          <button type="button" (click)="saveMonthBase(baseIncomeInput.value, baseExpensesInput.value)" [disabled]="savingBase"
-            class="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50">
+          <button
+            type="button"
+            (click)="saveMonthBase(baseIncomeInput.value, baseExpensesInput.value)"
+            [disabled]="savingBase"
+            class="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50"
+          >
             {{ savingBase ? 'Saving…' : 'Save' }}
           </button>
-          <button type="button" (click)="editingBase = false" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">Cancel</button>
+          <button
+            type="button"
+            (click)="editingBase = false"
+            class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50"
+          >
+            Cancel
+          </button>
         </div>
         <p *ngIf="baseError" class="text-red-500 text-xs mt-2">{{ baseError }}</p>
       </div>
@@ -302,40 +690,61 @@
       <div class="bg-white rounded-2xl border border-gray-200 mb-6 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50">
           <h3 class="text-base font-semibold text-gray-800">Monthly Balance</h3>
-          <p class="text-xs text-gray-400">Income, expenses and balance for each month of {{ overviewYear }}</p>
+          <p class="text-xs text-gray-400">
+            Income, expenses and balance for each month of {{ overviewYear }}
+          </p>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
           <!-- Month list -->
           <div class="space-y-2">
-            <div *ngFor="let m of monthBreakdown"
+            <div
+              *ngFor="let m of monthBreakdown"
               class="flex items-center justify-between p-3 rounded-lg transition-colors"
               [class.bg-primary-50]="m.month === overviewMonth"
               [class.border]="m.month === overviewMonth"
-              [class.border-primary-200]="m.month === overviewMonth">
+              [class.border-primary-200]="m.month === overviewMonth"
+            >
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-bold shrink-0">
+                <div
+                  class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-bold shrink-0"
+                >
                   {{ monthNames[m.month - 1].slice(0, 3) }}
                 </div>
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-gray-800 truncate">{{ monthNames[m.month - 1] }}</p>
+                  <p class="text-sm font-medium text-gray-800 truncate">
+                    {{ monthNames[m.month - 1] }}
+                  </p>
                   <p class="text-xs text-gray-500">
                     Balance
-                    <span [class.text-green-600]="m.balance >= 0" [class.text-red-600]="m.balance < 0">
+                    <span
+                      [class.text-green-600]="m.balance >= 0"
+                      [class.text-red-600]="m.balance < 0"
+                    >
                       {{ m.balance | currencySymbol }}
                     </span>
                   </p>
                 </div>
               </div>
               <div class="text-right shrink-0">
-                <p class="text-xs text-gray-400">In <span class="font-semibold text-gray-700">{{ m.income | currencySymbol }}</span></p>
-                <p class="text-xs text-gray-400">Out <span class="font-semibold text-gray-700">{{ m.expenses | currencySymbol }}</span></p>
+                <p class="text-xs text-gray-400">
+                  In
+                  <span class="font-semibold text-gray-700">{{ m.income | currencySymbol }}</span>
+                </p>
+                <p class="text-xs text-gray-400">
+                  Out
+                  <span class="font-semibold text-gray-700">{{ m.expenses | currencySymbol }}</span>
+                </p>
               </div>
             </div>
-            <div *ngIf="monthBreakdown.length === 0" class="text-gray-300 text-center py-8 text-sm">No monthly data yet</div>
+            <div *ngIf="monthBreakdown.length === 0" class="text-gray-300 text-center py-8 text-sm">
+              No monthly data yet
+            </div>
           </div>
           <!-- Balance trend chart -->
           <div class="flex flex-col">
-            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Balance trend</h4>
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Balance trend
+            </h4>
             <div style="height: 220px">
               <canvas #monthlyBalanceChart></canvas>
             </div>
@@ -345,7 +754,6 @@
 
       <!-- Charts row -->
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-
         <!-- Bar chart: Income vs Expenses (spans 3 cols) -->
         <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-3">
           <div class="flex items-center justify-between mb-4">
@@ -354,22 +762,32 @@
               <p class="text-xs text-gray-400">{{ overviewYear }} overview</p>
             </div>
             <div class="flex items-center gap-4 text-xs text-gray-500">
-              <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span>Income</span>
-              <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span>Expenses</span>
-              <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span>Savings</span>
+              <span class="flex items-center gap-1"
+                ><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span>Income</span
+              >
+              <span class="flex items-center gap-1"
+                ><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span>Expenses</span
+              >
+              <span class="flex items-center gap-1"
+                ><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span>Savings</span
+              >
             </div>
           </div>
-          <div *ngIf="yearlyRecords.length === 0" class="text-gray-300 text-center py-14 text-sm">No data yet</div>
-          <canvas #incomeExpenseChart style="max-height:220px"></canvas>
+          <div *ngIf="yearlyRecords.length === 0" class="text-gray-300 text-center py-14 text-sm">
+            No data yet
+          </div>
+          <canvas #incomeExpenseChart style="max-height: 220px"></canvas>
         </div>
 
         <!-- Doughnut: monthly overview (spans 2 cols) -->
         <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-base font-semibold text-gray-800">Monthly Snapshot</h3>
-            <span class="text-xs font-medium text-gray-600">{{ monthNames[overviewMonth-1].slice(0,3) }} {{ overviewYear }}</span>
+            <span class="text-xs font-medium text-gray-600"
+              >{{ monthNames[overviewMonth - 1].slice(0, 3) }} {{ overviewYear }}</span
+            >
           </div>
-          <div class="relative flex items-center justify-center" style="height:170px">
+          <div class="relative flex items-center justify-center" style="height: 170px">
             <canvas #categoryChart></canvas>
             <div class="absolute text-center pointer-events-none">
               <p class="text-xs text-gray-400">Total</p>
@@ -398,40 +816,58 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-base font-semibold text-gray-800">Expenses by Category</h3>
-            <p class="text-xs text-gray-400">{{ monthNames[overviewMonth-1] }} {{ overviewYear }}</p>
+            <p class="text-xs text-gray-400">
+              {{ monthNames[overviewMonth - 1] }} {{ overviewYear }}
+            </p>
           </div>
         </div>
-        <div *ngIf="expensesByCategory.length === 0" class="text-gray-300 text-center py-8 text-sm">No expense transactions this month</div>
-        <div *ngIf="expensesByCategory.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+        <div *ngIf="expensesByCategory.length === 0" class="text-gray-300 text-center py-8 text-sm">
+          No expense transactions this month
+        </div>
+        <div
+          *ngIf="expensesByCategory.length > 0"
+          class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center"
+        >
           <!-- Bar list -->
           <div class="space-y-3">
             <div *ngFor="let item of expensesByCategory" class="flex items-center gap-3">
               <div class="w-24 text-xs text-gray-600 truncate shrink-0">{{ item.category }}</div>
               <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                <div class="h-2.5 rounded-full transition-all duration-500"
+                <div
+                  class="h-2.5 rounded-full transition-all duration-500"
                   [style.width]="getExpensePct(item.total) + '%'"
-                  [style.background]="item.color"></div>
+                  [style.background]="item.color"
+                ></div>
               </div>
-              <div class="text-xs font-semibold text-gray-700 w-14 text-right shrink-0">{{ item.total | currencySymbol }}</div>
+              <div class="text-xs font-semibold text-gray-700 w-14 text-right shrink-0">
+                {{ item.total | currencySymbol }}
+              </div>
               <!-- Percentage circle -->
               <div class="relative w-9 h-9 shrink-0">
                 <svg class="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#f3f4f6" stroke-width="3"/>
-                  <circle cx="18" cy="18" r="15" fill="none"
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#f3f4f6" stroke-width="3" />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15"
+                    fill="none"
                     [attr.stroke]="item.color"
                     stroke-width="3"
                     stroke-linecap="round"
                     [attr.stroke-dasharray]="getCategoryPctCircle(item.total) + ' 94.25'"
-                    stroke-dashoffset="0"/>
+                    stroke-dashoffset="0"
+                  />
                 </svg>
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-gray-700 font-bold" style="font-size:7px">{{ getCategoryPct(item.total) }}%</span>
+                  <span class="text-gray-700 font-bold" style="font-size: 7px"
+                    >{{ getCategoryPct(item.total) }}%</span
+                  >
                 </div>
               </div>
             </div>
           </div>
           <!-- Doughnut -->
-          <div class="flex justify-center" style="max-height:220px">
+          <div class="flex justify-center" style="max-height: 220px">
             <canvas #categoryBreakdownChart></canvas>
           </div>
         </div>
@@ -440,24 +876,39 @@
       <div class="bg-white p-6 rounded-2xl border border-gray-200 mb-6">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-base font-semibold text-gray-800">Recent transactions</h3>
-          <a routerLink="/transactions" class="text-xs font-semibold text-primary-600 hover:text-primary-700">View all</a>
+          <a
+            routerLink="/transactions"
+            class="text-xs font-semibold text-primary-600 hover:text-primary-700"
+            >View all</a
+          >
         </div>
-        <div *ngIf="recentTransactions.length === 0" class="text-gray-300 text-center py-8 text-sm">No transactions yet</div>
-        <div *ngFor="let t of recentTransactions" class="flex items-center gap-3 py-3 border-t border-gray-100 first:border-0 text-sm">
-          <span class="w-9 h-9 rounded-xl bg-primary-50 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0">
+        <div *ngIf="recentTransactions.length === 0" class="text-gray-300 text-center py-8 text-sm">
+          No transactions yet
+        </div>
+        <div
+          *ngFor="let t of recentTransactions"
+          class="flex items-center gap-3 py-3 border-t border-gray-100 first:border-0 text-sm"
+        >
+          <span
+            class="w-9 h-9 rounded-xl bg-primary-50 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0"
+          >
             {{ (t.category?.name || t.description).charAt(0).toUpperCase() }}
           </span>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-800 truncate">{{ t.description }}</p>
-            <p class="text-xs text-gray-400">{{ t.category?.name }} · {{ t.transaction_date | date:'MMM d' }}</p>
+            <p class="text-xs text-gray-400">
+              {{ t.category?.name }} · {{ t.transaction_date | date: 'MMM d' }}
+            </p>
           </div>
-          <span class="font-semibold tabular-nums shrink-0" [class.text-green-600]="t.type === 'income'" [class.text-gray-900]="t.type !== 'income'">
+          <span
+            class="font-semibold tabular-nums shrink-0"
+            [class.text-green-600]="t.type === 'income'"
+            [class.text-gray-900]="t.type !== 'income'"
+          >
             {{ t.type === 'income' ? '+' : '−' }}{{ t.amount | currencySymbol }}
           </span>
         </div>
       </div>
-
     </div>
   </main>
 </div>
-

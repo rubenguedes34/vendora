@@ -16,26 +16,51 @@ import { User } from '../../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
   template: `
     <div class="relative min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-      <div class="w-52 self-end mb-3 sm:mb-0 sm:absolute sm:top-4 sm:right-4 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
+      <div
+        class="w-52 self-end mb-3 sm:mb-0 sm:absolute sm:top-4 sm:right-4 bg-white rounded-xl border border-gray-200 shadow-sm p-2"
+      >
+        <app-theme-picker></app-theme-picker>
+      </div>
       <div class="w-full max-w-md">
         <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
           <div class="flex flex-col items-center mb-8">
-            <div class="w-16 h-16 rounded-2xl bg-primary-600 flex items-center justify-center shadow-lg mb-4">
+            <div
+              class="w-16 h-16 rounded-2xl bg-primary-600 flex items-center justify-center shadow-lg mb-4"
+            >
               <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome to Vendora</h1>
-            <p class="text-sm text-gray-500 mt-1 text-center">Set your monthly baseline to personalize your dashboard</p>
+            <p class="text-sm text-gray-500 mt-1 text-center">
+              Set your monthly baseline to personalize your dashboard
+            </p>
           </div>
 
           <form [formGroup]="setupForm" (ngSubmit)="onSubmit()">
             <div class="mb-5">
-              <label class="block text-gray-700 text-sm font-semibold mb-2">Monthly Income (€)</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-2"
+                >Monthly Income (€)</label
+              >
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  <svg
+                    class="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <input
@@ -48,17 +73,53 @@ import { User } from '../../services/auth.service';
                   step="any"
                 />
               </div>
-              <p *ngIf="setupForm.get('monthly_income')?.touched && setupForm.get('monthly_income')?.hasError('required')" class="text-red-500 text-sm mt-1">Monthly income is required.</p>
-              <p *ngIf="setupForm.get('monthly_income')?.touched && setupForm.get('monthly_income')?.hasError('min')" class="text-red-500 text-sm mt-1">Monthly income cannot be negative.</p>
-              <p *ngIf="setupForm.get('monthly_income')?.touched && setupForm.get('monthly_income')?.hasError('max')" class="text-red-500 text-sm mt-1">Enter an amount below €100,000,000.</p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_income')?.touched &&
+                  setupForm.get('monthly_income')?.hasError('required')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Monthly income is required.
+              </p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_income')?.touched &&
+                  setupForm.get('monthly_income')?.hasError('min')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Monthly income cannot be negative.
+              </p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_income')?.touched &&
+                  setupForm.get('monthly_income')?.hasError('max')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Enter an amount below €100,000,000.
+              </p>
             </div>
 
             <div class="mb-6">
-              <label class="block text-gray-700 text-sm font-semibold mb-2">Estimated Monthly Expenses (€)</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-2"
+                >Estimated Monthly Expenses (€)</label
+              >
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v18m9-9H3"/>
+                  <svg
+                    class="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 3v18m9-9H3"
+                    />
                   </svg>
                 </div>
                 <input
@@ -71,9 +132,33 @@ import { User } from '../../services/auth.service';
                   step="any"
                 />
               </div>
-              <p *ngIf="setupForm.get('monthly_expenses')?.touched && setupForm.get('monthly_expenses')?.hasError('required')" class="text-red-500 text-sm mt-1">Estimated expenses are required.</p>
-              <p *ngIf="setupForm.get('monthly_expenses')?.touched && setupForm.get('monthly_expenses')?.hasError('min')" class="text-red-500 text-sm mt-1">Estimated expenses cannot be negative.</p>
-              <p *ngIf="setupForm.get('monthly_expenses')?.touched && setupForm.get('monthly_expenses')?.hasError('max')" class="text-red-500 text-sm mt-1">Enter an amount below €100,000,000.</p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_expenses')?.touched &&
+                  setupForm.get('monthly_expenses')?.hasError('required')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Estimated expenses are required.
+              </p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_expenses')?.touched &&
+                  setupForm.get('monthly_expenses')?.hasError('min')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Estimated expenses cannot be negative.
+              </p>
+              <p
+                *ngIf="
+                  setupForm.get('monthly_expenses')?.touched &&
+                  setupForm.get('monthly_expenses')?.hasError('max')
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Enter an amount below €100,000,000.
+              </p>
             </div>
 
             <button
@@ -86,13 +171,16 @@ import { User } from '../../services/auth.service';
             </button>
           </form>
 
-          <div *ngIf="errorMessage" class="mt-5 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm text-center">
+          <div
+            *ngIf="errorMessage"
+            class="mt-5 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm text-center"
+          >
             {{ errorMessage }}
           </div>
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class SetupComponent implements OnInit {
   setupForm: FormGroup;
@@ -103,7 +191,7 @@ export class SetupComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
   ) {
     this.setupForm = this.fb.group({
       monthly_income: ['', [Validators.required, Validators.min(0), Validators.max(99999999.99)]],
@@ -124,10 +212,12 @@ export class SetupComponent implements OnInit {
     const token = this.authService.getTokenValue();
     const user = this.authService.getUserValue();
 
-    this.http.post<{ message: string; user: User }>(`${environment.apiUrl}/setup`, {
-      token,
-      ...this.setupForm.value,
-    }).pipe(timeout(10000))
+    this.http
+      .post<{ message: string; user: User }>(`${environment.apiUrl}/setup`, {
+        token,
+        ...this.setupForm.value,
+      })
+      .pipe(timeout(10000))
       .subscribe({
         next: (response) => {
           this.isLoading = false;
@@ -137,13 +227,16 @@ export class SetupComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           if (error.name === 'TimeoutError' || error.status === 0) {
-            this.errorMessage = 'Could not reach the backend. Make sure php artisan serve is running at ' + environment.backendUrl + '.';
+            this.errorMessage =
+              'Could not reach the backend. Make sure php artisan serve is running at ' +
+              environment.backendUrl +
+              '.';
           } else if (error instanceof HttpErrorResponse && error.error?.message) {
             this.errorMessage = error.error.message;
           } else {
             this.errorMessage = error.message || 'Setup failed. Please try again.';
           }
-        }
+        },
       });
   }
 }

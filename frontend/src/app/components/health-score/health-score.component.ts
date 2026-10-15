@@ -1,4 +1,13 @@
-import { Component, OnInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewChecked,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -8,21 +17,21 @@ import { HealthScore } from '../../models/health-score';
 import { CartesianTooltipItem, ChartInstance, chartConstructor } from '../../models/chart';
 
 const COLORS: Record<string, string> = {
-  'savings_rate': '#3b82f6',
-  'emergency_fund': '#14b8a6',
-  'budget_adherence': '#8b5cf6',
-  'debt_ratio': '#f59e0b',
-  'investment_rate': '#10b981',
-  'income_stability': '#ec4899',
+  savings_rate: '#3b82f6',
+  emergency_fund: '#14b8a6',
+  budget_adherence: '#8b5cf6',
+  debt_ratio: '#f59e0b',
+  investment_rate: '#10b981',
+  income_stability: '#ec4899',
 };
 
 const ICONS: Record<string, string> = {
-  'savings_rate': '💰',
-  'emergency_fund': '🛡️',
-  'budget_adherence': '📋',
-  'debt_ratio': '💳',
-  'investment_rate': '📈',
-  'income_stability': '📊',
+  savings_rate: '💰',
+  emergency_fund: '🛡️',
+  budget_adherence: '📋',
+  debt_ratio: '💳',
+  investment_rate: '📈',
+  income_stability: '📊',
 };
 
 @Component({
@@ -30,7 +39,7 @@ const ICONS: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, SidebarComponent],
-  templateUrl: './health-score.component.html'
+  templateUrl: './health-score.component.html',
 })
 export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('historyChart') chartRef!: ElementRef<HTMLCanvasElement>;
@@ -50,7 +59,10 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
   ) {}
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; }
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.load();
   }
 
@@ -74,7 +86,11 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
         this.needsRender = true;
         this.cd.markForCheck();
       },
-      error: (e) => { this.errorMessage = e?.message || 'Failed to load health score'; this.isLoading = false; this.cd.markForCheck(); }
+      error: (e) => {
+        this.errorMessage = e?.message || 'Failed to load health score';
+        this.isLoading = false;
+        this.cd.markForCheck();
+      },
     });
   }
 
@@ -93,8 +109,12 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
     return 'Needs attention';
   }
 
-  colorFor(key: string): string { return COLORS[key] ?? '#94a3b8'; }
-  iconFor(key: string): string { return ICONS[key] ?? '📌'; }
+  colorFor(key: string): string {
+    return COLORS[key] ?? '#94a3b8';
+  }
+  iconFor(key: string): string {
+    return ICONS[key] ?? '📌';
+  }
 
   private renderIfReady(): void {
     if (!this.needsRender || !this.data) return;
@@ -109,8 +129,8 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
     const ctx = this.chartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.history.map(h => h.month);
-    const values = this.data.history.map(h => h.score);
+    const labels = this.data.history.map((h) => h.month);
+    const values = this.data.history.map((h) => h.score);
 
     if (this.chartInstance) {
       this.chartInstance.data.labels = labels;
@@ -127,35 +147,44 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
       type: 'line',
       data: {
         labels,
-        datasets: [{
-          label: 'Health Score',
-          data: values,
-          borderColor: '#7c3aed',
-          backgroundColor: gr,
-          borderWidth: 2.5,
-          pointRadius: 4,
-          pointBackgroundColor: '#7c3aed',
-          tension: 0.4,
-          fill: true,
-        }]
+        datasets: [
+          {
+            label: 'Health Score',
+            data: values,
+            borderColor: '#7c3aed',
+            backgroundColor: gr,
+            borderWidth: 2.5,
+            pointRadius: 4,
+            pointBackgroundColor: '#7c3aed',
+            tension: 0.4,
+            fill: true,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
+          y: {
+            min: 0,
+            max: 100,
+            grid: { color: 'rgba(0,0,0,0.04)' },
+            ticks: { color: '#9ca3af', font: { size: 10 } },
+          },
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
         },
         plugins: {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.88)',
-            titleColor: '#e5e7eb', bodyColor: '#d1d5db',
-            padding: 10, cornerRadius: 8,
-            callbacks: { label: (c: CartesianTooltipItem) => ` Score: ${c.parsed.y}` }
-          }
-        }
-      }
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: { label: (c: CartesianTooltipItem) => ` Score: ${c.parsed.y}` },
+          },
+        },
+      },
     });
   }
 }

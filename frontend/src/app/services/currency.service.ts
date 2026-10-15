@@ -31,7 +31,7 @@ export class CurrencyService {
   private loadSaved(): CurrencyOption {
     if (typeof window === 'undefined') return this.currencies[0];
     const saved = localStorage.getItem(this.storageKey);
-    return this.currencies.find(c => c.code === saved) ?? this.currencies[0];
+    return this.currencies.find((c) => c.code === saved) ?? this.currencies[0];
   }
 
   get current(): CurrencyOption {
@@ -47,11 +47,11 @@ export class CurrencyService {
   }
 
   getSymbol(code: string): string {
-    return this.currencies.find(c => c.code === code)?.symbol ?? code;
+    return this.currencies.find((c) => c.code === code)?.symbol ?? code;
   }
 
   setCurrency(code: string): void {
-    const found = this.currencies.find(c => c.code === code);
+    const found = this.currencies.find((c) => c.code === code);
     if (!found) return;
     if (typeof window !== 'undefined') {
       localStorage.setItem(this.storageKey, code);

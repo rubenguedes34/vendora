@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\Budget\IndexBudgetRequest;
 use App\Http\Requests\Budget\StoreBudgetRequest;
 use App\Http\Requests\Budget\UpdateBudgetRequest;
 use App\Models\Budget;
+use Illuminate\Http\Request;
 
 class BudgetController extends Controller
 {
@@ -16,7 +16,9 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="List budgets for a month",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2025-07")),
+     *
      *     @OA\Response(response=200, description="Array of budgets")
      * )
      */
@@ -39,13 +41,17 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Create or update a budget entry",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"category_id","amount","month"},
+     *
      *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="amount", type="number"),
      *             @OA\Property(property="month", type="string", example="2025-07")
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Budget created")
      * )
      */
@@ -64,7 +70,9 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Get a single budget",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Budget object")
      * )
      */
@@ -82,14 +90,19 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Update a budget",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="amount", type="number"),
      *             @OA\Property(property="month", type="string", example="2025-07")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Budget updated")
      * )
      */
@@ -109,7 +122,9 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Delete a budget",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="budget", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Budget deleted")
      * )
      */
@@ -129,7 +144,9 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Compare budgeted vs actual spending",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="month", in="path", required=false, @OA\Schema(type="string", example="2025-07")),
+     *
      *     @OA\Response(response=200, description="Budget comparison")
      * )
      */
@@ -150,7 +167,7 @@ class BudgetController extends Controller
 
         // Single query: sum transactions grouped by category for the month
         $from = "{$year}-{$mon}-01";
-        $to   = date('Y-m-t', strtotime($from));
+        $to = date('Y-m-t', strtotime($from));
 
         $actuals = $request->user()
             ->transactions()
@@ -162,18 +179,18 @@ class BudgetController extends Controller
 
         $result = $budgets->map(function ($budget) use ($actuals) {
             $budgeted = (float) $budget->amount;
-            $spent    = round((float) ($actuals[$budget->category_id] ?? 0), 2);
-            $pct      = $budgeted > 0 ? round(($spent / $budgeted) * 100, 1) : null;
+            $spent = round((float) ($actuals[$budget->category_id] ?? 0), 2);
+            $pct = $budgeted > 0 ? round(($spent / $budgeted) * 100, 1) : null;
 
             return [
-                'category_id'    => $budget->category_id,
-                'category_name'  => $budget->category?->name ?? 'Unknown',
+                'category_id' => $budget->category_id,
+                'category_name' => $budget->category?->name ?? 'Unknown',
                 'category_color' => $budget->category?->color ?? '#94a3b8',
-                'category_type'  => $budget->category?->type ?? 'expense',
-                'budgeted'       => $budgeted,
-                'actual'         => $spent,
-                'remaining'      => round($budgeted - $spent, 2),
-                'pct'            => $pct,
+                'category_type' => $budget->category?->type ?? 'expense',
+                'budgeted' => $budgeted,
+                'actual' => $spent,
+                'remaining' => round($budgeted - $spent, 2),
+                'pct' => $pct,
             ];
         })->sortByDesc('actual')->values();
 
@@ -186,7 +203,9 @@ class BudgetController extends Controller
      *     tags={"Budgets"},
      *     summary="Get budget summary for a month",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="month", in="path", required=false, @OA\Schema(type="string", example="2025-07")),
+     *
      *     @OA\Response(response=200, description="Budget summary with income/expenses/savings/balance")
      * )
      */

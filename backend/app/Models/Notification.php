@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,8 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $body
  * @property array|null $data
  * @property bool $is_read
- * @property \Carbon\Carbon|null $read_at
- * @property \Carbon\Carbon $created_at
+ * @property Carbon|null $read_at
+ * @property Carbon $created_at
  */
 class Notification extends Model
 {
@@ -34,7 +35,7 @@ class Notification extends Model
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
-        'data'    => 'array',
+        'data' => 'array',
     ];
 
     public function user()

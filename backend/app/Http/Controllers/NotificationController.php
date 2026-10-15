@@ -17,7 +17,9 @@ class NotificationController extends Controller
      *     tags={"Notifications"},
      *     summary="List user notifications",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="unread_only", in="query", required=false, @OA\Schema(type="boolean")),
+     *
      *     @OA\Response(response=200, description="Array of notifications")
      * )
      */
@@ -40,6 +42,7 @@ class NotificationController extends Controller
      *     tags={"Notifications"},
      *     summary="Get unread notification count",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Unread count")
      * )
      */
@@ -49,6 +52,7 @@ class NotificationController extends Controller
         $this->generateIfStale($request);
 
         $count = $request->user()->appNotifications()->where('is_read', false)->count();
+
         return response()->json(['count' => $count]);
     }
 
@@ -58,7 +62,9 @@ class NotificationController extends Controller
      *     tags={"Notifications"},
      *     summary="Mark a notification as read",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Notification marked as read")
      * )
      */
@@ -68,6 +74,7 @@ class NotificationController extends Controller
         $this->authorize('update', $notification);
 
         $notification->markAsRead();
+
         return response()->json($notification);
     }
 
@@ -77,6 +84,7 @@ class NotificationController extends Controller
      *     tags={"Notifications"},
      *     summary="Mark all notifications as read",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="All marked as read")
      * )
      */
@@ -86,6 +94,7 @@ class NotificationController extends Controller
             'is_read' => true,
             'read_at' => now(),
         ]);
+
         return response()->json(['message' => 'All notifications marked as read']);
     }
 
@@ -95,7 +104,9 @@ class NotificationController extends Controller
      *     tags={"Notifications"},
      *     summary="Delete a notification",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Notification deleted")
      * )
      */
@@ -105,6 +116,7 @@ class NotificationController extends Controller
         $this->authorize('delete', $notification);
 
         $notification->delete();
+
         return response()->json(['message' => 'Notification deleted']);
     }
 
@@ -116,6 +128,7 @@ class NotificationController extends Controller
             now()->addMinutes(10),
             function () use ($request) {
                 $this->generator->generateFor($request->user());
+
                 return true;
             }
         );

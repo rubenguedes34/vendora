@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 class AlertRule extends Model
 {
     public const TYPE_CATEGORY_LIMIT = 'category_limit';
+
     public const TYPE_TOTAL_SPEND_LIMIT = 'total_spend_limit';
 
     protected $fillable = [

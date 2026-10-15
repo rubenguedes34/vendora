@@ -2,6 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\ExchangeGoogleCodeRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdatePasswordRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Models\FinancialRecord;
+use App\Models\User;
+use App\Services\TokenService;
+use App\Support\DefaultCategories;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -10,20 +19,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 use Spatie\Permission\Models\Role;
-use App\Http\Requests\Auth\ExchangeGoogleCodeRequest;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterRequest;
-use App\Http\Requests\Auth\UpdatePasswordRequest;
-use App\Http\Requests\Auth\UpdateProfileRequest;
-use App\Models\User;
-use App\Models\FinancialRecord;
-use App\Services\TokenService;
-use App\Support\DefaultCategories;
 
 class AuthController extends Controller
 {
     private const GOOGLE_CODE_PREFIX = 'google-login-code:';
+
     private const ADMIN_PANEL_CODE_PREFIX = 'admin-panel-code:';
 
     /**
@@ -31,14 +33,18 @@ class AuthController extends Controller
      *     path="/api/register",
      *     tags={"Auth"},
      *     summary="Register a new user",
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"name","email","password","password_confirmation"},
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="email", type="string", format="email"),
      *             @OA\Property(property="password", type="string", minLength=8),
      *             @OA\Property(property="password_confirmation", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="User registered"),
      *     @OA\Response(response=422, description="Validation error")
      * )
@@ -79,6 +85,7 @@ class AuthController extends Controller
             ], 201);
         } catch (\Exception $e) {
             Log::error('Registration failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Registration failed. Please try again.',
             ], 500);
@@ -90,12 +97,16 @@ class AuthController extends Controller
      *     path="/api/login",
      *     tags={"Auth"},
      *     summary="Login",
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"email","password"},
+     *
      *             @OA\Property(property="email", type="string", format="email"),
      *             @OA\Property(property="password", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Login successful, returns token"),
      *     @OA\Response(response=401, description="Invalid credentials")
      * )
@@ -103,7 +114,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            if (! Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
                 return response()->json([
                     'message' => 'Invalid credentials',
                 ], 401);
@@ -113,6 +124,7 @@ class AuthController extends Controller
 
             if ($user->isBlacklisted()) {
                 Auth::logout();
+
                 return response()->json(['message' => 'Your account has been suspended.'], 403);
             }
 
@@ -126,7 +138,7 @@ class AuthController extends Controller
                 ->where('month', $currentMonth)
                 ->first();
 
-            if (!$financialRecord && !$needsSetup) {
+            if (! $financialRecord && ! $needsSetup) {
                 // Create record for current month using user's default values
                 $financialRecord = FinancialRecord::create([
                     'user_id' => $user->id,
@@ -156,6 +168,7 @@ class AuthController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Login failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Login failed. Please try again.',
             ], 500);
@@ -168,6 +181,7 @@ class AuthController extends Controller
      *     tags={"Auth"},
      *     summary="Logout",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Logged out")
      * )
      */
@@ -186,6 +200,7 @@ class AuthController extends Controller
      *     tags={"Auth"},
      *     summary="Get authenticated user",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="User object")
      * )
      */
@@ -201,14 +216,18 @@ class AuthController extends Controller
      *     tags={"Auth"},
      *     summary="Update user profile",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="email", type="string", format="email"),
      *             @OA\Property(property="monthly_income", type="number"),
      *             @OA\Property(property="monthly_expenses", type="number")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Profile updated")
      * )
      */
@@ -218,22 +237,22 @@ class AuthController extends Controller
 
         // Changing the login email is sensitive, so it needs the current password.
         if ($request->email !== $user->email
-            && !Hash::check((string) $request->current_password, $user->password)) {
+            && ! Hash::check((string) $request->current_password, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Your current password is required to change your email.'],
             ]);
         }
 
         $user->update([
-            'name'             => $request->name,
-            'email'            => $request->email,
-            'monthly_income'   => $request->monthly_income,
+            'name' => $request->name,
+            'email' => $request->email,
+            'monthly_income' => $request->monthly_income,
             'monthly_expenses' => $request->monthly_expenses,
         ]);
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => $user->fresh(),
+            'user' => $user->fresh(),
         ]);
     }
 
@@ -243,13 +262,17 @@ class AuthController extends Controller
      *     tags={"Auth"},
      *     summary="Update user password",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"current_password","password","password_confirmation"},
+     *
      *             @OA\Property(property="current_password", type="string"),
      *             @OA\Property(property="password", type="string", minLength=8),
      *             @OA\Property(property="password_confirmation", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Password updated")
      * )
      */
@@ -257,7 +280,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json(['message' => 'Current password is incorrect.'], 422);
         }
 
@@ -275,6 +298,7 @@ class AuthController extends Controller
      *     tags={"Admin"},
      *     summary="Get a single-use link that signs the current user into the admin panel",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Single-use admin panel URL"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
@@ -284,20 +308,20 @@ class AuthController extends Controller
         // The panel uses a browser session while the app uses API tokens, so
         // bridge the two with a short-lived, single-use code.
         $code = Str::random(64);
-        Cache::put(self::ADMIN_PANEL_CODE_PREFIX . hash('sha256', $code), $request->user()->id, now()->addMinute());
+        Cache::put(self::ADMIN_PANEL_CODE_PREFIX.hash('sha256', $code), $request->user()->id, now()->addMinute());
 
         return response()->json([
-            'url' => $request->getSchemeAndHttpHost() . '/auth/admin-panel?code=' . $code,
+            'url' => $request->getSchemeAndHttpHost().'/auth/admin-panel?code='.$code,
         ]);
     }
 
     public function enterAdminPanel(Request $request)
     {
         $code = $request->query('code');
-        $userId = is_string($code) ? Cache::pull(self::ADMIN_PANEL_CODE_PREFIX . hash('sha256', $code)) : null;
+        $userId = is_string($code) ? Cache::pull(self::ADMIN_PANEL_CODE_PREFIX.hash('sha256', $code)) : null;
         $user = $userId ? User::find($userId) : null;
 
-        if (!$user || $user->isBlacklisted() || !$user->can('access admin panel')) {
+        if (! $user || $user->isBlacklisted() || ! $user->can('access admin panel')) {
             return redirect()->route('filament.admin.auth.login');
         }
 
@@ -309,7 +333,7 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
-        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        /** @var GoogleProvider $driver */
         $driver = Socialite::driver('google');
 
         return $driver
@@ -325,9 +349,10 @@ class AuthController extends Controller
             // Only trust a Google identity whose email Google has verified, so a
             // user cannot be linked to (or created from) an unverified address.
             $emailVerified = $googleUser->user['email_verified'] ?? false;
-            if (!$emailVerified) {
+            if (! $emailVerified) {
                 $frontendUrl = config('app.frontend_url');
-                return redirect($frontendUrl . '/login?error=' . urlencode('Your Google email address is not verified.'));
+
+                return redirect($frontendUrl.'/login?error='.urlencode('Your Google email address is not verified.'));
             }
 
             $user = User::where('email', $googleUser->email)->first();
@@ -335,10 +360,11 @@ class AuthController extends Controller
 
             if ($user && $user->isBlacklisted()) {
                 $frontendUrl = config('app.frontend_url');
-                return redirect($frontendUrl . '/login?error=' . urlencode('Your account has been suspended.'));
+
+                return redirect($frontendUrl.'/login?error='.urlencode('Your account has been suspended.'));
             }
 
-            if (!$user) {
+            if (! $user) {
                 $user = User::create([
                     'name' => $googleUser->name ?? $googleUser->email,
                     'email' => $googleUser->email,
@@ -360,17 +386,19 @@ class AuthController extends Controller
             // Hand the frontend a short-lived, single-use code instead of putting
             // the API token and profile in the redirect URL.
             $code = Str::random(64);
-            Cache::put(self::GOOGLE_CODE_PREFIX . hash('sha256', $code), [
+            Cache::put(self::GOOGLE_CODE_PREFIX.hash('sha256', $code), [
                 'user_id' => $user->id,
                 'is_new_user' => $isNewUser,
             ], now()->addMinute());
 
             $frontendUrl = config('app.frontend_url');
-            return redirect($frontendUrl . '/auth/callback?code=' . urlencode($code));
+
+            return redirect($frontendUrl.'/auth/callback?code='.urlencode($code));
         } catch (\Exception $e) {
             Log::error('Google login failed', ['exception' => $e]);
             $frontendUrl = config('app.frontend_url');
-            return redirect($frontendUrl . '/login?error=' . urlencode('Google login failed. Please try again.'));
+
+            return redirect($frontendUrl.'/login?error='.urlencode('Google login failed. Please try again.'));
         }
     }
 
@@ -379,21 +407,25 @@ class AuthController extends Controller
      *     path="/api/auth/google/exchange",
      *     tags={"Auth"},
      *     summary="Exchange a one-time Google login code for an API token",
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"code"},
+     *
      *             @OA\Property(property="code", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Login successful, returns token"),
      *     @OA\Response(response=401, description="Invalid or expired code")
      * )
      */
     public function exchangeGoogleCode(ExchangeGoogleCodeRequest $request)
     {
-        $payload = Cache::pull(self::GOOGLE_CODE_PREFIX . hash('sha256', $request->code));
+        $payload = Cache::pull(self::GOOGLE_CODE_PREFIX.hash('sha256', $request->code));
         $user = $payload ? User::find($payload['user_id']) : null;
 
-        if (!$user || $user->isBlacklisted()) {
+        if (! $user || $user->isBlacklisted()) {
             return response()->json(['message' => 'Invalid or expired login code.'], 401);
         }
 
@@ -409,7 +441,7 @@ class AuthController extends Controller
 
         // Only create a record once the user has completed setup, so we
         // never persist placeholder zero values for incomplete accounts.
-        if (!$financialRecord && !$needsSetup) {
+        if (! $financialRecord && ! $needsSetup) {
             $financialRecord = FinancialRecord::create([
                 'user_id' => $user->id,
                 'year' => $currentYear,

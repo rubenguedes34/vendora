@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -38,7 +37,7 @@ class Category extends Model
         $categoryType = static::whereKey($categoryId)->value('type');
         $allowed = $transactionType === 'income' ? ['income'] : ['expense', 'savings'];
 
-        if (!in_array($categoryType, $allowed, true)) {
+        if (! in_array($categoryType, $allowed, true)) {
             throw ValidationException::withMessages([
                 'category_id' => ["The selected category cannot be used for an {$transactionType} transaction."],
             ]);

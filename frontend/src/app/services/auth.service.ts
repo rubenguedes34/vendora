@@ -27,7 +27,7 @@ interface AuthResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private apiUrl = environment.apiUrl;
@@ -46,44 +46,49 @@ export class AuthService {
     }
   }
 
-  register(data: { name: string; email: string; password: string; password_confirmation: string }): Observable<AuthResponse> {
+  register(data: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+  }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       timeout(10000),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError((error) => throwError(() => this.handleError(error))),
     );
   }
 
   login(data: { email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
       timeout(10000),
-      catchError(error => {
+      catchError((error) => {
         // Handle 401 errors specifically
         if (error.status === 401) {
           return throwError(() => ({ message: 'Invalid email or password. Please try again.' }));
         }
         return throwError(() => this.handleError(error));
-      })
+      }),
     );
   }
 
   exchangeGoogleCode(code: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/google/exchange`, { code }).pipe(
       timeout(10000),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError((error) => throwError(() => this.handleError(error))),
     );
   }
 
   logout(): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.apiUrl}/logout`, {}).pipe(
       timeout(10000),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError((error) => throwError(() => this.handleError(error))),
     );
   }
 
   getUser(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/user`).pipe(
       timeout(10000),
-      catchError(error => throwError(() => this.handleError(error)))
+      catchError((error) => throwError(() => this.handleError(error))),
     );
   }
 

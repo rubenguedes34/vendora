@@ -9,6 +9,7 @@ use OpenApi\Annotations as OA;
  *     title="Vendora API",
  *     version="1.0.0",
  *     description="Vendora personal finance API. Use Bearer token authentication on protected endpoints.",
+ *
  *     @OA\Contact(email="admin@vendora.com")
  * )
  *

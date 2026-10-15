@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
 use App\Services\TokenService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TokenServiceTest extends TestCase
 {
@@ -47,7 +47,7 @@ class TokenServiceTest extends TestCase
         $user = User::factory()->create();
         $token = TokenService::issue($user);
 
-        $this->assertNull(TokenService::verify($token . 'x'));
+        $this->assertNull(TokenService::verify($token.'x'));
         $this->assertNull(TokenService::verify(substr($token, 0, -1)));
     }
 

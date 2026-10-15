@@ -9,10 +9,24 @@
             <h2 class="text-xl font-semibold">Financial Health Score</h2>
             <p class="text-primary-200 text-xs">A modular view of your financial wellbeing</p>
           </div>
-          <button (click)="load()" [disabled]="isLoading"
-            class="flex items-center gap-1.5 text-xs bg-primary-600 hover:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
-            <svg class="w-3.5 h-3.5" [class.animate-spin]="isLoading" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          <button
+            (click)="load()"
+            [disabled]="isLoading"
+            class="flex items-center gap-1.5 text-xs bg-primary-600 hover:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              [class.animate-spin]="isLoading"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             Refresh
           </button>
@@ -21,11 +35,17 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+      <div
+        *ngIf="errorMessage"
+        class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"
+      >
         {{ errorMessage }}
       </div>
 
-      <div *ngIf="isLoading && !data" class="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse mb-5">
+      <div
+        *ngIf="isLoading && !data"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse mb-5"
+      >
         <div class="lg:col-span-1 bg-white rounded-xl h-64 border border-gray-100"></div>
         <div class="lg:col-span-2 bg-white rounded-xl h-64 border border-gray-100"></div>
       </div>
@@ -33,16 +53,29 @@
       <ng-container *ngIf="data">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
           <!-- Score card -->
-          <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center">
+          <div
+            class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center"
+          >
             <div class="relative w-40 h-40">
               <svg class="w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="10"/>
-                <circle cx="50" cy="50" r="45" fill="none" [attr.stroke]="scoreColor" stroke-width="10" stroke-linecap="round"
-                  stroke-dasharray="283" [attr.stroke-dashoffset]="283 - (data.score.overall_score / 100) * 283"
-                  transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="10" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="none"
+                  [attr.stroke]="scoreColor"
+                  stroke-width="10"
+                  stroke-linecap="round"
+                  stroke-dasharray="283"
+                  [attr.stroke-dashoffset]="283 - (data.score.overall_score / 100) * 283"
+                  transform="rotate(-90 50 50)"
+                />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-3xl font-bold" [style.color]="scoreColor">{{ data.score.overall_score }}</span>
+                <span class="text-3xl font-bold" [style.color]="scoreColor">{{
+                  data.score.overall_score
+                }}</span>
                 <span class="text-xs text-gray-400 uppercase tracking-wide">out of 100</span>
               </div>
             </div>
@@ -54,7 +87,10 @@
           <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Category Scores</h3>
             <div class="space-y-3">
-              <div *ngFor="let cat of data.score.categories" class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <div
+                *ngFor="let cat of data.score.categories"
+                class="p-3 rounded-xl bg-gray-50 border border-gray-100"
+              >
                 <div class="flex items-center gap-3 mb-2">
                   <span class="text-lg">{{ iconFor(cat.key) }}</span>
                   <div class="flex-1">
@@ -63,9 +99,11 @@
                       <span class="text-xs font-bold text-gray-700">{{ cat.score }}/100</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                      <div class="h-2 rounded-full transition-all duration-500"
+                      <div
+                        class="h-2 rounded-full transition-all duration-500"
                         [style.width.%]="cat.score"
-                        [style.background-color]="colorFor(cat.key)"></div>
+                        [style.background-color]="colorFor(cat.key)"
+                      ></div>
                     </div>
                   </div>
                   <span class="text-xs text-gray-400 w-16 text-right">{{ cat.weight }}%</span>
@@ -79,7 +117,7 @@
         <!-- History chart -->
         <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">6-Month Trend</h3>
-          <div style="height: 200px; position: relative;">
+          <div style="height: 200px; position: relative">
             <canvas #historyChart></canvas>
           </div>
         </div>
@@ -87,4 +125,3 @@
     </div>
   </main>
 </div>
-

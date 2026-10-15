@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Services\FinancialCacheService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $ticker_symbol
  * @property string|null $units
  * @property string|null $price_per_unit
- * @property \Carbon\Carbon $purchase_date
+ * @property Carbon $purchase_date
  * @property-read User $user
  */
 class Investment extends Model

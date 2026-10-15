@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Socialite\Facades\Socialite;
 use Mockery;
+use Tests\TestCase;
 
 class GoogleLoginTest extends TestCase
 {
@@ -115,7 +115,7 @@ class GoogleLoginTest extends TestCase
             ->assertJsonPath('user.needs_setup', true)
             ->json('token');
 
-        $this->getJson('/api/user', ['Authorization' => 'Bearer ' . $token])->assertStatus(200);
+        $this->getJson('/api/user', ['Authorization' => 'Bearer '.$token])->assertStatus(200);
 
         // The code is single use.
         $this->postJson('/api/auth/google/exchange', ['code' => $query['code']])->assertStatus(401);

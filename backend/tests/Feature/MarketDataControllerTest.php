@@ -23,7 +23,7 @@ class MarketDataControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_market_endpoints_require_authentication(): void

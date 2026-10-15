@@ -10,7 +10,7 @@ class CandleRequest extends FormRequest
     {
         return [
             'symbol' => QuoteRequest::SYMBOL_RULES,
-            'days'   => 'nullable|integer|between:1,365',
+            'days' => 'nullable|integer|between:1,365',
         ];
     }
 }

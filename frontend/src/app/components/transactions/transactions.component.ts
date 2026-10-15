@@ -1,7 +1,23 @@
-import { Component, Input, OnInit, ElementRef, ViewChild, ChangeDetectorRef, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -19,7 +35,7 @@ import { ApiError } from '../../models/api';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
-  templateUrl: './transactions.component.html'
+  templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -55,12 +71,12 @@ export class TransactionsComponent implements OnInit {
 
   get activeFilterCount(): number {
     let n = 0;
-    if (this.filterSearch)            n++;
-    if (this.filterNotesSearch)       n++;
-    if (this.filterType)              n++;
-    if (this.filterCategoryId)        n++;
-    if (this.filterDateFrom)          n++;
-    if (this.filterDateTo)            n++;
+    if (this.filterSearch) n++;
+    if (this.filterNotesSearch) n++;
+    if (this.filterType) n++;
+    if (this.filterCategoryId) n++;
+    if (this.filterDateFrom) n++;
+    if (this.filterDateTo) n++;
     if (this.filterAmountMin != null) n++;
     if (this.filterAmountMax != null) n++;
     n += this.filterTagIds.length;
@@ -98,7 +114,7 @@ export class TransactionsComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     public currencyService: CurrencyService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
     this.transactionForm = this.fb.group({
       description: ['', Validators.required],
@@ -116,27 +132,32 @@ export class TransactionsComponent implements OnInit {
       return;
     }
     this.restoreFilters();
-    this.tagService.tags$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(tags => this.availableTags = tags);
+    this.tagService.tags$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((tags) => (this.availableTags = tags));
     this.tagService.loadTags();
     this.loadCategories();
     this.loadTransactions();
   }
 
   saveFilters(): void {
-    sessionStorage.setItem('txFilters', JSON.stringify({
-      filtersOpen:      this.filtersOpen,
-      filterSearch:     this.filterSearch,
-      filterNotesSearch: this.filterNotesSearch,
-      filterType:       this.filterType,
-      filterCategoryId: this.filterCategoryId,
-      filterDateFrom:   this.filterDateFrom,
-      filterDateTo:     this.filterDateTo,
-      filterAmountMin:  this.filterAmountMin,
-      filterAmountMax:  this.filterAmountMax,
-      filterTagIds:     this.filterTagIds,
-      currentPage:      this.currentPage,
-      perPage:          this.perPage,
-    }));
+    sessionStorage.setItem(
+      'txFilters',
+      JSON.stringify({
+        filtersOpen: this.filtersOpen,
+        filterSearch: this.filterSearch,
+        filterNotesSearch: this.filterNotesSearch,
+        filterType: this.filterType,
+        filterCategoryId: this.filterCategoryId,
+        filterDateFrom: this.filterDateFrom,
+        filterDateTo: this.filterDateTo,
+        filterAmountMin: this.filterAmountMin,
+        filterAmountMax: this.filterAmountMax,
+        filterTagIds: this.filterTagIds,
+        currentPage: this.currentPage,
+        perPage: this.perPage,
+      }),
+    );
   }
 
   private restoreFilters(): void {
@@ -144,19 +165,21 @@ export class TransactionsComponent implements OnInit {
       const raw = sessionStorage.getItem('txFilters');
       if (!raw) return;
       const f = JSON.parse(raw);
-      this.filtersOpen       = f.filtersOpen      ?? false;
-      this.filterSearch      = f.filterSearch      ?? '';
+      this.filtersOpen = f.filtersOpen ?? false;
+      this.filterSearch = f.filterSearch ?? '';
       this.filterNotesSearch = f.filterNotesSearch ?? '';
-      this.filterType        = f.filterType        ?? '';
-      this.filterCategoryId  = f.filterCategoryId ? +f.filterCategoryId : undefined;
-      this.filterDateFrom    = f.filterDateFrom    ?? '';
-      this.filterDateTo      = f.filterDateTo      ?? '';
-      this.filterAmountMin   = f.filterAmountMin != null ? +f.filterAmountMin : undefined;
-      this.filterAmountMax   = f.filterAmountMax != null ? +f.filterAmountMax : undefined;
-      this.filterTagIds      = Array.isArray(f.filterTagIds) ? f.filterTagIds : [];
-      this.currentPage       = f.currentPage ? +f.currentPage : 1;
-      this.perPage           = f.perPage ? +f.perPage : 20;
-    } catch { /* ignore corrupt state */ }
+      this.filterType = f.filterType ?? '';
+      this.filterCategoryId = f.filterCategoryId ? +f.filterCategoryId : undefined;
+      this.filterDateFrom = f.filterDateFrom ?? '';
+      this.filterDateTo = f.filterDateTo ?? '';
+      this.filterAmountMin = f.filterAmountMin != null ? +f.filterAmountMin : undefined;
+      this.filterAmountMax = f.filterAmountMax != null ? +f.filterAmountMax : undefined;
+      this.filterTagIds = Array.isArray(f.filterTagIds) ? f.filterTagIds : [];
+      this.currentPage = f.currentPage ? +f.currentPage : 1;
+      this.perPage = f.perPage ? +f.perPage : 20;
+    } catch {
+      /* ignore corrupt state */
+    }
   }
 
   onSearchInput(event: Event): void {
@@ -168,10 +191,10 @@ export class TransactionsComponent implements OnInit {
   }
 
   onFilterChange(field: string, value: string): void {
-    if (field === 'type')        this.filterType = value;
+    if (field === 'type') this.filterType = value;
     if (field === 'category_id') this.filterCategoryId = value ? +value : undefined;
-    if (field === 'date_from')   this.filterDateFrom = value;
-    if (field === 'date_to')     this.filterDateTo = value;
+    if (field === 'date_from') this.filterDateFrom = value;
+    if (field === 'date_to') this.filterDateTo = value;
     this.currentPage = 1;
     this.saveFilters();
     this.loadTransactions();
@@ -189,7 +212,7 @@ export class TransactionsComponent implements OnInit {
     const raw = (event.target as HTMLInputElement).value;
     const val = raw === '' ? undefined : parseFloat(raw);
     if (which === 'min') this.filterAmountMin = val;
-    else                  this.filterAmountMax = val;
+    else this.filterAmountMax = val;
     this.currentPage = 1;
     this.saveFilters();
     clearTimeout(this.slowTimeout);
@@ -199,7 +222,7 @@ export class TransactionsComponent implements OnInit {
   toggleFilterTag(tagId: number): void {
     const idx = this.filterTagIds.indexOf(tagId);
     if (idx === -1) this.filterTagIds = [...this.filterTagIds, tagId];
-    else            this.filterTagIds = this.filterTagIds.filter(id => id !== tagId);
+    else this.filterTagIds = this.filterTagIds.filter((id) => id !== tagId);
     this.currentPage = 1;
     this.saveFilters();
     this.loadTransactions();
@@ -224,17 +247,17 @@ export class TransactionsComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.filterSearch      = '';
+    this.filterSearch = '';
     this.filterNotesSearch = '';
-    this.filterType        = '';
-    this.filterCategoryId  = undefined;
-    this.filterDateFrom    = '';
-    this.filterDateTo      = '';
-    this.filterAmountMin   = undefined;
-    this.filterAmountMax   = undefined;
-    this.filterTagIds      = [];
-    this.currentPage       = 1;
-    this.perPage           = 20;
+    this.filterType = '';
+    this.filterCategoryId = undefined;
+    this.filterDateFrom = '';
+    this.filterDateTo = '';
+    this.filterAmountMin = undefined;
+    this.filterAmountMax = undefined;
+    this.filterTagIds = [];
+    this.currentPage = 1;
+    this.perPage = 20;
     sessionStorage.removeItem('txFilters');
     this.loadTransactions();
   }
@@ -256,30 +279,36 @@ export class TransactionsComponent implements OnInit {
   loadTransactions(): void {
     this.isLoading = true;
     try {
-      this.transactionService.getTransactions({
-        search:        this.filterSearch       || undefined,
-        notes_search:  this.filterNotesSearch  || undefined,
-        type:          this.filterType         || undefined,
-        category_id:   this.filterCategoryId,
-        date_from:     this.filterDateFrom     || undefined,
-        date_to:       this.filterDateTo       || undefined,
-        amount_min:    this.filterAmountMin,
-        amount_max:    this.filterAmountMax,
-        tag_ids:       this.filterTagIds.length ? this.filterTagIds : undefined,
-        page:          this.currentPage,
-        per_page:      this.perPage,
-      }).subscribe({
-        next: (response) => {
-          this.transactions = response.data;
-          this.currentPage   = response.current_page;
-          this.totalItems    = response.total;
-          this.totalPages    = response.last_page;
-          this.perPage       = response.per_page;
-          this.isLoading     = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => { this.errorMessage = error.message || 'Failed to load transactions'; this.isLoading = false; this.cdr.detectChanges(); }
-      });
+      this.transactionService
+        .getTransactions({
+          search: this.filterSearch || undefined,
+          notes_search: this.filterNotesSearch || undefined,
+          type: this.filterType || undefined,
+          category_id: this.filterCategoryId,
+          date_from: this.filterDateFrom || undefined,
+          date_to: this.filterDateTo || undefined,
+          amount_min: this.filterAmountMin,
+          amount_max: this.filterAmountMax,
+          tag_ids: this.filterTagIds.length ? this.filterTagIds : undefined,
+          page: this.currentPage,
+          per_page: this.perPage,
+        })
+        .subscribe({
+          next: (response) => {
+            this.transactions = response.data;
+            this.currentPage = response.current_page;
+            this.totalItems = response.total;
+            this.totalPages = response.last_page;
+            this.perPage = response.per_page;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            this.errorMessage = error.message || 'Failed to load transactions';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+        });
     } catch (caught: unknown) {
       const err = caught as ApiError;
       this.errorMessage = err?.message || 'Failed to load transactions';
@@ -332,7 +361,7 @@ export class TransactionsComponent implements OnInit {
       fd.append('transaction_date', v.transaction_date);
       if (v.notes) fd.append('notes', v.notes);
       fd.append('attachment', this.pendingFile, this.pendingFile.name);
-      this.selectedTagIds.forEach(id => fd.append('tag_ids[]', String(id)));
+      this.selectedTagIds.forEach((id) => fd.append('tag_ids[]', String(id)));
       return fd;
     }
 
@@ -352,10 +381,22 @@ export class TransactionsComponent implements OnInit {
 
     saveObs.subscribe({
       next: (saved) => {
-        if (this.removeAttachmentOnSave && this.editingTransaction?.attachment_path && !this.pendingFile) {
+        if (
+          this.removeAttachmentOnSave &&
+          this.editingTransaction?.attachment_path &&
+          !this.pendingFile
+        ) {
           this.transactionService.deleteAttachment(saved.id).subscribe({
-            next: () => { this.isSaving = false; this.loadTransactions(); this.cancelEdit(); },
-            error: () => { this.isSaving = false; this.loadTransactions(); this.cancelEdit(); }
+            next: () => {
+              this.isSaving = false;
+              this.loadTransactions();
+              this.cancelEdit();
+            },
+            error: () => {
+              this.isSaving = false;
+              this.loadTransactions();
+              this.cancelEdit();
+            },
           });
         } else {
           this.isSaving = false;
@@ -363,7 +404,10 @@ export class TransactionsComponent implements OnInit {
           this.cancelEdit();
         }
       },
-      error: (error) => { this.isSaving = false; this.errorMessage = error.message || 'Failed to save transaction'; }
+      error: (error) => {
+        this.isSaving = false;
+        this.errorMessage = error.message || 'Failed to save transaction';
+      },
     });
   }
 
@@ -372,7 +416,7 @@ export class TransactionsComponent implements OnInit {
     this.pendingFile = null;
     this.attachmentError = '';
     this.removeAttachmentOnSave = false;
-    this.selectedTagIds = (transaction.tags ?? []).map(t => t.id);
+    this.selectedTagIds = (transaction.tags ?? []).map((t) => t.id);
     this.tagError = '';
     this.transactionForm.patchValue({
       description: transaction.description,
@@ -389,7 +433,7 @@ export class TransactionsComponent implements OnInit {
     if (!confirm('Delete this transaction?')) return;
     this.transactionService.deleteTransaction(id).subscribe({
       next: () => this.loadTransactions(),
-      error: (error) => this.errorMessage = error.message || 'Failed to delete transaction'
+      error: (error) => (this.errorMessage = error.message || 'Failed to delete transaction'),
     });
   }
 
@@ -409,7 +453,7 @@ export class TransactionsComponent implements OnInit {
       error: () => {
         this.previewObjectUrl = null;
         this.previewLoading = false;
-      }
+      },
     });
   }
 
@@ -430,30 +474,30 @@ export class TransactionsComponent implements OnInit {
         this.closePreview();
         this.loadTransactions();
       },
-      error: (error) => this.errorMessage = error.message || 'Failed to delete attachment'
+      error: (error) => (this.errorMessage = error.message || 'Failed to delete attachment'),
     });
   }
 
   exportCsv(): void {
     this.transactionService.exportTransactions({
-      search:       this.filterSearch       || undefined,
-      notes_search: this.filterNotesSearch  || undefined,
-      type:         this.filterType         || undefined,
-      category_id:  this.filterCategoryId,
-      date_from:    this.filterDateFrom     || undefined,
-      date_to:      this.filterDateTo       || undefined,
-      amount_min:   this.filterAmountMin,
-      amount_max:   this.filterAmountMax,
-      tag_ids:      this.filterTagIds.length ? this.filterTagIds : undefined,
+      search: this.filterSearch || undefined,
+      notes_search: this.filterNotesSearch || undefined,
+      type: this.filterType || undefined,
+      category_id: this.filterCategoryId,
+      date_from: this.filterDateFrom || undefined,
+      date_to: this.filterDateTo || undefined,
+      amount_min: this.filterAmountMin,
+      amount_max: this.filterAmountMax,
+      tag_ids: this.filterTagIds.length ? this.filterTagIds : undefined,
     });
   }
 
   getTagById(id: number): Tag | undefined {
-    return this.availableTags.find(t => t.id === id);
+    return this.availableTags.find((t) => t.id === id);
   }
 
   removeFormTag(tagId: number): void {
-    this.selectedTagIds = this.selectedTagIds.filter(id => id !== tagId);
+    this.selectedTagIds = this.selectedTagIds.filter((id) => id !== tagId);
   }
 
   onTagPickerChange(select: HTMLSelectElement): void {
@@ -480,7 +524,7 @@ export class TransactionsComponent implements OnInit {
       error: (err) => {
         this.tagError = err?.message || 'Failed to create tag';
         this.isCreatingTag = false;
-      }
+      },
     });
   }
 

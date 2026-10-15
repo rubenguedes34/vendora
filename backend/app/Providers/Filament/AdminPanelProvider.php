@@ -2,22 +2,17 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\AdminStatsOverview;
+use App\Filament\Widgets\LatestUsersTable;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Widgets\AdminStatsOverview;
-use App\Filament\Widgets\InvestmentsByTypeChart;
-use App\Filament\Widgets\LatestTransactionsTable;
-use App\Filament\Widgets\LatestUsersTable;
-use App\Filament\Widgets\RegistrationChart;
-use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
-use App\Models\User;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -65,7 +60,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationItems([
                 NavigationItem::make('Back to Dashboard')
                     ->icon('heroicon-o-arrow-left')
-                    ->url(config('app.frontend_url') . '/dashboard', false)
+                    ->url(config('app.frontend_url').'/dashboard', false)
                     ->sort(-1000),
             ]);
     }

@@ -79,7 +79,7 @@ describe('AuthService', () => {
 
   it('clearAuth() emits on loggedOut$', () => {
     let emitted = false;
-    service.loggedOut$.subscribe(() => emitted = true);
+    service.loggedOut$.subscribe(() => (emitted = true));
     service.clearAuth();
     expect(emitted).toBe(true);
   });

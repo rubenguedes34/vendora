@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
 use App\Models\Tag;
+use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
@@ -15,12 +15,14 @@ class TagController extends Controller
      *     tags={"Tags"},
      *     summary="List all tags",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of tags")
      * )
      */
     public function index(Request $request)
     {
         $tags = $request->user()->tags()->orderBy('name')->get();
+
         return response()->json($tags);
     }
 
@@ -30,12 +32,16 @@ class TagController extends Controller
      *     tags={"Tags"},
      *     summary="Create a tag",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"name"},
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="color", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Tag created")
      * )
      */
@@ -55,13 +61,18 @@ class TagController extends Controller
      *     tags={"Tags"},
      *     summary="Update a tag",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="tag", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="color", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Tag updated")
      * )
      */
@@ -80,7 +91,9 @@ class TagController extends Controller
      *     tags={"Tags"},
      *     summary="Delete a tag",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="tag", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Tag deleted")
      * )
      */

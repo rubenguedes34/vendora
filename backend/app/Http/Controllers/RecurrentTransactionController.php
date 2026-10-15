@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\RecurrentTransaction\CopyToMonthRequest;
 use App\Http\Requests\RecurrentTransaction\StoreRecurrentTransactionRequest;
 use App\Http\Requests\RecurrentTransaction\UpdateRecurrentTransactionRequest;
 use App\Models\Category;
 use App\Models\RecurrentTransaction;
+use Illuminate\Http\Request;
 
 class RecurrentTransactionController extends Controller
 {
@@ -17,6 +17,7 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="List recurrent transactions",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of recurrent transactions")
      * )
      */
@@ -37,8 +38,11 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="Create a recurrent transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"description","amount","type","category_id","day_of_month"},
+     *
      *             @OA\Property(property="description", type="string"),
      *             @OA\Property(property="amount", type="number"),
      *             @OA\Property(property="type", type="string", enum={"income","expense"}),
@@ -46,6 +50,7 @@ class RecurrentTransactionController extends Controller
      *             @OA\Property(property="day_of_month", type="integer", minimum=1, maximum=28)
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Created")
      * )
      */
@@ -66,7 +71,9 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="Get a single recurrent transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Recurrent transaction object")
      * )
      */
@@ -84,9 +91,13 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="Update a recurrent transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="description", type="string"),
      *             @OA\Property(property="amount", type="number"),
      *             @OA\Property(property="type", type="string", enum={"income","expense"}),
@@ -94,6 +105,7 @@ class RecurrentTransactionController extends Controller
      *             @OA\Property(property="day_of_month", type="integer", minimum=1, maximum=28)
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Recurrent transaction updated")
      * )
      */
@@ -118,7 +130,9 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="Delete a recurrent transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="recurrent_transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Recurrent transaction deleted")
      * )
      */
@@ -138,11 +152,15 @@ class RecurrentTransactionController extends Controller
      *     tags={"Recurrent Transactions"},
      *     summary="Copy all recurrent transactions to a specific month",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"month"},
+     *
      *             @OA\Property(property="month", type="string", example="2025-07")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Number of transactions created")
      * )
      */
@@ -172,7 +190,7 @@ class RecurrentTransactionController extends Controller
                 ->whereDate('transaction_date', $date)
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 $request->user()->transactions()->create([
                     'category_id' => $recurrent->category_id,
                     'description' => $recurrent->description,

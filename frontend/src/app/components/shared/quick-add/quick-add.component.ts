@@ -9,19 +9,29 @@ import { CurrencyService } from '../../../services/currency.service';
 import { VoiceService } from '../../../services/voice.service';
 import { environment } from '../../../../environments/environment';
 
-const INVESTMENT_TYPES = ['Stocks', 'ETF', 'Crypto', 'Real Estate', 'Bonds', 'Savings Account', 'Other'];
+const INVESTMENT_TYPES = [
+  'Stocks',
+  'ETF',
+  'Crypto',
+  'Real Estate',
+  'Bonds',
+  'Savings Account',
+  'Other',
+];
 
 @Component({
   selector: 'app-quick-add',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './quick-add.component.html'
+  templateUrl: './quick-add.component.html',
 })
 export class QuickAddComponent implements OnInit, OnDestroy {
   open = false;
   private _activeTab: 'expense' | 'income' | 'investment' = 'expense';
-  get activeTab() { return this._activeTab; }
+  get activeTab() {
+    return this._activeTab;
+  }
   set activeTab(v: 'expense' | 'income' | 'investment') {
     this._activeTab = v;
     if (v !== 'investment') {
@@ -60,7 +70,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private http: HttpClient,
     public currencyService: CurrencyService,
-    private voiceService: VoiceService
+    private voiceService: VoiceService,
   ) {
     this.form = this.fb.group({
       amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -76,25 +86,22 @@ export class QuickAddComponent implements OnInit, OnDestroy {
       current_amount: ['', [Validators.required, Validators.min(0)]],
       purchase_date: [new Date().toISOString().slice(0, 10), Validators.required],
     });
-
   }
 
   ngOnInit(): void {
     this.voiceSupported = this.voiceService.supported;
     this.voiceSub.add(
-      this.voiceService.listening$.subscribe(listening => this.voiceListening = listening)
+      this.voiceService.listening$.subscribe((listening) => (this.voiceListening = listening)),
     );
     this.voiceSub.add(
-      this.voiceService.transcript$.subscribe(text => {
+      this.voiceService.transcript$.subscribe((text) => {
         this.voiceTranscript = text;
         if (text) {
           this.applyVoiceCommand(text);
         }
-      })
+      }),
     );
-    this.voiceSub.add(
-      this.voiceService.error$.subscribe(err => this.voiceError = err)
-    );
+    this.voiceSub.add(this.voiceService.error$.subscribe((err) => (this.voiceError = err)));
 
     this.loadingCategories = true;
     this.financialService.getAllCategories().subscribe({
@@ -103,7 +110,9 @@ export class QuickAddComponent implements OnInit, OnDestroy {
         this.filterCategories();
         this.loadingCategories = false;
       },
-      error: () => { this.loadingCategories = false; }
+      error: () => {
+        this.loadingCategories = false;
+      },
     });
   }
 
@@ -164,9 +173,11 @@ export class QuickAddComponent implements OnInit, OnDestroy {
 
   private guessCategory(description: string, type: 'expense' | 'income'): Category | null {
     const words = description.toLowerCase().split(/\s+/);
-    const candidates = this.allCategories.filter(c => c.type === type);
+    const candidates = this.allCategories.filter((c) => c.type === type);
     for (const word of words) {
-      const match = candidates.find(c => c.name.toLowerCase().includes(word) || word.includes(c.name.toLowerCase()));
+      const match = candidates.find(
+        (c) => c.name.toLowerCase().includes(word) || word.includes(c.name.toLowerCase()),
+      );
       if (match) return match;
     }
     return candidates[0] ?? null;
@@ -184,9 +195,9 @@ export class QuickAddComponent implements OnInit, OnDestroy {
   }
 
   filterCategories(): void {
-    this.filteredCategories = this.allCategories.filter(c => c.type === this._activeTab);
+    this.filteredCategories = this.allCategories.filter((c) => c.type === this._activeTab);
     const cur = this.form.get('category_id')?.value;
-    if (cur && !this.filteredCategories.find(c => c.id === +cur)) {
+    if (cur && !this.filteredCategories.find((c) => c.id === +cur)) {
       this.form.patchValue({ category_id: '' });
     }
   }
@@ -204,13 +215,21 @@ export class QuickAddComponent implements OnInit, OnDestroy {
         this.saving = false;
         this.successMsg = 'Transaction saved!';
         this.financialService.dataChanged$.next();
-        this.form.patchValue({ amount: '', description: '', category_id: '', transaction_date: new Date().toISOString().slice(0, 10) });
-        setTimeout(() => { this.successMsg = ''; this.open = false; }, 1200);
+        this.form.patchValue({
+          amount: '',
+          description: '',
+          category_id: '',
+          transaction_date: new Date().toISOString().slice(0, 10),
+        });
+        setTimeout(() => {
+          this.successMsg = '';
+          this.open = false;
+        }, 1200);
       },
       error: (err) => {
         this.saving = false;
         this.errorMsg = err?.error?.message || 'Failed to save. Try again.';
-      }
+      },
     });
   }
 
@@ -238,12 +257,15 @@ export class QuickAddComponent implements OnInit, OnDestroy {
         this.invSuccessMsg = 'Investment added!';
         this.financialService.dataChanged$.next();
         this.invForm.reset({ purchase_date: new Date().toISOString().slice(0, 10) });
-        setTimeout(() => { this.invSuccessMsg = ''; this.open = false; }, 1200);
+        setTimeout(() => {
+          this.invSuccessMsg = '';
+          this.open = false;
+        }, 1200);
       },
       error: (err) => {
         this.invSaving = false;
         this.invErrorMsg = err?.error?.message || 'Failed to save. Try again.';
-      }
+      },
     });
   }
 

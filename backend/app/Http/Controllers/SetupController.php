@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Setup\StoreSetupRequest;
 use App\Models\FinancialRecord;
 use App\Services\TokenService;
+use Illuminate\Support\Facades\Log;
 
 class SetupController extends Controller
 {
@@ -14,13 +14,17 @@ class SetupController extends Controller
      *     path="/api/setup",
      *     tags={"Setup"},
      *     summary="Complete initial financial setup",
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"token","monthly_income","monthly_expenses"},
+     *
      *             @OA\Property(property="token", type="string"),
      *             @OA\Property(property="monthly_income", type="number"),
      *             @OA\Property(property="monthly_expenses", type="number")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Setup completed"),
      *     @OA\Response(response=401, description="Invalid token")
      * )
@@ -30,7 +34,7 @@ class SetupController extends Controller
         try {
             $user = TokenService::verify($request->token);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['message' => 'Invalid token'], 401);
             }
 
@@ -67,6 +71,7 @@ class SetupController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Setup failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Setup failed. Please try again.',
             ], 500);

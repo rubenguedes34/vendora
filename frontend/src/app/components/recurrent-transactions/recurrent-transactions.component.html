@@ -13,122 +13,183 @@
 </ng-template>
 
 <ng-template #contentTpl>
-    <header class="page-header">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
+  <header class="page-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <p class="text-gray-600 mb-6">
+      Define transactions that repeat monthly. They will be automatically copied to each month on
+      the specified day.
+    </p>
+
+    <!-- Add Form -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        {{ editing ? 'Edit Recurrent Transaction' : 'Add Recurrent Transaction' }}
+      </h3>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Description</label>
+            <input
+              type="text"
+              formControlName="description"
+              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="e.g., Netflix subscription"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5"
+              >Amount ({{ currencyService.symbol }})</label
+            >
+            <input
+              type="number"
+              step="any"
+              formControlName="amount"
+              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="0.00"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Type</label>
+            <select
+              formControlName="type"
+              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Day of Month</label>
+            <input
+              type="number"
+              formControlName="day_of_month"
+              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="e.g., 1"
+              min="1"
+              max="28"
+            />
+            <p class="text-xs text-gray-500 mt-1">Day 1–28 to ensure all months are covered</p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Category</label>
+            <select
+              formControlName="category_id"
+              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="">Select a category</option>
+              <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
         </div>
-      </div>
-    </header>
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-      <p class="text-gray-600 mb-6">
-        Define transactions that repeat monthly. They will be automatically copied to each month on the specified day.
-      </p>
-
-      <!-- Add Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ editing ? 'Edit Recurrent Transaction' : 'Add Recurrent Transaction' }}</h3>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Description</label>
-              <input type="text" formControlName="description"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="e.g., Netflix subscription" />
-            </div>
-
-            <div>
-              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Amount ({{ currencyService.symbol }})</label>
-              <input type="number" step="any" formControlName="amount"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="0.00" min="0" />
-            </div>
-
-            <div>
-              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Type</label>
-              <select formControlName="type"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Day of Month</label>
-              <input type="number" formControlName="day_of_month"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="e.g., 1" min="1" max="28" />
-              <p class="text-xs text-gray-500 mt-1">Day 1–28 to ensure all months are covered</p>
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Category</label>
-              <select formControlName="category_id"
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">Select a category</option>
-                <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="mt-4 flex space-x-3">
-            <button type="submit" [disabled]="form.invalid"
-              class="bg-primary-600 text-white px-6 py-2 rounded-xl hover:bg-primary-700 disabled:bg-gray-400 transition-colors">
-              {{ editing ? 'Update' : 'Add' }}
-            </button>
-            <button *ngIf="editing" type="button" (click)="cancelEdit()"
-              class="border border-gray-300 text-gray-700 px-6 py-2 rounded-xl hover:bg-gray-50 transition-colors">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Copy to Month -->
-      <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">Copy to Month</h3>
-        <p class="text-gray-600 text-sm mb-4">Copy all recurrent transactions to a specific month as real transactions.</p>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <input type="month" [(ngModel)]="copyTargetMonth" [ngModelOptions]="{standalone: true}"
-            class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto" />
-          <button (click)="copyToMonth()"
-            [disabled]="!copyTargetMonth || isCopying"
-            class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto">
-            {{ isCopying ? 'Copying...' : 'Copy Now' }}
+        <div class="mt-4 flex space-x-3">
+          <button
+            type="submit"
+            [disabled]="form.invalid"
+            class="bg-primary-600 text-white px-6 py-2 rounded-xl hover:bg-primary-700 disabled:bg-gray-400 transition-colors"
+          >
+            {{ editing ? 'Update' : 'Add' }}
+          </button>
+          <button
+            *ngIf="editing"
+            type="button"
+            (click)="cancelEdit()"
+            class="border border-gray-300 text-gray-700 px-6 py-2 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Cancel
           </button>
         </div>
-        <p *ngIf="copyMessage" class="mt-2 text-sm" [class.text-green-600]="copySuccess" [class.text-red-500]="!copySuccess">
-          {{ copyMessage }}
-        </p>
+      </form>
+    </div>
+
+    <!-- Copy to Month -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Copy to Month</h3>
+      <p class="text-gray-600 text-sm mb-4">
+        Copy all recurrent transactions to a specific month as real transactions.
+      </p>
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <input
+          type="month"
+          [(ngModel)]="copyTargetMonth"
+          [ngModelOptions]="{ standalone: true }"
+          class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto"
+        />
+        <button
+          (click)="copyToMonth()"
+          [disabled]="!copyTargetMonth || isCopying"
+          class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto"
+        >
+          {{ isCopying ? 'Copying...' : 'Copy Now' }}
+        </button>
       </div>
+      <p
+        *ngIf="copyMessage"
+        class="mt-2 text-sm"
+        [class.text-green-600]="copySuccess"
+        [class.text-red-500]="!copySuccess"
+      >
+        {{ copyMessage }}
+      </p>
+    </div>
 
-      <!-- List -->
-      <div class="bg-white rounded-lg shadow-md">
-        <div class="p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recurrent Transactions ({{ recurrentList.length }})</h3>
+    <!-- List -->
+    <div class="bg-white rounded-lg shadow-md">
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Recurrent Transactions ({{ recurrentList.length }})
+        </h3>
 
-          <div *ngIf="recurrentList.length === 0" class="text-gray-500 text-center py-8">
-            No recurrent transactions yet. Add one above.
+        <div *ngIf="recurrentList.length === 0" class="text-gray-500 text-center py-8">
+          No recurrent transactions yet. Add one above.
+        </div>
+
+        <div
+          *ngFor="let item of recurrentList"
+          class="flex justify-between items-center py-4 border-b last:border-b-0"
+        >
+          <div class="flex-1">
+            <p class="font-medium text-gray-800">{{ item.description }}</p>
+            <p class="text-sm text-gray-500">
+              {{ item.category?.name || 'No category' }} · Day {{ item.day_of_month }} of each month
+            </p>
           </div>
-
-          <div *ngFor="let item of recurrentList" class="flex justify-between items-center py-4 border-b last:border-b-0">
-            <div class="flex-1">
-              <p class="font-medium text-gray-800">{{ item.description }}</p>
-              <p class="text-sm text-gray-500">{{ item.category?.name || 'No category' }} · Day {{ item.day_of_month }} of each month</p>
-            </div>
-            <div class="flex items-center space-x-4">
-              <p [class]="item.type === 'income' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
-                {{ item.type === 'income' ? '+' : '-' }}{{ item.amount | currencySymbol }}
-              </p>
-              <button (click)="editItem(item)" class="text-primary-600 hover:text-primary-800 text-sm">Edit</button>
-              <button (click)="deleteItem(item.id!)" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
-            </div>
+          <div class="flex items-center space-x-4">
+            <p
+              [class]="
+                item.type === 'income'
+                  ? 'text-green-600 font-semibold'
+                  : 'text-red-600 font-semibold'
+              "
+            >
+              {{ item.type === 'income' ? '+' : '-' }}{{ item.amount | currencySymbol }}
+            </p>
+            <button
+              (click)="editItem(item)"
+              class="text-primary-600 hover:text-primary-800 text-sm"
+            >
+              Edit
+            </button>
+            <button (click)="deleteItem(item.id!)" class="text-red-600 hover:text-red-800 text-sm">
+              Delete
+            </button>
           </div>
         </div>
       </div>
-
-      <div *ngIf="errorMessage" class="mt-4 text-red-500 text-center">{{ errorMessage }}</div>
     </div>
-</ng-template>
 
+    <div *ngIf="errorMessage" class="mt-4 text-red-500 text-center">{{ errorMessage }}</div>
+  </div>
+</ng-template>

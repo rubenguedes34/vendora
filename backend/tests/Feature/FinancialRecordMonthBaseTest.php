@@ -13,8 +13,11 @@ class FinancialRecordMonthBaseTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private array $headers;
+
     private int $year;
+
     private int $month;
 
     protected function setUp(): void
@@ -24,14 +27,14 @@ class FinancialRecordMonthBaseTest extends TestCase
             'monthly_income' => 5000,
             'monthly_expenses' => 3000,
         ]);
-        $this->headers = ['Authorization' => 'Bearer ' . TokenService::issue($this->user)];
+        $this->headers = ['Authorization' => 'Bearer '.TokenService::issue($this->user)];
         $this->year = (int) date('Y');
         $this->month = (int) date('n');
     }
 
     private function addTransaction(string $type, float $amount, ?string $date = null): void
     {
-        $category = Category::create(['name' => 'Test ' . $type . $amount, 'type' => $type]);
+        $category = Category::create(['name' => 'Test '.$type.$amount, 'type' => $type]);
 
         $this->user->transactions()->create([
             'category_id' => $category->id,

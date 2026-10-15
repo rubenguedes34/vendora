@@ -13,7 +13,7 @@ class UpdateTagRequest extends RecordRequest
     public function rules(): array
     {
         return [
-            'name'  => 'sometimes|required|string|max:50',
+            'name' => 'sometimes|required|string|max:50',
             'color' => 'nullable|string|max:20',
         ];
     }

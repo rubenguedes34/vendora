@@ -18,7 +18,11 @@ import { ThemeService } from '../../services/theme.service';
 const mockAuth = {
   isLoggedIn: vi.fn().mockReturnValue(true),
   getTokenValue: vi.fn().mockReturnValue('test-token'),
-  getUserObservable: vi.fn().mockReturnValue(new BehaviorSubject({ id: 1, name: 'Test User', email: 'test@example.com' }).asObservable()),
+  getUserObservable: vi
+    .fn()
+    .mockReturnValue(
+      new BehaviorSubject({ id: 1, name: 'Test User', email: 'test@example.com' }).asObservable(),
+    ),
   logout: vi.fn().mockReturnValue(of({})),
   clearAuth: vi.fn(),
   loggedOut$: new Subject<void>(),
@@ -34,9 +38,7 @@ const mockFinancial = {
 
 // CurrencyService is providedIn root with no HTTP deps — use the real one
 
-const routes = [
-  { path: 'login', component: class {} },
-];
+const routes = [{ path: 'login', component: class {} }];
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -87,11 +89,15 @@ describe('InvestmentsComponent', () => {
   afterEach(() => {
     try {
       // flush ALL pending requests (including external CoinGecko calls from ngOnInit)
-      httpMock.match(() => true).forEach(r => {
-        if (!r.cancelled) r.flush([]);
-      });
+      httpMock
+        .match(() => true)
+        .forEach((r) => {
+          if (!r.cancelled) r.flush([]);
+        });
     } catch {}
-    try { httpMock.verify(); } catch {}
+    try {
+      httpMock.verify();
+    } catch {}
   });
 
   // ── creation ──────────────────────────────────────────────────────────────
@@ -99,7 +105,11 @@ describe('InvestmentsComponent', () => {
   it('should create', () => {
     fixture.detectChanges();
     // flush CoinGecko request triggered by ngOnInit → loadCrypto()
-    httpMock.match(() => true).forEach(r => { if (!r.cancelled) r.flush([]); });
+    httpMock
+      .match(() => true)
+      .forEach((r) => {
+        if (!r.cancelled) r.flush([]);
+      });
     expect(component).toBeTruthy();
   });
 
@@ -134,7 +144,14 @@ describe('InvestmentsComponent', () => {
   it('cancelEdit() resets showForm, editingId, quoteResult, tickerSymbol, assetSearch, assetFilterType', () => {
     component.showForm = true;
     component.editingId = 5;
-    component.quoteResult = { name: 'X', price: 1, currency: 'USD', exchange: 'NYSE', change_24h: 0, sparkline: [] };
+    component.quoteResult = {
+      name: 'X',
+      price: 1,
+      currency: 'USD',
+      exchange: 'NYSE',
+      change_24h: 0,
+      sparkline: [],
+    };
     component.quoteError = 'some error';
     component.tickerSymbol = 'AAPL';
     component.assetSearch = 'apple';
@@ -172,7 +189,14 @@ describe('InvestmentsComponent', () => {
 
   it('editInvestment() clears assetSearch and quoteResult', () => {
     component.assetSearch = 'old';
-    component.quoteResult = { name: 'X', price: 1, currency: 'USD', exchange: 'NYSE', change_24h: 0, sparkline: [] };
+    component.quoteResult = {
+      name: 'X',
+      price: 1,
+      currency: 'USD',
+      exchange: 'NYSE',
+      change_24h: 0,
+      sparkline: [],
+    };
     component.editInvestment(buildInvestment());
 
     expect(component.assetSearch).toBe('');
@@ -210,7 +234,7 @@ describe('InvestmentsComponent', () => {
     component.recalcTotals();
 
     expect(component.donutSegments.length).toBe(2);
-    const types = component.donutSegments.map(s => s.type);
+    const types = component.donutSegments.map((s) => s.type);
     expect(types).toContain('Stocks');
     expect(types).toContain('Crypto');
   });
@@ -266,7 +290,7 @@ describe('InvestmentsComponent', () => {
 
   it('filteredInvestments filters gainers only', () => {
     component.investments = [
-      buildInvestment({ initial_amount: '100', current_amount: '120' }),  // gain
+      buildInvestment({ initial_amount: '100', current_amount: '120' }), // gain
       buildInvestment({ id: 2, initial_amount: '100', current_amount: '80' }), // loss
     ];
     component.filterPerf = 'gain';
@@ -291,7 +315,7 @@ describe('InvestmentsComponent', () => {
   it('filteredPresetAssets filters by type tab', () => {
     component.assetFilterType = 'Crypto';
     const result = component.filteredPresetAssets;
-    expect(result.every(a => a.type === 'Crypto')).toBe(true);
+    expect(result.every((a) => a.type === 'Crypto')).toBe(true);
   });
 
   it('filteredPresetAssets filters by search text', () => {
@@ -399,7 +423,14 @@ describe('InvestmentsComponent', () => {
   });
 
   it('applyQuote() patches name and type from quoteResult', () => {
-    component.quoteResult = { name: 'Apple Inc', price: 200, currency: 'USD', exchange: 'NASDAQ', change_24h: 1.5, sparkline: [] };
+    component.quoteResult = {
+      name: 'Apple Inc',
+      price: 200,
+      currency: 'USD',
+      exchange: 'NASDAQ',
+      change_24h: 1.5,
+      sparkline: [],
+    };
     component.tickerSymbol = 'AAPL';
     component.investmentForm.patchValue({ type: '' });
     component.applyQuote();
@@ -409,7 +440,14 @@ describe('InvestmentsComponent', () => {
   });
 
   it('applyQuote() sets type=Crypto for -USD symbols', () => {
-    component.quoteResult = { name: 'Bitcoin', price: 60000, currency: 'USD', exchange: 'Crypto', change_24h: 2, sparkline: [] };
+    component.quoteResult = {
+      name: 'Bitcoin',
+      price: 60000,
+      currency: 'USD',
+      exchange: 'Crypto',
+      change_24h: 2,
+      sparkline: [],
+    };
     component.tickerSymbol = 'BTC-USD';
     component.investmentForm.patchValue({ type: '' });
     component.applyQuote();
@@ -418,7 +456,14 @@ describe('InvestmentsComponent', () => {
   });
 
   it('applyQuote() computes units when initial_amount is set', () => {
-    component.quoteResult = { name: 'Apple Inc', price: 200, currency: 'USD', exchange: 'NASDAQ', change_24h: 0, sparkline: [] };
+    component.quoteResult = {
+      name: 'Apple Inc',
+      price: 200,
+      currency: 'USD',
+      exchange: 'NASDAQ',
+      change_24h: 0,
+      sparkline: [],
+    };
     component.tickerSymbol = 'AAPL';
     component.investmentForm.patchValue({ initial_amount: '1000', type: 'Stocks' });
     component.applyQuote();
@@ -430,7 +475,12 @@ describe('InvestmentsComponent', () => {
   // ── prefillFromCoin ───────────────────────────────────────────────────────
 
   it('prefillFromCoin() sets showForm=true and patches name, type, price_per_unit', () => {
-    const coin = { name: 'Ethereum', symbol: 'eth', current_price: 3500, price_change_percentage_24h: 1.2 };
+    const coin = {
+      name: 'Ethereum',
+      symbol: 'eth',
+      current_price: 3500,
+      price_change_percentage_24h: 1.2,
+    };
     component.prefillFromCoin(coin);
 
     expect(component.showForm).toBe(true);
@@ -450,7 +500,15 @@ describe('InvestmentsComponent', () => {
   });
 
   it('prefillFromStock() sets showForm=true and type=Stocks for non-ETF tickers', () => {
-    component.stockQuote = { name: 'Apple Inc', price: 200, currency: 'USD', exchange: 'NASDAQ', change_24h: 1, sparkline: [], logo: null };
+    component.stockQuote = {
+      name: 'Apple Inc',
+      price: 200,
+      currency: 'USD',
+      exchange: 'NASDAQ',
+      change_24h: 1,
+      sparkline: [],
+      logo: null,
+    };
     component.stockSearch = 'AAPL';
     component.prefillFromStock();
 
@@ -460,7 +518,15 @@ describe('InvestmentsComponent', () => {
   });
 
   it('prefillFromStock() sets type=ETF for known ETF tickers', () => {
-    component.stockQuote = { name: 'Vanguard S&P 500', price: 400, currency: 'USD', exchange: 'NYSE', change_24h: 0.5, sparkline: [], logo: null };
+    component.stockQuote = {
+      name: 'Vanguard S&P 500',
+      price: 400,
+      currency: 'USD',
+      exchange: 'NYSE',
+      change_24h: 0.5,
+      sparkline: [],
+      logo: null,
+    };
     component.stockSearch = 'VOO';
     component.prefillFromStock();
 
@@ -470,12 +536,19 @@ describe('InvestmentsComponent', () => {
   // ── pickStockResult ───────────────────────────────────────────────────────
 
   it('pickStockResult() sets stockSearch and clears dropdown', () => {
-    component.stockSearchResults = [{ symbol: 'MSFT', name: 'Microsoft', type: 'Stocks', exchange: 'NASDAQ' }];
+    component.stockSearchResults = [
+      { symbol: 'MSFT', name: 'Microsoft', type: 'Stocks', exchange: 'NASDAQ' },
+    ];
     component.showStockDropdown = true;
 
     // prevent actual HTTP call
     vi.spyOn(component, 'fetchStockQuote').mockImplementation(() => {});
-    component.pickStockResult({ symbol: 'MSFT', name: 'Microsoft', type: 'Stocks', exchange: 'NASDAQ' });
+    component.pickStockResult({
+      symbol: 'MSFT',
+      name: 'Microsoft',
+      type: 'Stocks',
+      exchange: 'NASDAQ',
+    });
 
     expect(component.stockSearch).toBe('MSFT');
     expect(component.showStockDropdown).toBe(false);

@@ -9,7 +9,7 @@ import { ScrollTopComponent } from './components/shared/scroll-top/scroll-top.co
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterOutlet, FooterComponent, ScrollTopComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
   protected readonly title = signal('frontend');

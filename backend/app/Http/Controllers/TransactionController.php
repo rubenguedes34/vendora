@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Http\Requests\Transaction\ExpensesByCategoryRequest;
 use App\Http\Requests\Transaction\ExportTransactionRequest;
 use App\Http\Requests\Transaction\IndexTransactionRequest;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\Tag;
+use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
@@ -23,6 +23,7 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="List all transactions",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="Array of transactions")
      * )
      */
@@ -31,7 +32,7 @@ class TransactionController extends Controller
         $query = $this->filteredQuery($request);
 
         $perPage = $request->integer('per_page', 20);
-        $page    = $request->integer('page', 1);
+        $page = $request->integer('page', 1);
 
         return response()->json($query->paginate($perPage, ['*'], 'page', $page));
     }
@@ -42,8 +43,11 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Create a transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(required={"category_id","description","amount","type","transaction_date"},
+     *
      *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="description", type="string"),
      *             @OA\Property(property="amount", type="number"),
@@ -51,6 +55,7 @@ class TransactionController extends Controller
      *             @OA\Property(property="transaction_date", type="string", format="date")
      *         )
      *     ),
+     *
      *     @OA\Response(response=201, description="Transaction created")
      * )
      */
@@ -61,18 +66,18 @@ class TransactionController extends Controller
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->storeAs(
-                'receipts/' . $request->user()->id,
-                Str::uuid() . '.' . $request->file('attachment')->extension()
+                'receipts/'.$request->user()->id,
+                Str::uuid().'.'.$request->file('attachment')->extension()
             );
         }
 
         $transaction = $request->user()->transactions()->create([
-            'category_id'     => $request->category_id,
-            'description'     => $request->description,
-            'amount'          => $request->amount,
-            'type'            => $request->type,
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'amount' => $request->amount,
+            'type' => $request->type,
             'transaction_date' => $request->transaction_date,
-            'notes'           => $request->notes,
+            'notes' => $request->notes,
             'attachment_path' => $attachmentPath,
         ]);
 
@@ -90,7 +95,9 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Get a single transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Transaction object")
      * )
      */
@@ -108,9 +115,13 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Update a transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\RequestBody(required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="category_id", type="integer"),
      *             @OA\Property(property="description", type="string"),
      *             @OA\Property(property="amount", type="number"),
@@ -120,6 +131,7 @@ class TransactionController extends Controller
      *             @OA\Property(property="tag_ids", type="array", @OA\Items(type="integer"))
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Transaction updated")
      * )
      */
@@ -144,8 +156,8 @@ class TransactionController extends Controller
                 Storage::delete($transaction->attachment_path);
             }
             $data['attachment_path'] = $request->file('attachment')->storeAs(
-                'receipts/' . $request->user()->id,
-                Str::uuid() . '.' . $request->file('attachment')->extension()
+                'receipts/'.$request->user()->id,
+                Str::uuid().'.'.$request->file('attachment')->extension()
             );
         }
 
@@ -165,7 +177,9 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Delete a transaction",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Transaction deleted")
      * )
      */
@@ -189,7 +203,9 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Serve a transaction attachment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Attachment file")
      * )
      */
@@ -198,7 +214,7 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $this->authorize('view', $transaction);
 
-        if (!$transaction->attachment_path || !Storage::exists($transaction->attachment_path)) {
+        if (! $transaction->attachment_path || ! Storage::exists($transaction->attachment_path)) {
             return response()->json(['message' => 'Attachment not found'], 404);
         }
 
@@ -214,7 +230,9 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Delete a transaction attachment",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
      *     @OA\Response(response=200, description="Attachment deleted")
      * )
      */
@@ -223,7 +241,7 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $this->authorize('update', $transaction);
 
-        if (!$transaction->attachment_path) {
+        if (! $transaction->attachment_path) {
             return response()->json(['message' => 'No attachment to delete'], 404);
         }
 
@@ -245,14 +263,14 @@ class TransactionController extends Controller
             ->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
-            $term = '%' . $request->search . '%';
+            $term = '%'.$request->search.'%';
             $query->where(function ($q) use ($term) {
                 $q->where('description', 'like', $term)
-                  ->orWhere('notes', 'like', $term);
+                    ->orWhere('notes', 'like', $term);
             });
         }
         if ($request->filled('notes_search')) {
-            $query->where('notes', 'like', '%' . $request->notes_search . '%');
+            $query->where('notes', 'like', '%'.$request->notes_search.'%');
         }
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -288,10 +306,10 @@ class TransactionController extends Controller
     private function csvCell(string $value): string
     {
         if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            $value = "'" . $value;
+            $value = "'".$value;
         }
 
-        return '"' . str_replace('"', '""', $value) . '"';
+        return '"'.str_replace('"', '""', $value).'"';
     }
 
     private function resolveTagIds(Request $request): array
@@ -301,6 +319,7 @@ class TransactionController extends Controller
             $raw = array_filter(array_map('intval', explode(',', $raw)));
         }
         $userId = $request->user()->id;
+
         return Tag::whereIn('id', $raw)->where('user_id', $userId)->pluck('id')->toArray();
     }
 
@@ -310,6 +329,7 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Export transactions as CSV",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(response=200, description="CSV file")
      * )
      */
@@ -319,7 +339,7 @@ class TransactionController extends Controller
 
         $transactions = $query->get();
 
-        $lines = ["Date,Description,Category,Type,Amount,Notes,Tags"];
+        $lines = ['Date,Description,Category,Type,Amount,Notes,Tags'];
         foreach ($transactions as $t) {
             $tagNames = $t->tags->pluck('name')->implode(';');
             $lines[] = implode(',', [
@@ -334,10 +354,10 @@ class TransactionController extends Controller
         }
 
         $csv = implode("\n", $lines);
-        $filename = 'transactions-' . date('Y-m-d') . '.csv';
+        $filename = 'transactions-'.date('Y-m-d').'.csv';
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
+            'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
@@ -348,7 +368,9 @@ class TransactionController extends Controller
      *     tags={"Transactions"},
      *     summary="Get expenses grouped by category for a month",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2025-07")),
+     *
      *     @OA\Response(response=200, description="Expenses by category")
      * )
      */
@@ -370,8 +392,8 @@ class TransactionController extends Controller
             ->groupBy(fn ($t) => $t->category?->name ?? 'Uncategorised')
             ->map(fn ($group, $name) => [
                 'category' => $name,
-                'color'    => $group->first()->category?->color ?? '#94a3b8',
-                'total'    => round($group->sum('amount'), 2),
+                'color' => $group->first()->category?->color ?? '#94a3b8',
+                'total' => round($group->sum('amount'), 2),
             ])
             ->values()
             ->sortByDesc('total')

@@ -72,7 +72,7 @@ export class ThemeService {
     }
     // A palette removed in a later release falls back to the default instead of leaving the picker blank.
     const saved = localStorage.getItem(this.storageKey);
-    return this.themes.some(t => t.id === saved) ? (saved as string) : this.themes[0].id;
+    return this.themes.some((t) => t.id === saved) ? (saved as string) : this.themes[0].id;
   }
 
   setTheme(id: string): void {

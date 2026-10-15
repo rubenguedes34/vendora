@@ -18,7 +18,7 @@ export interface AppNotification {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   private apiUrl = environment.apiUrl;
@@ -28,7 +28,10 @@ export class NotificationService {
   private _unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this._unreadCount.asObservable();
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {
     // The service is a root singleton: drop the previous user's data when they log out.
     this.authService.loggedOut$.subscribe(() => {
       this._notifications.next([]);
@@ -40,24 +43,24 @@ export class NotificationService {
     const qs = unreadOnly ? '?unread_only=1' : '';
     return this.http.get<AppNotification[]>(`${this.apiUrl}/notifications${qs}`).pipe(
       timeout(8000),
-      tap(items => this._notifications.next(items)),
-      catchError(err => throwError(() => this.handleError(err)))
+      tap((items) => this._notifications.next(items)),
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
   refreshCount(): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(`${this.apiUrl}/notifications/unread-count`).pipe(
       timeout(5000),
-      tap(c => this._unreadCount.next(c.count)),
-      catchError(err => throwError(() => this.handleError(err)))
+      tap((c) => this._unreadCount.next(c.count)),
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
   markAsRead(id: number): Observable<AppNotification> {
     return this.http.patch<AppNotification>(`${this.apiUrl}/notifications/${id}/read`, {}).pipe(
       timeout(5000),
-      tap(n => this.updateLocalNotification(n)),
-      catchError(err => throwError(() => this.handleError(err)))
+      tap((n) => this.updateLocalNotification(n)),
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
@@ -65,11 +68,15 @@ export class NotificationService {
     return this.http.patch<{ message: string }>(`${this.apiUrl}/notifications/read-all`, {}).pipe(
       timeout(5000),
       tap(() => {
-        const updated = this._notifications.value.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() }));
+        const updated = this._notifications.value.map((n) => ({
+          ...n,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        }));
         this._notifications.next(updated);
         this._unreadCount.next(0);
       }),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
@@ -77,16 +84,16 @@ export class NotificationService {
     return this.http.delete<void>(`${this.apiUrl}/notifications/${id}`).pipe(
       timeout(5000),
       tap(() => {
-        const remaining = this._notifications.value.filter(n => n.id !== id);
+        const remaining = this._notifications.value.filter((n) => n.id !== id);
         this._notifications.next(remaining);
         this.refreshCount().subscribe();
       }),
-      catchError(err => throwError(() => this.handleError(err)))
+      catchError((err) => throwError(() => this.handleError(err))),
     );
   }
 
   private updateLocalNotification(updated: AppNotification): void {
-    const list = this._notifications.value.map(n => n.id === updated.id ? updated : n);
+    const list = this._notifications.value.map((n) => (n.id === updated.id ? updated : n));
     this._notifications.next(list);
     this.refreshCount().subscribe();
   }

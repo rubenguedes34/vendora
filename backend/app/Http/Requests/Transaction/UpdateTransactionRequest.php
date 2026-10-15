@@ -14,18 +14,18 @@ class UpdateTransactionRequest extends RecordRequest
     public function rules(): array
     {
         return [
-            'category_id'  => 'sometimes|required|exists:categories,id',
-            'description'  => 'sometimes|required|string|max:255',
-            'amount'       => 'sometimes|required|numeric|min:0',
-            'type'         => 'sometimes|required|in:income,expense',
+            'category_id' => 'sometimes|required|exists:categories,id',
+            'description' => 'sometimes|required|string|max:255',
+            'amount' => 'sometimes|required|numeric|min:0',
+            'type' => 'sometimes|required|in:income,expense',
             'transaction_date' => 'sometimes|required|date',
-            'notes'        => 'nullable|string|max:1000',
-            'tag_ids'      => 'nullable|array',
-            'tag_ids.*'    => [
+            'notes' => 'nullable|string|max:1000',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => [
                 'integer',
                 Rule::exists('tags', 'id')->where('user_id', $this->user()->id),
             ],
-            'attachment'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ];
     }
 

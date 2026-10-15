@@ -5,11 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RoleResource\Pages;
 use Filament\Actions;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

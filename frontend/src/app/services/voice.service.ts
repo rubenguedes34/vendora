@@ -66,7 +66,10 @@ export class VoiceService {
   constructor(private zone: NgZone) {}
 
   get supported(): boolean {
-    return typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+    return (
+      typeof window !== 'undefined' &&
+      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    );
   }
 
   start(): void {
@@ -131,7 +134,11 @@ export class VoiceService {
 
   stop(): void {
     if (this.recognition) {
-      try { this.recognition.stop(); } catch { /* already stopped */ }
+      try {
+        this.recognition.stop();
+      } catch {
+        /* already stopped */
+      }
       this.recognition = null;
     }
     this._listening.next(false);
@@ -160,12 +167,17 @@ export class VoiceService {
     }
 
     const amountMatch = cleaned.match(/(\d{1,3}(?:[\s,]?\d{3})*(?:\.\d{1,2})?)/);
-    const amount = amountMatch ? parseFloat(amountMatch[1].replace(/\s/g, '').replace(/,/g, '')) : null;
+    const amount = amountMatch
+      ? parseFloat(amountMatch[1].replace(/\s/g, '').replace(/,/g, ''))
+      : null;
 
     const date = this.parseDate(cleaned);
 
     let description = cleaned
-      .replace(/\b(expense|income|investment|invest|spent|received|earned|bought|paid|purchase|bill|deposit|salary)\b/gi, '')
+      .replace(
+        /\b(expense|income|investment|invest|spent|received|earned|bought|paid|purchase|bill|deposit|salary)\b/gi,
+        '',
+      )
       .replace(/\d{1,2}\/\d{1,2}(?:\/\d{2,4})?/g, '')
       .replace(/\d{4}-\d{2}-\d{2}/g, '')
       .replace(/\d+(?:\.\d{1,2})?/g, '')

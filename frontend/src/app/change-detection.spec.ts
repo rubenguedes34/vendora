@@ -8,8 +8,17 @@ import { TransactionsComponent } from './components/transactions/transactions.co
 // callbacks, so under OnPush they stayed stale until the next click (e.g. a stuck "Saving...").
 describe('change detection', () => {
   it('keeps the stateful pages on the Eager strategy', () => {
-    for (const component of [AccountComponent, DashboardComponent, QuickAddComponent, SidebarComponent, TransactionsComponent]) {
-      expect((component as unknown as { ɵcmp: { onPush: boolean } }).ɵcmp.onPush, component.name).toBe(false);
+    for (const component of [
+      AccountComponent,
+      DashboardComponent,
+      QuickAddComponent,
+      SidebarComponent,
+      TransactionsComponent,
+    ]) {
+      expect(
+        (component as unknown as { ɵcmp: { onPush: boolean } }).ɵcmp.onPush,
+        component.name,
+      ).toBe(false);
     }
   });
 });

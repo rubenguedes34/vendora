@@ -8,9 +8,7 @@ import { SidebarComponent } from './sidebar.component';
 import { AuthService } from '../../../services/auth.service';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 
-const routes = [
-  { path: 'login', component: class {} },
-];
+const routes = [{ path: 'login', component: class {} }];
 
 describe('SidebarComponent', () => {
   let fixture: ComponentFixture<SidebarComponent>;

@@ -2,18 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Category;
-use App\Services\TokenService;
 
 class BudgetControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Category $category;
 
     protected function setUp(): void
@@ -31,7 +33,7 @@ class BudgetControllerTest extends TestCase
 
     private function authHeader(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->token];
+        return ['Authorization' => 'Bearer '.$this->token];
     }
 
     public function test_unauthenticated_request_returns_401(): void
@@ -133,12 +135,12 @@ class BudgetControllerTest extends TestCase
         $other = User::factory()->create();
         $budget = $this->user->budgets()->create([
             'category_id' => $this->category->id,
-            'amount'      => 100,
-            'month'       => '2025-07',
+            'amount' => 100,
+            'month' => '2025-07',
         ]);
 
         $this->putJson("/api/budgets/{$budget->id}", [
-            'amount'  => 150,
+            'amount' => 150,
             'user_id' => $other->id,
         ], $this->authHeader())->assertStatus(200);
 

@@ -15,7 +15,8 @@ import { Component, HostListener, ChangeDetectionStrategy } from '@angular/core'
       [class.pointer-events-none]="!visible"
       [class.translate-y-3]="!visible"
       [attr.tabindex]="visible ? 0 : -1"
-      [attr.aria-hidden]="!visible">
+      [attr.aria-hidden]="!visible"
+    >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
       </svg>

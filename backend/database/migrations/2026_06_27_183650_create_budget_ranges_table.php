@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('max_amount', 10, 2);
             $table->string('description')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['min_amount', 'max_amount']);
         });
     }

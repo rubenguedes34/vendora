@@ -13,8 +13,8 @@ class StoreAlertRuleRequest extends FormRequest
         return [
             'type' => ['required', Rule::in([AlertRule::TYPE_CATEGORY_LIMIT, AlertRule::TYPE_TOTAL_SPEND_LIMIT])],
             'category_id' => [
-                'required_if:type,' . AlertRule::TYPE_CATEGORY_LIMIT,
-                'prohibited_if:type,' . AlertRule::TYPE_TOTAL_SPEND_LIMIT,
+                'required_if:type,'.AlertRule::TYPE_CATEGORY_LIMIT,
+                'prohibited_if:type,'.AlertRule::TYPE_TOTAL_SPEND_LIMIT,
                 'nullable',
                 Rule::exists('categories', 'id')->where('type', 'expense'),
             ],
