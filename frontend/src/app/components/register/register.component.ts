@@ -2,15 +2,17 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemePickerComponent],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div class="relative min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div class="absolute top-4 right-4 w-44 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
       <div class="w-full max-w-md">
         <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
           <!-- Logo -->

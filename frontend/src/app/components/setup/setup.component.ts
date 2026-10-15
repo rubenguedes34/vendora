@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -11,9 +12,10 @@ import { User } from '../../services/auth.service';
 @Component({
   selector: 'app-setup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div class="relative min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div class="absolute top-4 right-4 w-44 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
       <div class="w-full max-w-md">
         <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
           <div class="flex flex-col items-center mb-8">
