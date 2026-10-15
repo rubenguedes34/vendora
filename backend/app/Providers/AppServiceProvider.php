@@ -25,7 +25,12 @@ class AppServiceProvider extends ServiceProvider
         // The general 'api' limiter lives in RouteServiceProvider; these cover
         // the endpoints that spend third-party API quota.
         RateLimiter::for('ai', function (Request $request) {
-            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+            $key = $request->user()?->id ?: $request->ip();
+
+            return [
+                Limit::perMinute(10)->by($key),
+                Limit::perDay(max(1, (int) config('ai.support.daily_limit', 100)))->by('day:'.$key),
+            ];
         });
 
         RateLimiter::for('market', function (Request $request) {

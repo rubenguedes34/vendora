@@ -35,6 +35,8 @@ return [
         'models' => array_values(array_filter(array_map('trim', explode(',', (string) env('AI_SUPPORT_MODELS', ''))))),
         // Seconds per model attempt.
         'timeout' => (int) env('AI_SUPPORT_TIMEOUT', 45),
+        // Chat requests one user may send per day (the per-minute limit alone leaves spend unbounded).
+        'daily_limit' => (int) env('AI_SUPPORT_DAILY_LIMIT', 100),
     ],
 
     /*
@@ -146,7 +148,7 @@ return [
             'driver' => 'openai',
             'key' => env('OPENAI_API_KEY'),
             'url' => env('OPENAI_URL', 'https://api.openai.com/v1'),
-            'store' => env('OPENAI_STORE', true),
+            'store' => env('OPENAI_STORE', false),
         ],
 
         'openai-compatible' => [

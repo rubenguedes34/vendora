@@ -54,4 +54,35 @@ class Category extends Model
     {
         return $this->hasMany(Budget::class);
     }
+
+    public function recurrentTransactions()
+    {
+        return $this->hasMany(RecurrentTransaction::class);
+    }
+
+    public function alertRules()
+    {
+        return $this->hasMany(AlertRule::class);
+    }
+
+    /**
+     * Categories are shared and their foreign keys cascade, so deleting one in
+     * use would silently wipe other users' records.
+     */
+    public function isInUse(): bool
+    {
+        return $this->transactions()->exists()
+            || $this->budgets()->exists()
+            || $this->recurrentTransactions()->exists()
+            || $this->alertRules()->exists();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Category $category) {
+            if ($category->isInUse()) {
+                throw new \LogicException('This category is in use and cannot be deleted.');
+            }
+        });
+    }
 }

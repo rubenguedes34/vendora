@@ -41,6 +41,22 @@ class SetupControllerTest extends TestCase
         ]);
     }
 
+    public function test_setup_rejects_blacklisted_user_with_a_still_valid_token(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create(['monthly_income' => 1, 'monthly_expenses' => 1]);
+        $token = TokenService::issue($user);
+        $user->forceFill(['blacklisted_at' => now()])->save();
+
+        $this->postJson('/api/setup', [
+            'token' => $token,
+            'monthly_income' => 5000,
+            'monthly_expenses' => 3000,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'monthly_income' => 1]);
+    }
+
     public function test_setup_rejects_invalid_token(): void
     {
         $response = $this->postJson('/api/setup', [

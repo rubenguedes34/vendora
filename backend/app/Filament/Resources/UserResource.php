@@ -13,6 +13,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Spatie\Permission\Models\Role;
 
@@ -31,6 +33,33 @@ class UserResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()?->can('manage users') ?? false;
+    }
+
+    // Filament asks the resource (not canDelete) before every delete, and
+    // $shouldSkipAuthorization bypasses UserPolicy, so the API's self and
+    // last-admin rules are enforced here for the edit page and the bulk action.
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return static::isSelf($record)
+            ? Response::deny('You cannot delete your own account.')
+            : (static::isLastAdmin($record)
+                ? Response::deny('You cannot delete the last admin.')
+                : Response::allow());
+    }
+
+    private static function isSelf(Model $record): bool
+    {
+        return auth()->id() === $record->getKey();
+    }
+
+    private static function isLastAdmin(Model $record): bool
+    {
+        return $record->hasRole('admin') && User::role('admin')->count() <= 1;
+    }
+
+    private static function isProtected(Model $record): bool
+    {
+        return static::isSelf($record) || static::isLastAdmin($record);
     }
 
     public static function form(Schema $schema): Schema
@@ -63,7 +92,10 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disabled(fn (?Model $record): bool => $record !== null && static::isProtected($record))
+                    // Disabled fields still sync on save, so they must not be dehydrated either.
+                    ->dehydrated(fn (?Model $record): bool => $record === null || static::isProtected($record) === false),
             ]);
     }
 
@@ -118,7 +150,7 @@ class UserResource extends Resource
                         ])
                         ->action(function (Collection $records, array $data): void {
                             $role = Role::findByName($data['role'], 'web');
-                            foreach ($records as $record) {
+                            foreach ($records->reject(fn ($record) => static::isSelf($record)) as $record) {
                                 $record->assignRole($role);
                             }
                         })
@@ -133,7 +165,10 @@ class UserResource extends Resource
                         ])
                         ->action(function (Collection $records, array $data): void {
                             $role = Role::findByName($data['role'], 'web');
-                            foreach ($records as $record) {
+                            foreach ($records->reject(fn ($record) => static::isSelf($record)) as $record) {
+                                if ($role->name === 'admin' && static::isLastAdmin($record)) {
+                                    continue;
+                                }
                                 $record->removeRole($role);
                             }
                         })

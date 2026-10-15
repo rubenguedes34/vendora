@@ -18,11 +18,16 @@ class BudgetResource extends Resource
 {
     protected static ?string $model = Budget::class;
 
-    // The model policy describes what a user may do through the API; panel
-    // access keeps being decided by the admin permissions alone.
+    // The model policy describes what a user may do through the API, so Filament
+    // skips it; this resource touches every user's data, hence "manage users".
     protected static bool $shouldSkipAuthorization = true;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-wallet';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('manage users') ?? false;
+    }
 
     public static function form(Schema $schema): Schema
     {

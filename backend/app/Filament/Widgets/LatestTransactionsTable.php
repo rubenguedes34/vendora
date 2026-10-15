@@ -11,6 +11,11 @@ class LatestTransactionsTable extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('manage users') ?? false;
+    }
+
     protected static ?string $heading = 'Latest Transactions';
 
     public function table(Table $table): Table
