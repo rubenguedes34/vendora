@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -20,6 +21,9 @@ export class ThemeService {
     { id: 'indigo', label: 'Indigo', baseColor: '#6366f1' },
     { id: 'rose', label: 'Rose', baseColor: '#f43f5e' },
   ];
+
+  /** True while the dark palette is active; charts subscribe to redraw with matching colours. */
+  readonly dark$ = new BehaviorSubject<boolean>(false);
 
   constructor() {
     this.applyTheme(this.getSavedTheme());
@@ -56,6 +60,7 @@ export class ThemeService {
       window.matchMedia('(prefers-color-scheme: dark)').matches;
     const dark = mode === 'dark' || (mode === 'system' && prefersDark);
     document.documentElement.setAttribute('data-mode', dark ? 'dark' : 'light');
+    this.dark$.next(dark);
     // Charts created after this point pick up readable default text colours.
     const chart = (window as unknown as { Chart?: { defaults: { color: string } } }).Chart;
     if (chart) chart.defaults.color = dark ? '#8b97b3' : '#666';

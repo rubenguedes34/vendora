@@ -44,3 +44,6 @@ skills-lock.json
 # Claude Code (keep local only)
 CLAUDE.md
 .claude/
+
+# Playwright MCP console/snapshot logs
+.playwright-mcp/

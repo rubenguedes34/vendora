@@ -8,7 +8,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <div>
-            <h2 class="text-xl font-semibold tracking-tight">Good {{ greeting }}, {{ firstName }}</h2>
+            <h2 class="text-xl font-semibold tracking-tight">Good {{ greeting }}{{ firstName ? ', ' + firstName : '' }}</h2>
             <p class="text-primary-200 text-xs">Here is how {{ monthNames[overviewMonth - 1] }} is going.</p>
           </div>
           <div class="flex items-center gap-3">
@@ -92,7 +92,7 @@
                   <!-- Alert items -->
                   <div *ngFor="let alert of visibleAlerts; let i = index" class="px-5 py-3 border-b border-gray-50 last:border-0">
                     <div class="flex items-start gap-3">
-                      <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-400 mt-0.5' : 'text-primary-400 mt-0.5'">
+                      <span [class]="alert.type === 'danger' ? 'text-red-400 mt-0.5' : alert.type === 'warning' ? 'text-yellow-500 mt-0.5' : 'text-primary-600 mt-0.5'">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path *ngIf="alert.type === 'danger'" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                           <path *ngIf="alert.type === 'warning'" fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -201,9 +201,9 @@
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewIncome | currencySymbol }}</p>
           <div class="h-6 mt-2">
             <span *ngIf="deltaPct('income') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d >= 0" [class.text-green-700]="d >= 0"
-              [class.bg-red-100]="!(d >= 0)" [class.text-red-700]="!(d >= 0)">
-              {{ d >= 0 ? '▲' : '▼' }} {{ (d < 0 ? -d : d) | number:'1.0-1' }}%
+              [class.bg-green-100]="d.pct >= 0" [class.text-green-700]="d.pct >= 0"
+              [class.bg-red-100]="!(d.pct >= 0)" [class.text-red-700]="!(d.pct >= 0)">
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
             </span>
           </div>
         </div>
@@ -212,9 +212,9 @@
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewExpenses | currencySymbol }}</p>
           <div class="h-6 mt-2">
             <span *ngIf="deltaPct('expenses') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d <= 0" [class.text-green-700]="d <= 0"
-              [class.bg-red-100]="!(d <= 0)" [class.text-red-700]="!(d <= 0)">
-              {{ d >= 0 ? '▲' : '▼' }} {{ (d < 0 ? -d : d) | number:'1.0-1' }}%
+              [class.bg-green-100]="d.pct <= 0" [class.text-green-700]="d.pct <= 0"
+              [class.bg-red-100]="!(d.pct <= 0)" [class.text-red-700]="!(d.pct <= 0)">
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
             </span>
           </div>
         </div>
@@ -230,9 +230,9 @@
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">{{ overviewBalance | currencySymbol }}</p>
           <div class="h-6 mt-2">
             <span *ngIf="deltaPct('balance') as d" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class.bg-green-100]="d >= 0" [class.text-green-700]="d >= 0"
-              [class.bg-red-100]="!(d >= 0)" [class.text-red-700]="!(d >= 0)">
-              {{ d >= 0 ? '▲' : '▼' }} {{ (d < 0 ? -d : d) | number:'1.0-1' }}%
+              [class.bg-green-100]="d.pct >= 0" [class.text-green-700]="d.pct >= 0"
+              [class.bg-red-100]="!(d.pct >= 0)" [class.text-red-700]="!(d.pct >= 0)">
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number:'1.0-1' }}%
             </span>
           </div>
         </div>
@@ -246,6 +246,7 @@
             Base for {{ monthNames[overviewMonth - 1] }}:
             <strong>{{ baseIncomeValue | currencySymbol }}</strong> income,
             <strong>{{ baseExpensesValue | currencySymbol }}</strong> expenses
+            <span class="text-gray-400">{{ monthRecord?.is_custom ? '(set for this month)' : '(your default)' }}, plus transactions</span>
           </span>
           <span class="flex items-center gap-2 ml-auto">
             <button type="button" *ngIf="!editingBase" (click)="editingBase = true"

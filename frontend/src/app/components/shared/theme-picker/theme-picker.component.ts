@@ -12,6 +12,7 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
       <button
         type="button"
         (click)="open = !open"
+        [attr.aria-expanded]="open"
         class="w-full flex items-center justify-between px-1 py-1 rounded-lg hover:bg-gray-100 transition-colors group"
       >
         <div class="flex items-center gap-2.5">
@@ -56,6 +57,8 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
             type="button"
             (click)="selectTheme(theme.id)"
             [title]="theme.label"
+            [attr.aria-label]="theme.label"
+            [attr.aria-pressed]="activeTheme === theme.id"
             class="flex flex-col items-center gap-1 group/swatch focus:outline-none"
           >
             <div

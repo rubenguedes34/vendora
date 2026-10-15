@@ -14,8 +14,8 @@ import { User } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
   template: `
-    <div class="relative min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div class="absolute top-4 right-4 w-44 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
+    <div class="relative min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+      <div class="w-52 self-end mb-3 sm:mb-0 sm:absolute sm:top-4 sm:right-4 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
       <div class="w-full max-w-md">
         <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
           <div class="flex flex-col items-center mb-8">
@@ -40,7 +40,7 @@ import { User } from '../../services/auth.service';
                 <input
                   type="number"
                   formControlName="monthly_income"
-                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white transition-shadow"
+                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
                   placeholder="e.g., 3,000"
                   min="0"
                   max="99999999.99"
@@ -63,7 +63,7 @@ import { User } from '../../services/auth.service';
                 <input
                   type="number"
                   formControlName="monthly_expenses"
-                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white transition-shadow"
+                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
                   placeholder="e.g., 2,000"
                   min="0"
                   max="99999999.99"

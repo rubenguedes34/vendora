@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -202,6 +202,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.successMsg = 'Transaction saved!';
+        this.financialService.dataChanged$.next();
         this.form.patchValue({ amount: '', description: '', category_id: '', transaction_date: new Date().toISOString().slice(0, 10) });
         setTimeout(() => { this.successMsg = ''; this.open = false; }, 1200);
       },
@@ -234,6 +235,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
       next: () => {
         this.invSaving = false;
         this.invSuccessMsg = 'Investment added!';
+        this.financialService.dataChanged$.next();
         this.invForm.reset({ purchase_date: new Date().toISOString().slice(0, 10) });
         setTimeout(() => { this.invSuccessMsg = ''; this.open = false; }, 1200);
       },
@@ -242,6 +244,11 @@ export class QuickAddComponent implements OnInit, OnDestroy {
         this.invErrorMsg = err?.error?.message || 'Failed to save. Try again.';
       }
     });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.open) this.close();
   }
 
   close(): void {

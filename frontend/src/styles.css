@@ -336,3 +336,22 @@ html[data-mode='dark'] .hover\:bg-gray-400:hover { background-color: #3a4770; }
 .text-purple-500, .text-purple-600 { color: #7e22ce; }
 .text-primary-500 { color: var(--primary-600); }
 html[data-mode='dark'] .text-red-400 { color: #f87171; }
+
+/* ---------- Dark mode: hover text shades ----------
+   The base text shades are remapped above; their hover variants were not, leaving dark-on-dark text. */
+html[data-mode='dark'] .hover\:text-gray-500:hover,
+html[data-mode='dark'] .hover\:text-gray-600:hover,
+html[data-mode='dark'] .hover\:text-gray-700:hover,
+html[data-mode='dark'] .hover\:text-gray-800:hover,
+html[data-mode='dark'] .hover\:text-gray-900:hover,
+html[data-mode='dark'] .group:hover .group-hover\:text-gray-500 { color: #e6ebf5; }
+html[data-mode='dark'] .hover\:text-primary-600:hover,
+html[data-mode='dark'] .hover\:text-primary-700:hover,
+html[data-mode='dark'] .hover\:text-primary-800:hover { color: color-mix(in oklch, var(--primary-500) 45%, white); }
+html[data-mode='dark'] .hover\:text-red-500:hover,
+html[data-mode='dark'] .hover\:text-red-600:hover,
+html[data-mode='dark'] .hover\:text-red-700:hover,
+html[data-mode='dark'] .hover\:text-red-800:hover { color: #f87171; }
+html[data-mode='dark'] .hover\:text-blue-600:hover { color: #60a5fa; }
+html[data-mode='dark'] .hover\:text-purple-600:hover,
+html[data-mode='dark'] .hover\:text-purple-700:hover { color: #c084fc; }

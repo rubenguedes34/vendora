@@ -1,11 +1,13 @@
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, ChangeDetectorRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { skip } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, FinancialRecord } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { TransactionService, Transaction } from '../../services/transaction.service';
+import { ThemeService } from '../../services/theme.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { User } from '../../services/auth.service';
@@ -53,11 +55,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   get firstName(): string { return (this.user?.name || '').split(' ')[0]; }
 
   // % change against the previous month of the same year; null when there is nothing to compare.
-  deltaPct(key: 'income' | 'expenses' | 'balance'): number | null {
+  deltaPct(key: 'income' | 'expenses' | 'balance'): { pct: number } | null {
     const prev = this.monthBreakdown.find(m => m.month === this.overviewMonth - 1);
     const cur = key === 'income' ? this.overviewIncome : key === 'expenses' ? this.overviewExpenses : this.overviewBalance;
     if (!prev || !prev[key]) return null;
-    return ((cur - prev[key]) / Math.abs(prev[key])) * 100;
+    // wrapped so an exact 0% is still truthy for *ngIf and shows as a badge
+    return { pct: ((cur - prev[key]) / Math.abs(prev[key])) * 100 };
   }
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
@@ -94,7 +97,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private financialService: FinancialService,
     private router: Router,
     private transactionService: TransactionService,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private themeService: ThemeService
   ) {
     this.destroyRef.onDestroy(() => {
       this.incomeExpenseChartInstance?.destroy();
@@ -105,10 +109,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.themeService.dark$.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe(() => this.redrawChartsForMode());
+
     this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
       this.user = user;
-      if (user?.current_year) this.currentYear = user.current_year;
-      if (user?.current_month) this.currentMonth = user.current_month;
+      // the API sends these as strings (PHP date()), and computeAlerts compares the year with ===
+      if (user?.current_year) this.currentYear = Number(user.current_year);
+      if (user?.current_month) this.currentMonth = Number(user.current_month);
       this.overviewYear = this.currentYear;
       this.overviewMonth = this.currentMonth;
       this.selectedMonth = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
@@ -123,6 +130,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
 
     this.loadDashboardData();
+
+    this.financialService.dataChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshAfterChange());
+  }
+
+  // Empty yearlyRecords so loadOverviewMonth refetches instead of reading the stale list.
+  private refreshAfterChange(): void {
+    this.yearlyRecords = [];
+    this.loadOverviewMonth();
+    this.loadExpensesByCategory();
+    this.transactionService.getTransactions({ per_page: 5 }).subscribe({
+      next: res => { this.recentTransactions = res.data; this.cdr.markForCheck(); }
+    });
   }
 
   loadDashboardData(): void {
@@ -172,7 +191,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     const monthName = this.monthNames[month - 1];
 
-    this.dailyAvgSpend = dayOfMonth > 0 ? expenses / dayOfMonth : 0;
+    // The monthly base is a full-month plan, not money spent so far; only what transactions added is extrapolated.
+    const spentSoFar = Math.max(0, expenses - this.baseExpensesValue);
+    this.dailyAvgSpend = dayOfMonth > 0 ? spentSoFar / dayOfMonth : 0;
     this.projectedBalance = income - expenses - (this.dailyAvgSpend * this.daysRemaining);
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
@@ -456,6 +477,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private chartColors() {
+    const dark = this.themeService.dark$.value;
+    return dark
+      ? { legend: '#b4bdd2', tick: '#9ba5be', grid: 'rgba(255,255,255,0.06)' }
+      : { legend: '#4b5563', tick: '#6b7280', grid: 'rgba(0,0,0,0.04)' };
+  }
+
+  // Chart.js bakes colours into options at creation, so a mode switch rebuilds the charts.
+  private redrawChartsForMode(): void {
+    this.initIncomeExpenseChart();
+    this.initCategoryChart();
+    this.initCategoryBreakdownChart();
+    this.initMonthlyBalanceChart();
+    this.updateOverviewChart();
+    this.updateChartsWithRealData();
+  }
+
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.initIncomeExpenseChart();
@@ -510,7 +548,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { display: true, labels: { usePointStyle: true, boxWidth: 8, padding: 10, font: { size: 11 }, color: '#6b7280' } },
+          legend: { display: true, labels: { usePointStyle: true, boxWidth: 8, padding: 10, font: { size: 11 }, color: this.chartColors().legend } },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
             titleColor: '#e5e7eb', bodyColor: '#d1d5db',
@@ -519,10 +557,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+          x: { grid: { display: false }, ticks: { color: this.chartColors().tick, font: { size: 11 } } },
           y: {
-            beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' },
-            ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: number | string) => symbol + v }
+            beginAtZero: true, grid: { color: this.chartColors().grid },
+            ticks: { color: this.chartColors().tick, font: { size: 11 }, callback: (v: number | string) => symbol + v }
           }
         }
       }
@@ -585,7 +623,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: true,
         cutout: '60%',
         plugins: {
-          legend: { position: 'right', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: '#6b7280' } },
+          legend: { position: 'right', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: this.chartColors().legend } },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.85)',
             titleColor: '#e5e7eb', bodyColor: '#d1d5db',
@@ -642,8 +680,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
-          y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#9ca3af', font: { size: 11 }, callback: (v: number | string) => symbol + v } }
+          x: { grid: { display: false }, ticks: { color: this.chartColors().tick, font: { size: 11 } } },
+          y: { grid: { color: this.chartColors().grid }, ticks: { color: this.chartColors().tick, font: { size: 11 }, callback: (v: number | string) => symbol + v } }
         }
       }
     });

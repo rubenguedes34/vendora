@@ -158,7 +158,7 @@ import { User } from '../../../services/auth.service';
           <span class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-semibold shrink-0">{{ initials }}</span>
           <span class="min-w-0 leading-tight">
             <span class="block text-sm font-medium text-gray-900 truncate">{{ user?.name }}</span>
-            <span class="block text-xs text-gray-400">Free plan</span>
+            <span class="block text-xs text-gray-400 truncate">{{ user?.email }}</span>
           </span>
         </a>
         <button (click)="logout()"

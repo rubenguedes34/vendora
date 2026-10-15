@@ -58,4 +58,25 @@ describe('ThemeService', () => {
     service.setMode('light');
     expect(document.documentElement.getAttribute('data-mode')).toBe('light');
   });
+
+  it('falls back to light for an invalid saved mode', () => {
+    localStorage.setItem('vendora-mode', 'purple');
+    expect(service.getSavedMode()).toBe('light');
+  });
+
+  it("'system' follows prefers-color-scheme and dark$ reports the result", () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes('dark'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia;
+    try {
+      service.setMode('system');
+      expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
+      expect(service.dark$.value).toBe(true);
+    } finally {
+      window.matchMedia = original;
+    }
+  });
 });

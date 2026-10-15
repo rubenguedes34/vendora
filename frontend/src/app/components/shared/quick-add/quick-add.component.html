@@ -1,8 +1,11 @@
 <!-- FAB Button -->
 <button
   (click)="open = !open"
-  class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-xl hover:bg-primary-500 active:scale-95 transition-all flex items-center justify-center safe-bottom"
+  class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-xl hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center safe-bottom"
   title="Quick add"
+  aria-label="Quick add"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="open"
 >
   <svg
     class="w-7 h-7 transition-transform duration-200"
@@ -25,6 +28,9 @@
 <!-- Modal panel -->
 <div
   *ngIf="open"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Quick add"
   class="fixed bottom-[max(6rem,env(safe-area-inset-bottom)+4.5rem)] right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[22rem] max-h-[80dvh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-gray-200 p-5"
 >
   <!-- Header -->
