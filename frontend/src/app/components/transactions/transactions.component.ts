@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ElementRef, ViewChild, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { Component, Input, OnInit, ElementRef, ViewChild, ChangeDetectorRef, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,6 +16,7 @@ import { ApiError } from '../../models/api';
 
 @Component({
   selector: 'app-transactions',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
   templateUrl: './transactions.component.html'

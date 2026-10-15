@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AlertRule;
 use App\Models\Budget;
 use App\Models\FinancialRecord;
 use App\Models\Investment;
@@ -22,6 +23,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        AlertRule::class => OwnedByUserPolicy::class,
         Budget::class => OwnedByUserPolicy::class,
         FinancialRecord::class => OwnedByUserPolicy::class,
         Investment::class => OwnedByUserPolicy::class,

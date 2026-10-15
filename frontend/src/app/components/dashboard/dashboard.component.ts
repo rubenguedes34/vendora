@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, DestroyRef, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -8,15 +8,18 @@ import { FinancialService, FinancialRecord } from '../../services/financial.serv
 import { CurrencyService } from '../../services/currency.service';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { ThemeService } from '../../services/theme.service';
+import { NotificationService, AppNotification } from '../../services/notification.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
+import { CurrencyTextPipe } from '../../pipes/currency-text.pipe';
 import { User } from '../../services/auth.service';
 import { CartesianTooltipItem, ChartInstance, RadialTooltipItem, chartConstructor } from '../../models/chart';
 
 @Component({
   selector: 'app-dashboard',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, CurrencySymbolPipe],
+  imports: [CommonModule, RouterLink, SidebarComponent, CurrencySymbolPipe, CurrencyTextPipe],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
@@ -86,6 +89,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   dismissedAlerts = this.loadDismissedAlerts();
   hasCritical = false;
   alertCount = 0;
+  // Server-side notifications (budget, rules...) share the bell with the alerts computed here.
+  notifications: AppNotification[] = [];
+  unreadCount = 0;
   projectedBalance = 0;
   dailyAvgSpend = 0;
   daysRemaining = 0;
@@ -98,7 +104,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private router: Router,
     private transactionService: TransactionService,
     public currencyService: CurrencyService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private notificationService: NotificationService
   ) {
     this.destroyRef.onDestroy(() => {
       this.incomeExpenseChartInstance?.destroy();
@@ -109,6 +116,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.notificationService.notifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(n => { this.notifications = n; this.cdr.markForCheck(); });
+    this.notificationService.unreadCount$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(c => { this.unreadCount = c; this.cdr.markForCheck(); });
+    this.notificationService.refreshCount().subscribe({ error: () => {} });
+
     this.themeService.dark$.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe(() => this.redrawChartsForMode());
 
     this.authService.getUserObservable().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
@@ -139,8 +150,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.yearlyRecords = [];
     this.loadOverviewMonth();
     this.loadExpensesByCategory();
-    this.transactionService.getTransactions({ per_page: 5 }).subscribe({
-      next: res => { this.recentTransactions = res.data; this.cdr.markForCheck(); }
+    // The API only accepts per_page 10/20/50/100 (IndexTransactionRequest), so ask for 10 and show 5.
+    this.transactionService.getTransactions({ per_page: 10 }).subscribe({
+      next: res => { this.recentTransactions = res.data.slice(0, 5); this.cdr.markForCheck(); }
     });
   }
 
@@ -155,8 +167,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       error: () => { this.updateChartsWithRealData(); this.cdr.markForCheck(); }
     });
 
-    this.transactionService.getTransactions({ per_page: 5 }).subscribe({
-      next: res => { this.recentTransactions = res.data; this.cdr.markForCheck(); },
+    this.transactionService.getTransactions({ per_page: 10 }).subscribe({
+      next: res => { this.recentTransactions = res.data.slice(0, 5); this.cdr.markForCheck(); },
       error: () => { this.recentTransactions = []; this.cdr.markForCheck(); }
     });
 
@@ -274,8 +286,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.alertCount = 0;
   }
 
+  get unreadNotifications(): AppNotification[] {
+    return this.notifications.filter(n => !n.is_read);
+  }
+
+  // Says what the list below holds, so one generic "Some warnings" is not shown for a single alert.
+  get alertsHeading(): string {
+    const visible = this.visibleAlerts;
+    // Unread server notifications are listed above, so the heading cannot claim "All good!" over them.
+    if (visible.length === 0) return this.unreadNotifications.length > 0 ? 'New notifications' : 'All good!';
+    if (this.hasCritical) return 'Attention needed';
+    const warnings = visible.filter(a => a.type === 'warning').length;
+    if (warnings === 0) return 'On track';
+    return warnings === 1 ? '1 warning' : `${warnings} warnings`;
+  }
+
+  get bellCount(): number {
+    return this.alertCount + this.unreadCount;
+  }
+
   toggleAlerts(): void {
     this.showAlerts = !this.showAlerts;
+    if (this.showAlerts) this.notificationService.load().subscribe({ error: () => {} });
+  }
+
+  markNotificationRead(n: AppNotification): void {
+    this.notificationService.markAsRead(n.id).subscribe({ error: () => {} });
   }
 
   toggleMonthPicker(): void {

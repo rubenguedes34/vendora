@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AlertRule;
 use App\Models\User;
 use App\Models\Budget;
 use App\Models\RecurrentTransaction;
@@ -15,6 +16,7 @@ class NotificationGenerator
         $user->appNotifications()->onlyTrashed()->where('deleted_at', '<', now()->subDays(60))->forceDelete();
 
         $this->generateBudgetNotifications($user);
+        $this->generateAlertRuleNotifications($user);
         $this->generateRecurringNotifications($user);
         $this->generateMonthlyReport($user);
         $this->generateSavingsGoalNotifications($user);
@@ -89,6 +91,43 @@ class NotificationGenerator
                     ['budget_id' => $budget->id, 'category' => $budget->category->name]
                 );
             }
+        }
+    }
+
+    // shortcut: monthly period and a single threshold per rule (no 80% warning); add a period/warn level if asked.
+    private function generateAlertRuleNotifications(User $user): void
+    {
+        $rules = $user->alertRules()->with('category')->where('is_active', true)->get();
+        if ($rules->isEmpty()) return;
+
+        $now = Carbon::now();
+        $month = $now->format('Y-m');
+        $byCategory = $user->transactions()
+            ->where('type', 'expense')
+            ->whereYear('transaction_date', $now->year)
+            ->whereMonth('transaction_date', $now->month)
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+        $total = (float) $byCategory->sum();
+
+        foreach ($rules as $rule) {
+            $limit = (float) $rule->threshold;
+            $isCategory = $rule->type === AlertRule::TYPE_CATEGORY_LIMIT;
+            $spent = $isCategory ? (float) ($byCategory[$rule->category_id] ?? 0) : $total;
+
+            if ($spent < $limit) continue;
+
+            $what = $isCategory ? "on {$rule->category?->name}" : 'this month';
+            // The limit is in the key, so raising it later can alert again for the same month.
+            $this->addOnce(
+                $user,
+                'alert_rule_triggered',
+                "alert-rule-{$rule->id}-{$month}-" . number_format($limit, 2, '.', ''),
+                'Spending limit reached',
+                "You have spent {$this->money($spent)} {$what}, reaching your limit of {$this->money($limit)}.",
+                ['alert_rule_id' => $rule->id, 'category' => $rule->category?->name]
+            );
         }
     }
 
@@ -184,6 +223,7 @@ class NotificationGenerator
         }
     }
 
+    // Currency is a client-side preference, so amounts carry a '$' placeholder that the SPA swaps (currencyText pipe).
     private function money(float $amount): string
     {
         return '$' . number_format($amount, 2);

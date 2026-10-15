@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { DashboardComponent } from './dashboard.component';
 
 const STORAGE_KEY = 'vendora.dismissedAlerts';
@@ -130,5 +130,60 @@ describe('DashboardComponent month handling', () => {
     component.computeAlerts(now.getFullYear(), now.getMonth() + 1, 1350, 1400, -50);
     const expected = 1350 - 1400 - (100 / now.getDate()) * component.daysRemaining;
     expect(component.projectedBalance).toBeCloseTo(expected, 6);
+  });
+
+  it('bell count adds unread server notifications to the calculated alerts', () => {
+    const component = create();
+    component.alertCount = 2;
+    component.unreadCount = 3;
+    component.notifications = [
+      { id: 1, type: 't', title: 'a', body: null, data: {}, is_read: false, read_at: null, created_at: '' },
+      { id: 2, type: 't', title: 'b', body: null, data: {}, is_read: true, read_at: null, created_at: '' },
+    ];
+
+    expect(component.bellCount).toBe(5);
+    expect(component.unreadNotifications.map(n => n.id)).toEqual([1]);
+  });
+
+  it('alert heading reflects what is listed', () => {
+    const component = create();
+    // Everything spent is the monthly base, so nothing is extrapolated: 90%+ spending, low savings and a tight projected balance.
+    component.user = { id: 1, name: 'A', email: 'a@a.com', monthly_income: 1000, monthly_expenses: 950 } as never;
+    // A past month, so the "month ending soon" warning (current month only) cannot make this date-dependent.
+    component.overviewYear = 2025;
+    component.overviewMonth = 1;
+    component.computeAlerts(2025, 1, 1000, 950, 50);
+    expect(component.hasCritical).toBe(false);
+    expect(component.alertsHeading).toBe('3 warnings');
+
+    component.clearAllAlerts();
+    expect(component.alertsHeading).toBe('All good!');
+  });
+
+  it('asks for recent transactions with a per_page the API accepts and shows five', () => {
+    localStorage.setItem('token', 't');
+    localStorage.setItem('user', JSON.stringify({ id: 1, name: 'A', email: 'a@a.com' }));
+    const component = create();
+    component.ngOnInit();
+
+    const req = TestBed.inject(HttpTestingController).expectOne(r => /\/transactions\?per_page=\d+$/.test(r.url));
+    // IndexTransactionRequest only allows 10, 20, 50 or 100.
+    expect(['10', '20', '50', '100']).toContain(req.request.url.split('per_page=')[1]);
+
+    const rows = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
+    req.flush({ data: rows, current_page: 1, last_page: 1, per_page: 10, total: 10 });
+    expect(component.recentTransactions.length).toBe(5);
+  });
+
+  it('heading is not "All good!" while unread server notifications are listed', () => {
+    const component = create();
+    component.alerts = [];
+    component.notifications = [
+      { id: 1, type: 'budget_exceeded', title: 'Budget exceeded', body: null, data: {}, is_read: false, read_at: null, created_at: '' },
+    ];
+    expect(component.alertsHeading).toBe('New notifications');
+
+    component.notifications = [{ ...component.notifications[0], is_read: true }];
+    expect(component.alertsHeading).toBe('All good!');
   });
 });

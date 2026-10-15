@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { User } from '../../services/auth.service';
 
 @Component({
   selector: 'app-setup',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
   template: `
@@ -44,7 +45,7 @@ import { User } from '../../services/auth.service';
                   placeholder="e.g., 3,000"
                   min="0"
                   max="99999999.99"
-                  step="0.01"
+                  step="any"
                 />
               </div>
               <p *ngIf="setupForm.get('monthly_income')?.touched && setupForm.get('monthly_income')?.hasError('required')" class="text-red-500 text-sm mt-1">Monthly income is required.</p>
@@ -67,7 +68,7 @@ import { User } from '../../services/auth.service';
                   placeholder="e.g., 2,000"
                   min="0"
                   max="99999999.99"
-                  step="0.01"
+                  step="any"
                 />
               </div>
               <p *ngIf="setupForm.get('monthly_expenses')?.touched && setupForm.get('monthly_expenses')?.hasError('required')" class="text-red-500 text-sm mt-1">Estimated expenses are required.</p>

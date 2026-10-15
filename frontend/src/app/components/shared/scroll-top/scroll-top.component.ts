@@ -1,7 +1,8 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-scroll-top',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   template: `
     <button
