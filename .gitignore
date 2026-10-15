@@ -47,3 +47,9 @@ CLAUDE.md
 
 # Playwright MCP console/snapshot logs
 .playwright-mcp/
+
+# Anatomy figures (local explainers)
+docs/anatomy/
+
+# Superpowers plans/specs (local)
+docs/superpowers/

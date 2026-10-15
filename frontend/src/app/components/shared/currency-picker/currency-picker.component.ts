@@ -14,7 +14,7 @@ import { CurrencyService, CurrencyOption } from '../../../services/currency.serv
       <button
         type="button"
         (click)="open = !open"
-        class="w-full flex items-center justify-between px-1 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+        class="w-full flex items-center justify-between px-1 py-2.5 lg:py-1 rounded-lg hover:bg-gray-100 transition-colors"
       >
         <div class="flex items-center gap-2.5">
           <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">

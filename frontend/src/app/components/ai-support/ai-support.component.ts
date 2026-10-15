@@ -165,13 +165,13 @@ interface ChatMessage {
               (keydown.enter)="send()"
               type="text"
               placeholder="Type your support question..."
-              class="flex-1 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="flex-1 min-w-0 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               [disabled]="loading()"
             />
             <button
               (click)="send()"
               [disabled]="!newMessage.trim() || loading() || opening()"
-              class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="shrink-0 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send
             </button>

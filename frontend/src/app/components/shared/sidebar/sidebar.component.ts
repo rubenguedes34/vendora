@@ -38,7 +38,7 @@ import { User } from '../../../services/auth.service';
     <button
       data-testid="sidebar-hamburger"
       (click)="mobileOpen = true"
-      class="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-primary-600 text-white shadow-lg"
+      class="lg:hidden fixed top-3 left-3 z-50 p-3 rounded-lg bg-primary-600 text-white shadow-lg"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
