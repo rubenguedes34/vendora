@@ -88,6 +88,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Tag::class);
     }
 
+    public function alertRules()
+    {
+        return $this->hasMany(AlertRule::class);
+    }
+
     public function appNotifications()
     {
         return $this->hasMany(Notification::class);

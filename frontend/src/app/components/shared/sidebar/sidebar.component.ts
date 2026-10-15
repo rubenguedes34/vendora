@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -15,6 +15,7 @@ import { User } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, RouterLink, ThemePickerComponent, CurrencyPickerComponent, QuickAddComponent],
   template: `

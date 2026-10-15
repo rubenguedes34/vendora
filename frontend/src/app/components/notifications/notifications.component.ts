@@ -1,10 +1,12 @@
-import { Component, OnInit, DestroyRef, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService, AppNotification } from '../../services/notification.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
+import { AlertRulesComponent } from './alert-rules.component';
+import { CurrencyTextPipe } from '../../pipes/currency-text.pipe';
 
 const ICONS: Record<string, string> = {
   'budget_exceeded': '🚨',
@@ -13,6 +15,7 @@ const ICONS: Record<string, string> = {
   'monthly_report_ready': '📊',
   'savings_goal_completed': '🎯',
   'investment_reached_target': '📈',
+  'alert_rule_triggered': '🚧',
 };
 
 const COLORS: Record<string, string> = {
@@ -22,12 +25,14 @@ const COLORS: Record<string, string> = {
   'monthly_report_ready': 'bg-purple-100 text-purple-700',
   'savings_goal_completed': 'bg-green-100 text-green-700',
   'investment_reached_target': 'bg-emerald-100 text-emerald-700',
+  'alert_rule_triggered': 'bg-orange-100 text-orange-700',
 };
 
 @Component({
   selector: 'app-notifications',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, AlertRulesComponent, CurrencyTextPipe],
   template: `
     <div class="min-h-screen bg-slate-50 flex">
       <app-sidebar></app-sidebar>
@@ -49,6 +54,8 @@ const COLORS: Record<string, string> = {
         </header>
 
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <app-alert-rules></app-alert-rules>
+
           <div *ngIf="errorMessage" class="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">{{ errorMessage }}</div>
 
           <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading…</div>
@@ -72,7 +79,7 @@ const COLORS: Record<string, string> = {
                 <div class="flex items-start justify-between gap-2">
                   <div>
                     <p class="font-medium text-gray-800">{{ n.title }}</p>
-                    <p class="text-sm text-gray-500">{{ n.body || '' }}</p>
+                    <p class="text-sm text-gray-500">{{ n.body | currencyText }}</p>
                   </div>
                   <span class="text-xs text-gray-400 whitespace-nowrap">{{ n.created_at | date:'medium' }}</span>
                 </div>

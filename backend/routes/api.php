@@ -12,6 +12,7 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\MarketDataController;
 use App\Http\Controllers\RecurrentTransactionController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\AlertRuleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiChatController;
@@ -55,6 +56,9 @@ Route::middleware('auth.custom')->group(function () {
 
     // Investments
     Route::apiResource('investments', InvestmentController::class)->middleware('permission:view investments');
+
+    // Alert rules
+    Route::apiResource('alert-rules', AlertRuleController::class)->except('show');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);

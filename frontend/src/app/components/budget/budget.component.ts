@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,6 +14,7 @@ import { ApiError } from '../../models/api';
 
 @Component({
   selector: 'app-budget',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe, TransactionsComponent, RecurrentTransactionsComponent],
   templateUrl: './budget.component.html'

@@ -257,7 +257,7 @@
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Amount Invested ({{ investmentCurrencySymbol }})</label>
-                <input formControlName="initial_amount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                <input formControlName="initial_amount" type="number" step="any" min="0.01" placeholder="0.00"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
               </div>
               <div>
@@ -280,7 +280,7 @@
                   <p class="text-xs text-gray-500 mb-2">No live price — enter current value manually (e.g. for Real Estate, Bonds)</p>
                   <div>
                     <label class="block text-xs text-gray-500 mb-1">Current Value ({{ currencyService.symbol }})</label>
-                    <input formControlName="current_amount" type="number" step="0.01" min="0" placeholder="0.00"
+                    <input formControlName="current_amount" type="number" step="any" min="0" placeholder="0.00"
                       class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
                   </div>
                 </div>

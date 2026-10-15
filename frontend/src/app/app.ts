@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './services/theme.service';
 import { FooterComponent } from './components/shared/footer/footer.component';
@@ -6,6 +6,7 @@ import { ScrollTopComponent } from './components/shared/scroll-top/scroll-top.co
 
 @Component({
   selector: 'app-root',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterOutlet, FooterComponent, ScrollTopComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
