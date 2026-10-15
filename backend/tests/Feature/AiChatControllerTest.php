@@ -7,6 +7,8 @@ use App\Models\Faq;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
@@ -44,6 +46,22 @@ class AiChatControllerTest extends TestCase
         $token = TokenService::issue(User::factory()->create());
         $this->getJson('/api/ai/faqs', ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
+    }
+
+    public function test_chat_limiter_has_a_per_minute_and_a_per_day_cap_keyed_by_user(): void
+    {
+        config()->set('ai.support.daily_limit', 25);
+
+        $request = Request::create('/api/ai/chat', 'POST');
+        $request->setUserResolver(fn () => $this->user);
+
+        $limits = collect(RateLimiter::limiter('ai')($request))
+            ->mapWithKeys(fn ($limit) => [$limit->decaySeconds => $limit]);
+
+        $this->assertSame(10, $limits[60]->maxAttempts);
+        $this->assertSame(25, $limits[86400]->maxAttempts);
+        $this->assertSame((string) $this->user->id, (string) $limits[60]->key);
+        $this->assertNotSame($limits[60]->key, $limits[86400]->key);
     }
 
     public function test_faq_endpoint_returns_application_faqs(): void

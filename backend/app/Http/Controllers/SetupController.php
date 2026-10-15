@@ -34,6 +34,11 @@ class SetupController extends Controller
                 return response()->json(['message' => 'Invalid token'], 401);
             }
 
+            // Same gate as the auth.custom middleware: this route is public and reads the token itself.
+            if ($user->isBlacklisted()) {
+                return response()->json(['message' => 'Your account has been suspended.'], 403);
+            }
+
             $user->update([
                 'monthly_income' => $request->monthly_income,
                 'monthly_expenses' => $request->monthly_expenses,

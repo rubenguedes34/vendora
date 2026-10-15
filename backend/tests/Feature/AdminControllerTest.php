@@ -2,9 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Investment;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Laravel\Ai\Models\Conversation;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -131,6 +135,64 @@ class AdminControllerTest extends TestCase
             $this->getJson('/api/admin/' . $endpoint . '?year=2025&search=a', $this->authHeader($this->adminToken))
                 ->assertStatus(200);
         }
+    }
+
+    public function test_view_metrics_alone_gets_aggregates_without_other_users_rows(): void
+    {
+        $manager = User::factory()->create();
+        Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web'])
+            ->syncPermissions(['access admin panel', 'view metrics']);
+        $manager->assignRole('manager');
+        $managerToken = TokenService::issue($manager);
+
+        Investment::create([
+            'user_id' => $this->user->id,
+            'name' => 'Secret ETF',
+            'type' => 'etf',
+            'initial_amount' => 100,
+            'current_amount' => 120,
+            'purchase_date' => '2025-01-15',
+        ]);
+
+        $managerView = $this->getJson('/api/admin/investments-metrics?search=' . $this->user->email, $this->authHeader($managerToken))
+            ->assertStatus(200);
+        $this->assertNull($managerView->json('investments'));
+        $this->assertNotNull($managerView->json('summary'));
+        $this->assertStringNotContainsString($this->user->email, $managerView->getContent());
+
+        $this->getJson('/api/admin/transactions-metrics', $this->authHeader($managerToken))
+            ->assertStatus(200)
+            ->assertJsonPath('transactions', null);
+
+        // Free-text search is ignored for view-metrics-only callers, so it cannot probe other users.
+        $unfiltered = $this->getJson('/api/admin/investments-metrics', $this->authHeader($managerToken))->json('summary.count');
+        $this->getJson('/api/admin/investments-metrics?search=nothing-matches-this', $this->authHeader($managerToken))
+            ->assertJsonPath('summary.count', $unfiltered);
+        $this->getJson('/api/admin/budgets-metrics?search=' . $this->user->email, $this->authHeader($managerToken))
+            ->assertStatus(200);
+
+        $adminView = $this->getJson('/api/admin/investments-metrics', $this->authHeader($this->adminToken))
+            ->assertStatus(200)
+            ->assertJsonPath('investments.data.0.user.email', $this->user->email);
+        $this->assertSame('Secret ETF', $adminView->json('investments.data.0.name'));
+    }
+
+    public function test_destroying_a_user_removes_their_ai_conversations(): void
+    {
+        $id = (string) Str::uuid();
+        DB::table('agent_conversations')->insert([
+            'id' => $id,
+            'participant_type' => Conversation::participantType($this->user),
+            'participant_id' => Conversation::participantKey($this->user),
+            'title' => 'Hi',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->deleteJson('/api/admin/users/' . $this->user->id, [], $this->authHeader($this->adminToken))
+            ->assertStatus(200);
+
+        $this->assertDatabaseMissing('agent_conversations', ['id' => $id]);
     }
 
     public function test_admin_panel_link_signs_the_admin_into_the_panel_once(): void

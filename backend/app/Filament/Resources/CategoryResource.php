@@ -11,7 +11,9 @@ use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CategoryResource extends Resource
@@ -19,6 +21,20 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-tag';
+
+    // Categories are shared by every user and their foreign keys cascade, so a
+    // delete here wipes other users' records: restrict it like user management.
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('manage users') ?? false;
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return $record->isInUse()
+            ? Response::deny('This category is in use; reassign or delete its records first.')
+            : parent::getDeleteAuthorizationResponse($record);
+    }
 
     public static function form(Schema $schema): Schema
     {

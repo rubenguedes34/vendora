@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\DB;
+use Laravel\Ai\Models\Conversation;
 use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
@@ -171,6 +172,10 @@ class AdminController extends Controller
             return response()->json(['message' => 'You cannot delete the last admin.'], 422);
         }
 
+        Conversation::where('participant_type', Conversation::participantType($user))
+            ->where('participant_id', Conversation::participantKey($user))
+            ->delete();
+
         $user->delete();
 
         return response()->json(['message' => 'User deleted.']);
@@ -208,7 +213,8 @@ class AdminController extends Controller
     {
         $year = $request->query('year');
         $month = $request->query('month');
-        $search = $request->query('search');
+        // Free-text search reaches other users' names, emails and descriptions, so it is for "manage users" only.
+        $search = $request->user()->can('manage users') ? $request->query('search') : null;
 
         $query = Budget::query()
             ->join('categories', 'categories.id', '=', 'budgets.category_id')
@@ -269,17 +275,22 @@ class AdminController extends Controller
     {
         $year = $request->query('year');
         $type = $request->query('type');
-        $search = $request->query('search');
+        // Free-text search reaches other users' names, emails and descriptions, so it is for "manage users" only.
+        $search = $request->user()->can('manage users') ? $request->query('search') : null;
+
+        // Individual rows carry other users' names, emails and amounts, so they are
+        // for "manage users" only; "view metrics" alone gets the aggregates.
+        $canSeeRows = $request->user()->can('manage users');
 
         $query = Investment::query()
-            ->with('user:id,name,email')
-            ->when($search, function ($query, $search) {
+            ->when($canSeeRows, fn ($query) => $query->with('user:id,name,email'))
+            ->when($search, function ($query, $search) use ($canSeeRows) {
                 $term = "%{$search}%";
-                $query->where(function ($q) use ($term) {
+                $query->where(function ($q) use ($term, $canSeeRows) {
                     $q->where('name', 'like', $term)
-                        ->orWhereHas('user', function ($uq) use ($term) {
+                        ->when($canSeeRows, fn ($q) => $q->orWhereHas('user', function ($uq) use ($term) {
                             $uq->where('name', 'like', $term)->orWhere('email', 'like', $term);
-                        });
+                        }));
                 });
             })
             ->when($year, function ($query, $year) {
@@ -304,7 +315,7 @@ class AdminController extends Controller
             ->orderBy('month')
             ->get();
 
-        $investments = $query->orderByDesc('current_amount')->paginate(25);
+        $investments = $canSeeRows ? $query->orderByDesc('current_amount')->paginate(25) : null;
 
         return response()->json([
             'summary' => $summary,
@@ -333,17 +344,20 @@ class AdminController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
         $type = $request->query('type');
-        $search = $request->query('search');
+        // Free-text search reaches other users' names, emails and descriptions, so it is for "manage users" only.
+        $search = $request->user()->can('manage users') ? $request->query('search') : null;
+
+        $canSeeRows = $request->user()->can('manage users');
 
         $query = Transaction::query()
-            ->with('category:id,name,type,color', 'user:id,name,email')
-            ->when($search, function ($query, $search) {
+            ->when($canSeeRows, fn ($query) => $query->with('category:id,name,type,color', 'user:id,name,email'))
+            ->when($search, function ($query, $search) use ($canSeeRows) {
                 $term = "%{$search}%";
-                $query->where(function ($q) use ($term) {
+                $query->where(function ($q) use ($term, $canSeeRows) {
                     $q->where('description', 'like', $term)
-                        ->orWhereHas('user', function ($uq) use ($term) {
+                        ->when($canSeeRows, fn ($q) => $q->orWhereHas('user', function ($uq) use ($term) {
                             $uq->where('name', 'like', $term)->orWhere('email', 'like', $term);
-                        })
+                        }))
                         ->orWhereHas('category', function ($cq) use ($term) {
                             $cq->where('name', 'like', $term);
                         });
@@ -386,7 +400,7 @@ class AdminController extends Controller
             ->orderBy('month')
             ->get();
 
-        $transactions = $query->orderByDesc('transaction_date')->paginate(25);
+        $transactions = $canSeeRows ? $query->orderByDesc('transaction_date')->paginate(25) : null;
 
         return response()->json([
             'summary' => $summary,
