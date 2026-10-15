@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, timeout } from 'rxjs';
+import { Observable, Subject, throwError, timeout } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
@@ -112,6 +112,9 @@ export interface Budget {
 })
 export class FinancialService {
   private apiUrl = 'http://localhost:8000/api';
+  /** Emits after something outside the current page (e.g. quick-add) changed the user's money data. */
+  readonly dataChanged$ = new Subject<void>();
+
   private categoryCache = new Map<string, Observable<Category[]>>();
   private allCategoriesCache: Observable<Category[]> | null = null;
   private investmentsCache: Observable<any[]> | null = null;

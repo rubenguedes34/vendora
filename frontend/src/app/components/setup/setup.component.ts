@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -11,13 +12,14 @@ import { User } from '../../services/auth.service';
 @Component({
   selector: 'app-setup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-4">
+    <div class="relative min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+      <div class="w-52 self-end mb-3 sm:mb-0 sm:absolute sm:top-4 sm:right-4 bg-white rounded-xl border border-gray-200 shadow-sm p-2"><app-theme-picker></app-theme-picker></div>
       <div class="w-full max-w-md">
-        <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+        <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
           <div class="flex flex-col items-center mb-8">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-500 to-primary-700 flex items-center justify-center shadow-lg mb-4">
+            <div class="w-16 h-16 rounded-2xl bg-primary-600 flex items-center justify-center shadow-lg mb-4">
               <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -38,7 +40,7 @@ import { User } from '../../services/auth.service';
                 <input
                   type="number"
                   formControlName="monthly_income"
-                  class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
                   placeholder="e.g., 3,000"
                   min="0"
                   max="99999999.99"
@@ -61,7 +63,7 @@ import { User } from '../../services/auth.service';
                 <input
                   type="number"
                   formControlName="monthly_expenses"
-                  class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                  class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
                   placeholder="e.g., 2,000"
                   min="0"
                   max="99999999.99"
@@ -76,7 +78,7 @@ import { User } from '../../services/auth.service';
             <button
               type="submit"
               [disabled]="setupForm.invalid || isLoading"
-              class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:from-primary-700 hover:to-primary-800 hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
+              class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
             >
               <span *ngIf="!isLoading">Complete Setup</span>
               <span *ngIf="isLoading">Saving...</span>

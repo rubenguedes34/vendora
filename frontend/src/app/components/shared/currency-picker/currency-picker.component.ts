@@ -11,7 +11,7 @@ import { CurrencyService, CurrencyOption } from '../../../services/currency.serv
     <div class="w-full">
       <!-- Collapsed row -->
       <button type="button" (click)="open = !open"
-        class="w-full flex items-center justify-between px-1 py-1 rounded-lg hover:bg-primary-600 transition-colors">
+        class="w-full flex items-center justify-between px-1 py-1 rounded-lg hover:bg-gray-100 transition-colors">
         <div class="flex items-center gap-2.5">
           <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -20,7 +20,7 @@ import { CurrencyService, CurrencyOption } from '../../../services/currency.serv
           <span class="text-sm font-semibold">Currency</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs opacity-70">{{ active.code }}</span>
+          <span class="text-xs text-gray-500">{{ active.code }}</span>
           <span class="text-sm font-bold opacity-90">{{ active.symbol }}</span>
           <svg class="w-3.5 h-3.5 opacity-60 transition-transform"
             [class.rotate-180]="open"
@@ -31,12 +31,12 @@ import { CurrencyService, CurrencyOption } from '../../../services/currency.serv
       </button>
 
       <!-- Expanded list -->
-      <div *ngIf="open" class="mt-2 rounded-lg overflow-hidden border border-primary-400/40">
+      <div *ngIf="open" class="mt-2 rounded-lg overflow-hidden border border-gray-200">
         <button
           *ngFor="let c of currencies"
           type="button"
           (click)="select(c.code)"
-          class="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-primary-600"
+          class="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-gray-100"
           [class.bg-primary-700]="active.code === c.code">
           <span class="font-medium">{{ c.label }}</span>
           <span class="font-bold opacity-90">{{ c.symbol }}</span>

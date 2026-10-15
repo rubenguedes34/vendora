@@ -208,7 +208,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
         datasets: [{
           data: values,
           backgroundColor: colors,
-          borderColor: '#ffffff',
+          borderColor: 'transparent',
           borderWidth: 2,
           hoverOffset: 6,
           borderRadius: 3,

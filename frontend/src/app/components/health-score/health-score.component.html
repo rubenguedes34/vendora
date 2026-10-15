@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-gray-100 flex">
+<div class="min-h-screen bg-slate-50 flex">
   <app-sidebar></app-sidebar>
 
   <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
-    <header class="bg-primary-700 text-white shadow-md">
+    <header class="page-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <div>
@@ -33,7 +33,7 @@
       <ng-container *ngIf="data">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
           <!-- Score card -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+          <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center">
             <div class="relative w-40 h-40">
               <svg class="w-full h-full" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="10"/>
@@ -51,7 +51,7 @@
           </div>
 
           <!-- Category scores -->
-          <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Category Scores</h3>
             <div class="space-y-3">
               <div *ngFor="let cat of data.score.categories" class="p-3 rounded-xl bg-gray-50 border border-gray-100">
@@ -60,7 +60,7 @@
                   <div class="flex-1">
                     <div class="flex justify-between items-center">
                       <span class="text-sm font-medium text-gray-800">{{ cat.name }}</span>
-                      <span class="text-xs font-bold" [style.color]="colorFor(cat.key)">{{ cat.score }}/100</span>
+                      <span class="text-xs font-bold text-gray-700">{{ cat.score }}/100</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
                       <div class="h-2 rounded-full transition-all duration-500"
@@ -77,7 +77,7 @@
         </div>
 
         <!-- History chart -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">6-Month Trend</h3>
           <div style="height: 200px; position: relative;">
             <canvas #historyChart></canvas>

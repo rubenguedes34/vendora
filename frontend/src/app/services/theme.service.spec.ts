@@ -30,11 +30,11 @@ describe('ThemeService', () => {
   });
 
   it('applies the saved theme attribute on construction', () => {
-    localStorage.setItem('vendora-theme', 'blue');
+    localStorage.setItem('vendora-theme', 'rose');
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
     service = TestBed.inject(ThemeService);
-    expect(document.documentElement.getAttribute('data-theme')).toBe('blue');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('rose');
   });
 
   it('setTheme persists the theme and updates the document attribute', () => {
@@ -48,5 +48,35 @@ describe('ThemeService', () => {
     service.setTheme('unknown');
     expect(service.getSavedTheme()).toBe('teal');
     expect(document.documentElement.getAttribute('data-theme')).toBe('teal');
+  });
+
+  it('setMode persists the mode and sets data-mode on the document', () => {
+    service.setMode('dark');
+    expect(service.getSavedMode()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
+
+    service.setMode('light');
+    expect(document.documentElement.getAttribute('data-mode')).toBe('light');
+  });
+
+  it('falls back to light for an invalid saved mode', () => {
+    localStorage.setItem('vendora-mode', 'purple');
+    expect(service.getSavedMode()).toBe('light');
+  });
+
+  it("'system' follows prefers-color-scheme and dark$ reports the result", () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes('dark'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia;
+    try {
+      service.setMode('system');
+      expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
+      expect(service.dark$.value).toBe(true);
+    } finally {
+      window.matchMedia = original;
+    }
   });
 });

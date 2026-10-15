@@ -1,5 +1,5 @@
 <ng-container *ngIf="!embedded; else embeddedTpl">
-  <div class="min-h-screen bg-gray-100 flex">
+  <div class="min-h-screen bg-slate-50 flex">
     <app-sidebar></app-sidebar>
 
     <main class="flex-1 overflow-auto pt-14 lg:pt-0 pb-20 lg:pb-0">
@@ -13,7 +13,7 @@
 </ng-template>
 
 <ng-template #contentTpl>
-    <header class="bg-primary-700 text-white shadow-md">
+    <header class="page-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
@@ -32,40 +32,40 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Description</label>
               <input type="text" formControlName="description"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="e.g., Netflix subscription" />
             </div>
 
             <div>
-              <label class="block text-gray-700 text-sm font-bold mb-2">Amount ({{ currencyService.symbol }})</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Amount ({{ currencyService.symbol }})</label>
               <input type="number" step="0.01" formControlName="amount"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="0.00" min="0" />
             </div>
 
             <div>
-              <label class="block text-gray-700 text-sm font-bold mb-2">Type</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Type</label>
               <select formControlName="type"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-gray-700 text-sm font-bold mb-2">Day of Month</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Day of Month</label>
               <input type="number" formControlName="day_of_month"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="e.g., 1" min="1" max="28" />
               <p class="text-xs text-gray-500 mt-1">Day 1–28 to ensure all months are covered</p>
             </div>
 
             <div class="md:col-span-2">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-1.5">Category</label>
               <select formControlName="category_id"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="">Select a category</option>
                 <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
               </select>
@@ -74,11 +74,11 @@
 
           <div class="mt-4 flex space-x-3">
             <button type="submit" [disabled]="form.invalid"
-              class="bg-primary-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 disabled:bg-gray-400 transition-colors">
+              class="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 disabled:bg-gray-400 transition-colors">
               {{ editing ? 'Update' : 'Add' }}
             </button>
             <button *ngIf="editing" type="button" (click)="cancelEdit()"
-              class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 transition-colors">
+              class="border border-gray-300 text-gray-700 px-6 py-2 rounded-xl hover:bg-gray-50 transition-colors">
               Cancel
             </button>
           </div>
@@ -91,10 +91,10 @@
         <p class="text-gray-600 text-sm mb-4">Copy all recurrent transactions to a specific month as real transactions.</p>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <input type="month" [(ngModel)]="copyTargetMonth" [ngModelOptions]="{standalone: true}"
-            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto" />
+            class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto" />
           <button (click)="copyToMonth()"
             [disabled]="!copyTargetMonth || isCopying"
-            class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto">
+            class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto">
             {{ isCopying ? 'Copying...' : 'Copy Now' }}
           </button>
         </div>

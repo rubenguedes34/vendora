@@ -78,7 +78,6 @@ export class TransactionsComponent implements OnInit {
   selectedTagIds: number[] = [];
   filterTagIds: number[] = [];
   newTagName = '';
-  newTagColor = '#6366f1';
   isCreatingTag = false;
   tagError = '';
 
@@ -378,7 +377,7 @@ export class TransactionsComponent implements OnInit {
       description: transaction.description,
       amount: transaction.amount,
       type: transaction.type,
-      transaction_date: transaction.transaction_date,
+      transaction_date: transaction.transaction_date.slice(0, 10),
       category_id: transaction.category_id ? String(transaction.category_id) : '',
       notes: transaction.notes ?? null,
     });
@@ -469,13 +468,12 @@ export class TransactionsComponent implements OnInit {
     if (!name) return;
     this.isCreatingTag = true;
     this.tagError = '';
-    this.tagService.createTag({ name, color: this.newTagColor }).subscribe({
+    this.tagService.createTag({ name }).subscribe({
       next: (tag) => {
         if (!this.selectedTagIds.includes(tag.id)) {
           this.selectedTagIds = [...this.selectedTagIds, tag.id];
         }
         this.newTagName = '';
-        this.newTagColor = '#6366f1';
         this.isCreatingTag = false;
       },
       error: (err) => {
@@ -495,7 +493,6 @@ export class TransactionsComponent implements OnInit {
     this.selectedTagIds = [];
     this.tagError = '';
     this.newTagName = '';
-    this.newTagColor = '#6366f1';
     this.transactionForm.reset({
       type: 'expense',
       transaction_date: new Date().toISOString().split('T')[0],
