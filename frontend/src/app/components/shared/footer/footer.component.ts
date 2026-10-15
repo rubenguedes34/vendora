@@ -21,27 +21,37 @@ import { RouterLink } from '@angular/router';
             <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Product</h4>
             <ul class="space-y-0 lg:space-y-2 text-sm">
               <li>
-                <a routerLink="/dashboard" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/dashboard"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Dashboard</a
                 >
               </li>
               <li>
-                <a routerLink="/transactions" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/transactions"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Transactions</a
                 >
               </li>
               <li>
-                <a routerLink="/budgets" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/budgets"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Budgets</a
                 >
               </li>
               <li>
-                <a routerLink="/investments" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/investments"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Investments</a
                 >
               </li>
               <li>
-                <a routerLink="/ai-support" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/ai-support"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >AI Support</a
                 >
               </li>
@@ -52,20 +62,32 @@ import { RouterLink } from '@angular/router';
             <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Account</h4>
             <ul class="space-y-0 lg:space-y-2 text-sm">
               <li>
-                <a routerLink="/login" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors">Login</a>
+                <a
+                  routerLink="/login"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                  >Login</a
+                >
               </li>
               <li>
-                <a routerLink="/register" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/register"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Register</a
                 >
               </li>
               <li>
-                <a routerLink="/account" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/account"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >My Account</a
                 >
               </li>
               <li>
-                <a routerLink="/setup" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors">Setup</a>
+                <a
+                  routerLink="/setup"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                  >Setup</a
+                >
               </li>
             </ul>
           </div>
@@ -90,7 +112,9 @@ import { RouterLink } from '@angular/router';
                 >
               </li>
               <li>
-                <a routerLink="/ai-support" class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
+                <a
+                  routerLink="/ai-support"
+                  class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >Help & FAQ</a
                 >
               </li>
@@ -103,8 +127,12 @@ import { RouterLink } from '@angular/router';
         >
           <p>&copy; 2026 Vendora. All rights reserved.</p>
           <div class="flex space-x-6 mt-4 md:mt-0">
-            <a routerLink="/" class="inline-block py-2 lg:py-0 hover:text-white transition-colors">Privacy</a>
-            <a routerLink="/" class="inline-block py-2 lg:py-0 hover:text-white transition-colors">Terms</a>
+            <a routerLink="/" class="inline-block py-2 lg:py-0 hover:text-white transition-colors"
+              >Privacy</a
+            >
+            <a routerLink="/" class="inline-block py-2 lg:py-0 hover:text-white transition-colors"
+              >Terms</a
+            >
           </div>
         </div>
       </div>
