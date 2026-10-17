@@ -336,7 +336,7 @@
                   </div>
 
                   <!-- Monthly projection -->
-                  <div class="px-5 py-4 bg-gray-50">
+                  <div *ngIf="available" class="px-5 py-4 bg-gray-50">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                       Monthly Projection
                     </p>
@@ -533,6 +533,61 @@
         </a>
       </div>
 
+      <!-- Available this month -->
+      <div
+        *ngIf="available as a"
+        class="bg-white p-5 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3"
+      >
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Available this month</h3>
+          <p
+            class="text-3xl font-bold tracking-tight tabular-nums mt-1"
+            [class]="a.available >= 0 ? 'text-primary-600' : 'text-red-500'"
+          >
+            {{ a.available | currencySymbol }}
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ a.days_remaining }} days left · projected end
+            <span class="font-semibold text-gray-700">{{
+              a.projected_balance | currencySymbol
+            }}</span>
+          </p>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-3 text-sm">
+          <div *ngIf="a.days_remaining > 0">
+            <p class="text-xs text-gray-500">You can spend per day</p>
+            <p class="font-semibold text-gray-900 tabular-nums">
+              {{ a.daily_allowance | currencySymbol }}
+            </p>
+          </div>
+          <div *ngIf="a.pending_expenses > 0 || a.pending_income > 0">
+            <p class="text-xs text-gray-500">Net recurrents still due</p>
+            <p class="font-semibold text-gray-900 tabular-nums">
+              {{ a.pending_income - a.pending_expenses | currencySymbol }}
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              (click)="exportMonth('csv')"
+              class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              (click)="exportMonth('pdf')"
+              [disabled]="!canExportPdf"
+              [title]="canExportPdf ? '' : 'Premium feature'"
+              class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              Export PDF
+              <span *ngIf="!canExportPdf" class="ml-1 text-primary-600 font-semibold">Premium</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
@@ -585,7 +640,7 @@
           </p>
           <div class="h-6 mt-2">
             <span
-              *ngIf="deltaPct('balance') as d"
+              *ngIf="deltaPct('savings') as d"
               class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
               [class.bg-green-100]="d.pct >= 0"
               [class.text-green-700]="d.pct >= 0"
@@ -595,6 +650,51 @@
               {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
             </span>
           </div>
+        </div>
+      </div>
+
+      <!-- This month vs last month, day by day -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
+          <h3 class="text-base font-semibold text-gray-800">Balance this month vs last</h3>
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">Running balance for each day, up to today</p>
+          <div style="height: 240px">
+            <canvas #dailyBalanceChart></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200">
+          <h3 class="text-base font-semibold text-gray-800">Compared with last month</h3>
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">Full month against the month before</p>
+          <div *ngIf="comparison as c" class="space-y-3 text-sm">
+            <div class="grid grid-cols-4 gap-2 text-xs text-gray-400">
+              <span></span>
+              <span class="text-right">Now</span>
+              <span class="text-right">Before</span>
+              <span></span>
+            </div>
+            <div *ngFor="let row of comparisonRows" class="grid grid-cols-4 gap-2 items-center">
+              <span class="text-gray-600">{{ row.label }}</span>
+              <span class="text-right font-semibold text-gray-900 tabular-nums">{{
+                c.current[row.key] | currencySymbol
+              }}</span>
+              <span class="text-right text-gray-500 tabular-nums">{{
+                c.previous[row.key] | currencySymbol
+              }}</span>
+              <span
+                *ngIf="deltaPct(row.key) as d"
+                class="justify-self-end text-xs font-semibold px-2 py-0.5 rounded-full"
+                [class.bg-green-100]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
+                [class.text-green-700]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
+                [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
+                [class.text-red-700]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
+              >
+                {{ d.pct >= 0 ? '+' : '−' }}{{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-0' }}%
+              </span>
+            </div>
+          </div>
+          <p *ngIf="!comparison" class="text-sm text-gray-300 py-6 text-center">
+            No data to compare
+          </p>
         </div>
       </div>
 
@@ -689,6 +789,38 @@
           <p class="text-xs text-gray-400">
             Income, expenses and balance for each month of {{ overviewYear }}
           </p>
+        </div>
+        <div *ngIf="yearToDate as y" class="px-6 pt-6">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {{ overviewYear }} so far (Jan–{{ monthNames[overviewMonth - 1].slice(0, 3) }}) vs
+            {{ overviewYear - 1 }}
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              *ngFor="let row of comparisonRows"
+              class="rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-2"
+            >
+              <div class="min-w-0">
+                <p class="text-xs text-gray-500">{{ row.label }}</p>
+                <p class="text-sm font-semibold text-gray-900 tabular-nums">
+                  {{ y.current[row.key] | currencySymbol }}
+                </p>
+                <p class="text-xs text-gray-400 tabular-nums">
+                  {{ y.previous[row.key] | currencySymbol }} last year
+                </p>
+              </div>
+              <span
+                *ngIf="pctOf(y, row.key) as d"
+                class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+                [class.bg-green-100]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
+                [class.text-green-700]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
+                [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
+                [class.text-red-700]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
+              >
+                {{ d.pct >= 0 ? '+' : '−' }}{{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-0' }}%
+              </span>
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
           <!-- Month list -->
@@ -827,7 +959,21 @@
           <!-- Bar list -->
           <div class="space-y-3">
             <div *ngFor="let item of expensesByCategory" class="flex items-center gap-3">
-              <div class="w-24 text-xs text-gray-600 truncate shrink-0">{{ item.category }}</div>
+              <div class="w-24 shrink-0">
+                <div class="text-xs text-gray-600 truncate">{{ item.category }}</div>
+                <div
+                  *ngIf="item.change_pct !== null"
+                  class="font-semibold"
+                  style="font-size: 10px"
+                  [class.text-red-600]="item.change_pct > 0"
+                  [class.text-green-600]="item.change_pct <= 0"
+                >
+                  {{ item.change_pct > 0 ? '▲' : '▼' }}
+                  {{
+                    (item.change_pct < 0 ? -item.change_pct : item.change_pct) | number: '1.0-0'
+                  }}%
+                </div>
+              </div>
               <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
                 <div
                   class="h-2.5 rounded-full transition-all duration-500"

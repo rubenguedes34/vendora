@@ -207,4 +207,20 @@ export class TransactionService {
         URL.revokeObjectURL(a.href);
       });
   }
+
+  exportMonthlyPdf(month: string, symbol: string): void {
+    const url = `${this.apiUrl}/reports/monthly?month=${month}&symbol=${encodeURIComponent(symbol)}`;
+    const token = this.authService.getTokenValue();
+
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.blob() : Promise.reject(new Error(String(res.status)))))
+      .then((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `vendora-${month}.pdf`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 10000); // some browsers read the blob after the click
+      })
+      .catch(() => alert('Could not create the report. Please try again.'));
+  }
 }

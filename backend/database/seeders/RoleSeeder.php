@@ -18,6 +18,7 @@ class RoleSeeder extends Seeder
             'view investments',
             'use ai support',
             'view health score',
+            'export reports',
         ];
 
         foreach ($permissions as $permission) {
@@ -38,6 +39,15 @@ class RoleSeeder extends Seeder
             'view investments',
             'use ai support',
             'view health score',
+        ]);
+
+        /** @var Role $premium */
+        $premium = Role::firstOrCreate(['name' => 'premium', 'guard_name' => 'web']);
+        $premium->syncPermissions([
+            'view investments',
+            'use ai support',
+            'view health score',
+            'export reports',
         ]);
 
         $firstUser = User::orderBy('id')->first();

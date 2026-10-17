@@ -25,6 +25,43 @@ export interface FinancialRecord {
   updated_at?: string;
 }
 
+export interface AvailableMonth {
+  year: number;
+  month: number;
+  available: number;
+  days_remaining: number;
+  pending_income: number;
+  pending_expenses: number;
+  daily_avg_spend: number;
+  projected_balance: number;
+  daily_allowance: number;
+}
+
+export interface DailyBalance {
+  current: (number | null)[];
+  previous: (number | null)[];
+}
+
+export interface MonthTotals {
+  income: number;
+  expenses: number;
+  savings: number;
+}
+
+export interface MonthComparison {
+  current: MonthTotals;
+  previous: MonthTotals;
+  change_pct: Record<keyof MonthTotals, number | null>;
+}
+
+export interface CategoryExpense {
+  category: string;
+  color: string;
+  total: number;
+  previous_total: number;
+  change_pct: number | null;
+}
+
 export interface BudgetSummary {
   month: string;
   income: number;
@@ -184,6 +221,38 @@ export class FinancialService {
     );
   }
 
+  getAvailable(year: number, month: number): Observable<AvailableMonth> {
+    const m = `${year}-${String(month).padStart(2, '0')}`;
+    return this.http
+      .get<AvailableMonth>(`${this.apiUrl}/financial-records/available`, { params: { month: m } })
+      .pipe(
+        timeout(5000),
+        catchError((error) => throwError(() => this.handleError(error))),
+      );
+  }
+
+  getDailyBalance(year: number, month: number): Observable<DailyBalance> {
+    const m = `${year}-${String(month).padStart(2, '0')}`;
+    return this.http
+      .get<DailyBalance>(`${this.apiUrl}/financial-records/daily-balance`, { params: { month: m } })
+      .pipe(
+        timeout(5000),
+        catchError((error) => throwError(() => this.handleError(error))),
+      );
+  }
+
+  getMonthComparison(year: number, month: number): Observable<MonthComparison> {
+    const m = `${year}-${String(month).padStart(2, '0')}`;
+    return this.http
+      .get<MonthComparison>(`${this.apiUrl}/financial-records/month-comparison`, {
+        params: { month: m },
+      })
+      .pipe(
+        timeout(5000),
+        catchError((error) => throwError(() => this.handleError(error))),
+      );
+  }
+
   getYearRecords(year: number): Observable<FinancialRecord[]> {
     return this.http.get<FinancialRecord[]>(`${this.apiUrl}/financial-records/year/${year}`).pipe(
       timeout(5000),
@@ -205,13 +274,9 @@ export class FinancialService {
     );
   }
 
-  getExpensesByCategory(
-    month: string,
-  ): Observable<{ category: string; color: string; total: number }[]> {
+  getExpensesByCategory(month: string): Observable<CategoryExpense[]> {
     return this.http
-      .get<
-        { category: string; color: string; total: number }[]
-      >(`${this.apiUrl}/transactions/expenses-by-category?month=${month}`)
+      .get<CategoryExpense[]>(`${this.apiUrl}/transactions/expenses-by-category?month=${month}`)
       .pipe(
         timeout(5000),
         catchError((error) => throwError(() => this.handleError(error))),

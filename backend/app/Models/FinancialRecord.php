@@ -35,7 +35,9 @@ class FinancialRecord extends Model
         'savings_goal_type',
     ];
 
+    // MySQL's YEAR column comes back as a string, and the SPA compares the year with ===.
     protected $casts = [
+        'year' => 'integer',
         'is_custom' => 'boolean',
     ];
 

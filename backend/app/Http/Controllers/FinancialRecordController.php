@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FinancialRecord\AllocationRequest;
+use App\Http\Requests\FinancialRecord\AvailableRequest;
 use App\Http\Requests\FinancialRecord\StoreFinancialRecordRequest;
 use App\Http\Requests\FinancialRecord\UpdateFinancialRecordRequest;
 use App\Models\FinancialRecord;
 use App\Models\User;
+use App\Services\AvailabilityCalculator;
 use App\Services\HealthScoreCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -50,6 +52,63 @@ class FinancialRecordController extends Controller
         return response()->json(
             FinancialRecord::ensureMonth($request->user(), (int) date('Y'), (int) date('n'))
         );
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/available",
+     *     tags={"Financial Records"},
+     *     summary="What is left to spend in a month, with the end-of-month projection",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2026-10")),
+     *
+     *     @OA\Response(response=200, description="available, days_remaining, pending_income, pending_expenses, daily_avg_spend, projected_balance, daily_allowance")
+     * )
+     */
+    public function available(AvailableRequest $request, AvailabilityCalculator $calculator)
+    {
+        [$year, $month] = $request->period();
+
+        return response()->json($calculator->calculate($request->user(), $year, $month));
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/daily-balance",
+     *     tags={"Financial Records"},
+     *     summary="Running balance per day for a month and the previous one",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2026-10")),
+     *
+     *     @OA\Response(response=200, description="current and previous: one balance per day, null for days with nothing recorded yet")
+     * )
+     */
+    public function dailyBalance(AvailableRequest $request, AvailabilityCalculator $calculator)
+    {
+        [$year, $month] = $request->period();
+
+        return response()->json($calculator->dailyBalance($request->user(), $year, $month));
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/financial-records/month-comparison",
+     *     tags={"Financial Records"},
+     *     summary="Income, expenses and savings of a month against the previous month",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="month", in="query", required=false, @OA\Schema(type="string", example="2026-10")),
+     *
+     *     @OA\Response(response=200, description="current, previous and change_pct (null with nothing to compare), each with income, expenses, savings")
+     * )
+     */
+    public function monthComparison(AvailableRequest $request, AvailabilityCalculator $calculator)
+    {
+        [$year, $month] = $request->period();
+
+        return response()->json($calculator->comparison($request->user(), $year, $month));
     }
 
     /**
