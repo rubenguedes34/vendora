@@ -42,7 +42,7 @@
         <!-- Array key type variance on Eloquent base class overrides -->
         <NonInvariantDocblockPropertyType errorLevel="suppress" />
 
-        <!-- Removed middleware classes referenced in Kernel/sanctum config -->
+        <!-- Classes referenced by vendor/package config that Psalm cannot resolve -->
         <UndefinedClass errorLevel="suppress" />
 
         <!-- shell_exec in GenerateSslCertificate is intentional (dev-only command) -->
