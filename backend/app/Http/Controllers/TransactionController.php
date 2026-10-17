@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -382,19 +383,32 @@ class TransactionController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        $results = $user
+        $byCategory = fn (int $y, int $m) => $user
             ->transactions()
             ->with('category')
             ->where('type', 'expense')
-            ->whereYear('transaction_date', (int) $year)
-            ->whereMonth('transaction_date', (int) $mon)
+            ->whereYear('transaction_date', $y)
+            ->whereMonth('transaction_date', $m)
             ->get()
-            ->groupBy(fn ($t) => $t->category?->name ?? 'Uncategorised')
-            ->map(fn ($group, $name) => [
-                'category' => $name,
-                'color' => $group->first()->category?->color ?? '#94a3b8',
-                'total' => round($group->sum('amount'), 2),
-            ])
+            ->groupBy(fn ($t) => $t->category?->name ?? 'Uncategorised');
+
+        $previousMonth = Carbon::create((int) $year, (int) $mon, 1)->subMonthNoOverflow();
+        $previous = $byCategory($previousMonth->year, $previousMonth->month)->map(fn ($group) => $group->sum('amount'));
+
+        $results = $byCategory((int) $year, (int) $mon)
+            ->map(function ($group, $name) use ($previous) {
+                $total = round($group->sum('amount'), 2);
+                $before = round((float) ($previous[$name] ?? 0), 2);
+
+                return [
+                    'category' => $name,
+                    'color' => $group->first()->category?->color ?? '#94a3b8',
+                    'total' => $total,
+                    'previous_total' => $before,
+                    // null when last month had nothing in this category to compare against
+                    'change_pct' => $before > 0 ? round(($total - $before) / $before * 100, 1) : null,
+                ];
+            })
             ->values()
             ->sortByDesc('total')
             ->values();

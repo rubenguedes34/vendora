@@ -15,7 +15,15 @@ import { skip } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FinancialService, FinancialRecord } from '../../services/financial.service';
+import {
+  FinancialService,
+  FinancialRecord,
+  AvailableMonth,
+  DailyBalance,
+  MonthComparison,
+  MonthTotals,
+  CategoryExpense,
+} from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { ThemeService } from '../../services/theme.service';
@@ -90,31 +98,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return (this.user?.name || '').split(' ')[0];
   }
 
-  // % change against the previous month of the same year; null when there is nothing to compare.
-  deltaPct(key: 'income' | 'expenses' | 'balance'): { pct: number } | null {
-    const prev = this.monthBreakdown.find((m) => m.month === this.overviewMonth - 1);
-    const cur =
-      key === 'income'
-        ? this.overviewIncome
-        : key === 'expenses'
-          ? this.overviewExpenses
-          : this.overviewBalance;
-    if (!prev || !prev[key]) return null;
-    // wrapped so an exact 0% is still truthy for *ngIf and shows as a badge
-    return { pct: ((cur - prev[key]) / Math.abs(prev[key])) * 100 };
+  // % change against the previous month (the backend handles January -> December); null when there is nothing to compare.
+  deltaPct(key: keyof MonthTotals): { pct: number } | null {
+    return this.pctOf(this.comparison, key);
+  }
+
+  // wrapped so an exact 0% is still truthy for *ngIf and shows as a badge
+  pctOf(c: MonthComparison | null, key: keyof MonthTotals): { pct: number } | null {
+    const pct = c?.change_pct[key];
+    return pct == null ? null : { pct };
   }
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
   @ViewChild('categoryChart') categoryChart!: ElementRef;
   @ViewChild('categoryBreakdownChart') categoryBreakdownChart!: ElementRef;
   @ViewChild('monthlyBalanceChart') monthlyBalanceChart!: ElementRef;
+  @ViewChild('dailyBalanceChart') dailyBalanceChart!: ElementRef;
 
   private incomeExpenseChartInstance?: ChartInstance;
   private categoryChartInstance?: ChartInstance;
   private categoryBreakdownChartInstance?: ChartInstance;
   private monthlyBalanceChartInstance?: ChartInstance;
+  private dailyBalanceChartInstance?: ChartInstance;
+  dailyBalance: DailyBalance | null = null;
 
-  expensesByCategory: { category: string; color: string; total: number }[] = [];
+  expensesByCategory: CategoryExpense[] = [];
+  comparison: MonthComparison | null = null;
+  previousYearRecords: FinancialRecord[] = [];
+  private previousYearOf = 0;
+  readonly comparisonRows: { label: string; key: keyof MonthTotals; goodWhenUp: boolean }[] = [
+    { label: 'Income', key: 'income', goodWhenUp: true },
+    { label: 'Expenses', key: 'expenses', goodWhenUp: false },
+    { label: 'Savings', key: 'savings', goodWhenUp: true },
+  ];
   private maxExpense = 0;
 
   showAlerts = false;
@@ -130,6 +146,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // Server-side notifications (budget, rules...) share the bell with the alerts computed here.
   notifications: AppNotification[] = [];
   unreadCount = 0;
+  // From GET /financial-records/available; null until it loads, so no projection alerts flash meanwhile.
+  available: AvailableMonth | null = null;
   projectedBalance = 0;
   dailyAvgSpend = 0;
   daysRemaining = 0;
@@ -149,6 +167,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.categoryChartInstance?.destroy();
       this.categoryBreakdownChartInstance?.destroy();
       this.monthlyBalanceChartInstance?.destroy();
+      this.dailyBalanceChartInstance?.destroy();
     });
   }
 
@@ -220,6 +239,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   loadDashboardData(): void {
+    this.loadMonthInsights();
     this.financialService.getCurrentRecord().subscribe({
       next: (record) => {
         this.updateOverviewFromRecord(record);
@@ -275,6 +295,132 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.updateOverviewChart();
   }
 
+  // The backend owns the projection (it knows the recurrents still due); alerts are recomputed once it arrives.
+  loadMonthInsights(): void {
+    this.loadDailyBalance();
+    this.loadComparison();
+    this.loadPreviousYear();
+    const { overviewYear: year, overviewMonth: month } = this;
+    this.financialService.getAvailable(year, month).subscribe({
+      next: (a) => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return; // user moved on
+        this.applyAvailable(a);
+        this.computeAlerts(
+          year,
+          month,
+          this.overviewIncome,
+          this.overviewExpenses,
+          this.overviewSavings,
+        );
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return;
+        this.available = null;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  // Only hides the button: the backend enforces `export reports`, which these two roles hold.
+  get canExportPdf(): boolean {
+    return this.user?.roles?.some((role) => ['premium', 'admin'].includes(role)) ?? false;
+  }
+
+  exportMonth(format: 'csv' | 'pdf'): void {
+    const month = `${this.overviewYear}-${String(this.overviewMonth).padStart(2, '0')}`;
+    if (format === 'pdf') {
+      this.transactionService.exportMonthlyPdf(month, this.currencyService.symbol);
+      return;
+    }
+    const lastDay = new Date(this.overviewYear, this.overviewMonth, 0).getDate();
+    this.transactionService.exportTransactions({
+      date_from: `${month}-01`,
+      date_to: `${month}-${String(lastDay).padStart(2, '0')}`,
+    });
+  }
+
+  // Only fetched when the year changes, not on every month change.
+  loadPreviousYear(): void {
+    const year = this.overviewYear;
+    if (this.previousYearOf === year) return;
+    this.previousYearOf = year;
+    this.previousYearRecords = [];
+    this.financialService.getYearRecords(year - 1).subscribe({
+      next: (records) => {
+        if (year !== this.overviewYear) return;
+        this.previousYearRecords = records;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        if (year !== this.overviewYear) return;
+        this.previousYearOf = 0; // retry on the next refresh
+        this.previousYearRecords = [];
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  // January up to the selected month, against the same months of the year before, so a half-finished year
+  // is never set against a full one. Null when the year before has no data.
+  get yearToDate(): MonthComparison | null {
+    const sum = (records: FinancialRecord[]): MonthTotals => {
+      const upTo = records.filter((r) => r.month <= this.overviewMonth);
+      const income = upTo.reduce((t, r) => t + Number(r.monthly_income || 0), 0);
+      const expenses = upTo.reduce((t, r) => t + Number(r.monthly_expenses || 0), 0);
+      return { income, expenses, savings: income - expenses };
+    };
+    if (!this.previousYearRecords.length) return null;
+    const current = sum(this.yearlyRecords.filter((r) => r.year === this.overviewYear));
+    const previous = sum(this.previousYearRecords);
+    const pct = (key: keyof MonthTotals) =>
+      previous[key] === 0 ? null : ((current[key] - previous[key]) / Math.abs(previous[key])) * 100;
+    return {
+      current,
+      previous,
+      change_pct: { income: pct('income'), expenses: pct('expenses'), savings: pct('savings') },
+    };
+  }
+
+  loadComparison(): void {
+    const { overviewYear: year, overviewMonth: month } = this;
+    this.financialService.getMonthComparison(year, month).subscribe({
+      next: (c) => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return; // user moved on
+        this.comparison = c;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return;
+        this.comparison = null;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  loadDailyBalance(): void {
+    const { overviewYear: year, overviewMonth: month } = this;
+    this.financialService.getDailyBalance(year, month).subscribe({
+      next: (d) => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return; // user moved on
+        this.dailyBalance = d;
+        this.initDailyBalanceChart();
+      },
+      error: () => {
+        if (year !== this.overviewYear || month !== this.overviewMonth) return;
+        this.dailyBalance = null;
+        this.initDailyBalanceChart();
+      },
+    });
+  }
+
+  applyAvailable(a: AvailableMonth): void {
+    this.available = a;
+    this.projectedBalance = a.projected_balance;
+    this.dailyAvgSpend = a.daily_avg_spend;
+    this.daysRemaining = a.days_remaining;
+  }
+
   computeAlerts(
     year: number,
     month: number,
@@ -285,16 +431,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
     const now = new Date();
     const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1;
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const dayOfMonth = isCurrent ? now.getDate() : daysInMonth;
-    this.daysRemaining = daysInMonth - dayOfMonth;
-
     const monthName = this.monthNames[month - 1];
 
-    // The monthly base is a full-month plan, not money spent so far; only what transactions added is extrapolated.
-    const spentSoFar = Math.max(0, expenses - this.baseExpensesValue);
-    this.dailyAvgSpend = dayOfMonth > 0 ? spentSoFar / dayOfMonth : 0;
-    this.projectedBalance = income - expenses - this.dailyAvgSpend * this.daysRemaining;
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
@@ -319,7 +457,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
     }
 
-    if (this.projectedBalance < 0) {
+    if (!this.available) {
+      // projection not loaded yet: say nothing rather than a misleading "on track"
+    } else if (this.projectedBalance < 0) {
       alerts.push({
         type: 'danger',
         title: `Negative ${monthName} projection`,
@@ -339,7 +479,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
     }
 
-    if (isCurrent && this.daysRemaining <= 7 && expenses > income * 0.8) {
+    if (this.available && isCurrent && this.daysRemaining <= 7 && expenses > income * 0.8) {
       alerts.push({
         type: 'warning',
         title: 'Month ending soon',
@@ -545,6 +685,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.editingBase = false;
           this.updateMonthBreakdown();
           this.updateOverviewFromRecord(record);
+          this.loadMonthInsights();
           this.computeAlerts(
             this.overviewYear,
             this.overviewMonth,
@@ -600,6 +741,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   loadOverviewMonth(): void {
+    this.available = null;
+    this.loadMonthInsights();
     const record = this.yearlyRecords.find(
       (r) => r.year === this.overviewYear && r.month === this.overviewMonth,
     );
@@ -700,6 +843,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.initCategoryChart();
     this.initCategoryBreakdownChart();
     this.initMonthlyBalanceChart();
+    this.initDailyBalanceChart();
     this.updateOverviewChart();
     this.updateChartsWithRealData();
   }
@@ -710,6 +854,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.initCategoryChart();
       this.initCategoryBreakdownChart();
       this.initMonthlyBalanceChart();
+      this.initDailyBalanceChart();
     }, 200);
   }
 
@@ -897,6 +1042,79 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.categoryBreakdownChartInstance.data.datasets[0].backgroundColor =
       this.expensesByCategory.map((e) => e.color);
     this.categoryBreakdownChartInstance.update();
+  }
+
+  // This month against the last one, one point per day; "today" is the last point of the current line.
+  initDailyBalanceChart(): void {
+    if (!this.dailyBalanceChart?.nativeElement) return;
+    this.dailyBalanceChartInstance?.destroy();
+    const ctx = this.dailyBalanceChart.nativeElement.getContext('2d');
+    const symbol = this.currencyService.symbol;
+    const current = this.dailyBalance?.current ?? [];
+    const previous = this.dailyBalance?.previous ?? [];
+    const days = Math.max(current.length, previous.length);
+    const today = current.reduce<number>((last, v, i) => (v === null ? last : i), -1);
+
+    this.dailyBalanceChartInstance = new (chartConstructor())(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: days }, (_, i) => i + 1),
+        datasets: [
+          {
+            label: 'This month',
+            data: current,
+            borderColor: '#2dd4bf',
+            backgroundColor: '#2dd4bf',
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: current.map((_, i) => (i === today ? 5 : 0)),
+          },
+          {
+            label: 'Previous month',
+            data: previous,
+            borderColor: '#9ca3af',
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            tension: 0.25,
+            pointRadius: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: this.chartColors().legend, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: 'rgba(17,24,39,0.85)',
+            titleColor: '#e5e7eb',
+            bodyColor: '#d1d5db',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              title: (items: CartesianTooltipItem[]) => `Day ${items[0].label}`,
+              label: (c: CartesianTooltipItem) =>
+                ` ${c.dataset.label}: ${symbol}${c.parsed.y.toFixed(2)}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: this.chartColors().tick, font: { size: 11 } },
+          },
+          y: {
+            grid: { color: this.chartColors().grid },
+            ticks: {
+              color: this.chartColors().tick,
+              font: { size: 11 },
+              callback: (v: number | string) => symbol + v,
+            },
+          },
+        },
+      },
+    });
   }
 
   initMonthlyBalanceChart(): void {

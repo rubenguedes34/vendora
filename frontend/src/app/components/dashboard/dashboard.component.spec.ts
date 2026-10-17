@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { DashboardComponent } from './dashboard.component';
+import { TransactionService } from '../../services/transaction.service';
 
 const STORAGE_KEY = 'vendora.dismissedAlerts';
 
@@ -91,24 +92,71 @@ describe('DashboardComponent month handling', () => {
 
     expect(component.overviewYear).toBe(now.getFullYear());
     expect(component.overviewMonth).toBe(now.getMonth() + 1);
-
-    component.computeAlerts(component.overviewYear, component.overviewMonth, 1000, 500, 500);
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    expect(component.daysRemaining).toBe(daysInMonth - now.getDate());
   });
 
-  it('deltaPct returns null without a previous month and an object (even at 0%) otherwise', () => {
+  it('deltaPct reads the backend comparison: null without one, an object (even at 0%) otherwise', () => {
     const component = create();
-    component.overviewMonth = 3;
-    component.overviewIncome = 100;
-    component.monthBreakdown = [];
     expect(component.deltaPct('income')).toBeNull();
 
-    component.monthBreakdown = [{ month: 2, income: 100, expenses: 0, balance: 0 }];
+    const totals = { income: 100, expenses: 50, savings: 50 };
+    component.comparison = {
+      current: totals,
+      previous: totals,
+      change_pct: { income: 0, expenses: null, savings: 12.5 },
+    };
     expect(component.deltaPct('income')).toEqual({ pct: 0 });
+    expect(component.deltaPct('expenses')).toBeNull();
+    expect(component.deltaPct('savings')).toEqual({ pct: 12.5 });
+  });
 
-    component.overviewIncome = 150;
-    expect(component.deltaPct('income')).toEqual({ pct: 50 });
+  it('exports the selected month: CSV over its date range, PDF by month and currency symbol', () => {
+    const component = create();
+    const transactions = TestBed.inject(TransactionService);
+    const csv = vi.spyOn(transactions, 'exportTransactions').mockImplementation(() => undefined);
+    const pdf = vi.spyOn(transactions, 'exportMonthlyPdf').mockImplementation(() => undefined);
+    component.overviewYear = 2024;
+    component.overviewMonth = 2;
+
+    component.exportMonth('csv');
+    expect(csv).toHaveBeenCalledWith({ date_from: '2024-02-01', date_to: '2024-02-29' });
+
+    component.exportMonth('pdf');
+    expect(pdf).toHaveBeenCalledWith('2024-02', expect.any(String));
+  });
+
+  it('compares the year so far with the same months of the year before', () => {
+    const component = create();
+    const rec = (year: number, month: number, income: number, expenses: number) =>
+      ({ year, month, monthly_income: income, monthly_expenses: expenses }) as never;
+    component.overviewYear = 2026;
+    component.overviewMonth = 2;
+    expect(component.yearToDate).toBeNull();
+
+    component.previousYearRecords = [
+      rec(2025, 1, 100, 50),
+      rec(2025, 2, 100, 50),
+      rec(2025, 3, 999, 999),
+    ];
+    component.yearlyRecords = [rec(2026, 1, 150, 50), rec(2026, 2, 150, 100)];
+
+    const ytd = component.yearToDate!;
+    expect(ytd.current).toEqual({ income: 300, expenses: 150, savings: 150 });
+    expect(ytd.previous).toEqual({ income: 200, expenses: 100, savings: 100 }); // March is not counted
+    expect(ytd.change_pct.income).toBe(50);
+    expect(ytd.change_pct.savings).toBe(50);
+  });
+
+  it('only premium users and admins can export the PDF', () => {
+    const component = create();
+    const as = (roles?: string[]) => {
+      component.user = { id: 1, name: 'A', email: 'a@a.com', roles };
+      return component.canExportPdf;
+    };
+
+    expect(as(['user'])).toBe(false);
+    expect(as(undefined)).toBe(false);
+    expect(as(['premium'])).toBe(true);
+    expect(as(['admin'])).toBe(true);
   });
 
   it('pickMonth closes the picker and switches the overview month', () => {
@@ -122,26 +170,27 @@ describe('DashboardComponent month handling', () => {
     expect(component.overviewYear).toBe(2025);
   });
 
-  it('projects only transaction spend, not the monthly base, over the remaining days', () => {
-    const now = new Date();
+  it('raises projection alerts only once the backend projection is loaded', () => {
     const component = create();
-    component.user = {
-      id: 1,
-      name: 'A',
-      email: 'a@a.com',
-      monthly_income: 1350,
-      monthly_expenses: 1300,
-    } as never;
+    const titles = () => component.alerts.map((a) => a.title);
 
-    // Base 1300 plus 0 in transactions: nothing to extrapolate, so the month ends on its plan.
-    component.computeAlerts(now.getFullYear(), now.getMonth() + 1, 1350, 1300, 50);
-    expect(component.dailyAvgSpend).toBe(0);
-    expect(component.projectedBalance).toBe(50);
+    component.computeAlerts(2026, 10, 1000, 900, 100);
+    expect(titles().some((t) => t.includes('projection') || t.includes('On track'))).toBe(false);
 
-    // 100 of transactions on top of the base is extrapolated over the days left.
-    component.computeAlerts(now.getFullYear(), now.getMonth() + 1, 1350, 1400, -50);
-    const expected = 1350 - 1400 - (100 / now.getDate()) * component.daysRemaining;
-    expect(component.projectedBalance).toBeCloseTo(expected, 6);
+    component.applyAvailable({
+      year: 2026,
+      month: 10,
+      available: 100,
+      days_remaining: 10,
+      pending_income: 0,
+      pending_expenses: 50,
+      daily_avg_spend: 8,
+      projected_balance: -30,
+      daily_allowance: 5,
+    });
+    component.computeAlerts(2026, 10, 1000, 900, 100);
+    expect(component.projectedBalance).toBe(-30);
+    expect(titles()).toContain('Negative October projection');
   });
 
   it('bell count adds unread server notifications to the calculated alerts', () => {
@@ -188,6 +237,17 @@ describe('DashboardComponent month handling', () => {
     // A past month, so the "month ending soon" warning (current month only) cannot make this date-dependent.
     component.overviewYear = 2025;
     component.overviewMonth = 1;
+    component.applyAvailable({
+      year: 2025,
+      month: 1,
+      available: 50,
+      days_remaining: 0,
+      pending_income: 0,
+      pending_expenses: 0,
+      daily_avg_spend: 0,
+      projected_balance: 50,
+      daily_allowance: 0,
+    });
     component.computeAlerts(2025, 1, 1000, 950, 50);
     expect(component.hasCritical).toBe(false);
     expect(component.alertsHeading).toBe('3 warnings');

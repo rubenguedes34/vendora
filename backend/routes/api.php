@@ -11,6 +11,7 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\MarketDataController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecurrentTransactionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransactionController;
@@ -47,6 +48,9 @@ Route::middleware('auth.custom')->group(function () {
 
     // Financial records (monthly income/expense/savings) - custom routes first
     Route::get('/financial-records/current', [FinancialRecordController::class, 'current']);
+    Route::get('/financial-records/available', [FinancialRecordController::class, 'available']);
+    Route::get('/financial-records/daily-balance', [FinancialRecordController::class, 'dailyBalance']);
+    Route::get('/financial-records/month-comparison', [FinancialRecordController::class, 'monthComparison']);
     Route::get('/financial-records/year/{year}', [FinancialRecordController::class, 'byYear']);
     Route::get('/financial-records/net-worth', [FinancialRecordController::class, 'netWorth']);
     Route::get('/financial-records/allocation', [FinancialRecordController::class, 'allocation']);
@@ -55,6 +59,9 @@ Route::middleware('auth.custom')->group(function () {
 
     // Investments
     Route::apiResource('investments', InvestmentController::class)->middleware('permission:view investments');
+
+    // Reports
+    Route::get('/reports/monthly', [ReportController::class, 'monthly'])->middleware('permission:export reports');
 
     // Alert rules
     Route::apiResource('alert-rules', AlertRuleController::class)->except('show');

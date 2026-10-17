@@ -109,7 +109,7 @@ class AdminController extends Controller
      *
      *         @OA\JsonContent(required={"role"},
      *
-     *             @OA\Property(property="role", type="string", enum={"admin","manager","user"})
+     *             @OA\Property(property="role", type="string", enum={"admin","manager","premium","user"})
      *         )
      *     ),
      *
