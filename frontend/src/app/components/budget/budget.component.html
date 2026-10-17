@@ -59,7 +59,18 @@
 
     <ng-container *ngIf="activeTab === 'setup'">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <p class="text-gray-600 mb-6">{{ 'budget.intro' | translate }}</p>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <p class="text-gray-600">{{ 'budget.intro' | translate }}</p>
+          <button
+            type="button"
+            (click)="copyPrevious()"
+            [disabled]="isCopying"
+            class="px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {{ 'budget.copyPrevious' | translate }}
+          </button>
+        </div>
+        <p class="text-sm text-gray-600 mb-4 empty:hidden" role="status">{{ copyMessage }}</p>
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">

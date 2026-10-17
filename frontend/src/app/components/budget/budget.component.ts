@@ -64,6 +64,8 @@ export class BudgetComponent implements OnInit {
   };
 
   isSaving = false;
+  isCopying = false;
+  copyMessage = '';
   errorMessage = '';
 
   comparison: BudgetComparison[] = [];
@@ -137,6 +139,31 @@ export class BudgetComponent implements OnInit {
       next: () => this.loadSummary(),
       error: (error) =>
         (this.errorMessage = error.message || this.translate.instant('budget.errors.saveBudget')),
+    });
+  }
+
+  copyPrevious(): void {
+    this.isCopying = true;
+    this.copyMessage = '';
+    this.errorMessage = '';
+
+    this.financialService.copyPreviousBudgets(this.getCurrentMonth()).subscribe({
+      next: ({ copied }) => {
+        this.isCopying = false;
+        this.copyMessage = this.translate.instant(
+          copied > 0 ? 'budget.copyDone' : 'budget.copyNothing',
+          { count: copied },
+        );
+        if (copied > 0) {
+          this.financialService.clearCategoryCache();
+          this.loadCategories();
+          this.loadSummary();
+        }
+      },
+      error: (error) => {
+        this.isCopying = false;
+        this.errorMessage = error.message || this.translate.instant('budget.errors.copyPrevious');
+      },
     });
   }
 

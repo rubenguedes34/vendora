@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Budget\CopyPreviousBudgetRequest;
 use App\Http\Requests\Budget\IndexBudgetRequest;
 use App\Http\Requests\Budget\StoreBudgetRequest;
 use App\Http\Requests\Budget\UpdateBudgetRequest;
 use App\Models\Budget;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BudgetController extends Controller
@@ -59,7 +61,11 @@ class BudgetController extends Controller
     {
         $data = $request->validated();
 
-        $budget = $request->user()->budgets()->create($data);
+        // One limit per category and month: saving again updates it instead of adding a row the summary would sum twice.
+        $budget = $request->user()->budgets()->updateOrCreate(
+            ['category_id' => $data['category_id'], 'month' => $data['month']],
+            ['amount' => $data['amount']],
+        );
 
         return response()->json($budget->load('category'), 201);
     }
@@ -195,6 +201,56 @@ class BudgetController extends Controller
         })->sortByDesc('actual')->values();
 
         return response()->json($result);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/budgets/copy-previous",
+     *     tags={"Budgets"},
+     *     summary="Copy last month's budget limits into a month",
+     *     description="Only fills categories that have no budget (or 0) in the target month; never overwrites a limit the user already set.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(required=false,
+     *
+     *         @OA\JsonContent(@OA\Property(property="month", type="string", example="2025-07"))
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Number of budgets copied and the month they came from",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="copied", type="integer"),
+     *             @OA\Property(property="source_month", type="string", example="2025-06")
+     *         )
+     *     )
+     * )
+     */
+    public function copyPrevious(CopyPreviousBudgetRequest $request)
+    {
+        $month = $request->validated('month') ?? date('Y-m');
+        $source = Carbon::createFromFormat('!Y-m', $month)->subMonthNoOverflow()->format('Y-m');
+        $user = $request->user();
+
+        $alreadySet = $user->budgets()->where('month', $month)->where('amount', '>', 0)->pluck('category_id');
+
+        // The same category can have several rows for a month; the newest one wins.
+        $previous = $user->budgets()
+            ->where('month', $source)
+            ->where('amount', '>', 0)
+            ->whereNotIn('category_id', $alreadySet)
+            ->orderBy('id')
+            ->get()
+            ->keyBy('category_id');
+
+        foreach ($previous as $budget) {
+            $user->budgets()->updateOrCreate(
+                ['category_id' => $budget->category_id, 'month' => $month],
+                ['amount' => $budget->amount],
+            );
+        }
+
+        return response()->json(['copied' => $previous->count(), 'source_month' => $source]);
     }
 
     /**

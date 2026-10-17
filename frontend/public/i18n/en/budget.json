@@ -42,6 +42,10 @@
     "loadSummary": "Failed to load summary",
     "saveBudget": "Failed to save budget",
     "updateGoal": "Failed to update savings goal",
-    "loadComparison": "Failed to load. Is the backend running?"
-  }
+    "loadComparison": "Failed to load. Is the backend running?",
+    "copyPrevious": "Failed to copy last month"
+  },
+  "copyPrevious": "Copy from last month",
+  "copyDone": "Copied {{count}} budget limits from last month.",
+  "copyNothing": "Nothing to copy: last month has no budgets, or this month already has them."
 }

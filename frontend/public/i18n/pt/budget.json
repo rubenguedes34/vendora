@@ -42,6 +42,10 @@
     "loadSummary": "Falha ao carregar o resumo",
     "saveBudget": "Falha ao guardar o orçamento",
     "updateGoal": "Falha ao atualizar a meta de poupança",
-    "loadComparison": "Falha ao carregar. O servidor está a funcionar?"
-  }
+    "loadComparison": "Falha ao carregar. O servidor está a funcionar?",
+    "copyPrevious": "Não foi possível copiar o mês anterior"
+  },
+  "copyPrevious": "Copiar do mês anterior",
+  "copyDone": "Copiados {{count}} limites do mês anterior.",
+  "copyNothing": "Nada para copiar: o mês anterior não tem orçamentos, ou este mês já os tem."
 }
