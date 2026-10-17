@@ -19,6 +19,7 @@ import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
 import { QuickAddComponent } from '../quick-add/quick-add.component';
 import { User } from '../../../services/auth.service';
+import { PwaService } from '../../../services/pwa.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -266,6 +267,25 @@ import { User } from '../../../services/auth.service';
       <div class="p-4 border-t border-gray-200 space-y-2">
         <app-theme-picker></app-theme-picker>
         <app-currency-picker></app-currency-picker>
+        <button
+          *ngIf="pwa.updateReady()"
+          data-testid="pwa-update"
+          (click)="pwa.reload()"
+          class="w-full px-3 py-2 text-sm rounded-xl bg-primary-600 text-white"
+        >
+          New version available — reload
+        </button>
+        <button
+          *ngIf="pwa.canInstall()"
+          data-testid="pwa-install"
+          (click)="pwa.install()"
+          class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 hover:bg-gray-50"
+        >
+          Install app
+        </button>
+        <p *ngIf="pwa.showIosHint" data-testid="pwa-ios-hint" class="text-xs text-gray-500">
+          To install: Share → Add to Home Screen.
+        </p>
       </div>
 
       <div class="p-4 border-t border-gray-200 space-y-1">
@@ -304,6 +324,7 @@ import { User } from '../../../services/auth.service';
 })
 export class SidebarComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly pwa = inject(PwaService);
 
   user: User | null = null;
   initials = '';

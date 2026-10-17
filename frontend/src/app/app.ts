@@ -1,6 +1,7 @@
 import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './services/theme.service';
+import { PwaService } from './services/pwa.service';
 import { FooterComponent } from './components/shared/footer/footer.component';
 import { ScrollTopComponent } from './components/shared/scroll-top/scroll-top.component';
 
@@ -14,7 +15,11 @@ import { ScrollTopComponent } from './components/shared/scroll-top/scroll-top.co
 export class App {
   protected readonly title = signal('frontend');
 
-  constructor(private themeService: ThemeService) {
+  // Injected here so PwaService catches beforeinstallprompt on every page, not only with the sidebar.
+  constructor(
+    private themeService: ThemeService,
+    _pwa: PwaService,
+  ) {
     this.themeService.setTheme(this.themeService.getSavedTheme());
   }
 }

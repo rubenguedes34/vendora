@@ -5,6 +5,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { SidebarComponent } from './sidebar.component';
+import { PwaService } from '../../../services/pwa.service';
+import { signal } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 
@@ -16,6 +18,13 @@ describe('SidebarComponent', () => {
   let authService: Partial<AuthService>;
   let router: Router;
   let userSubject: BehaviorSubject<any>;
+  const pwa = {
+    canInstall: signal(false),
+    updateReady: signal(false),
+    showIosHint: false,
+    install: vi.fn(),
+    reload: vi.fn(),
+  };
 
   beforeEach(async () => {
     userSubject = new BehaviorSubject<any>({ id: 1, name: 'John Doe', email: 'john@example.com' });
@@ -36,6 +45,7 @@ describe('SidebarComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: AuthService, useValue: authService },
+        { provide: PwaService, useValue: pwa },
       ],
     }).compileComponents();
 
@@ -43,6 +53,23 @@ describe('SidebarComponent', () => {
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
     fixture.detectChanges();
+  });
+
+  it('shows install and update buttons only when the PWA service allows it', () => {
+    const q = (id: string) => fixture.debugElement.query(By.css(`[data-testid="${id}"]`));
+    expect(q('pwa-install')).toBeNull();
+    expect(q('pwa-update')).toBeNull();
+
+    pwa.canInstall.set(true);
+    pwa.updateReady.set(true);
+    fixture.detectChanges();
+    q('pwa-install').nativeElement.click();
+    q('pwa-update').nativeElement.click();
+    expect(pwa.install).toHaveBeenCalled();
+    expect(pwa.reload).toHaveBeenCalled();
+
+    pwa.canInstall.set(false);
+    pwa.updateReady.set(false);
   });
 
   it('should create', () => {
