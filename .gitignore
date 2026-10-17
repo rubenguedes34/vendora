@@ -28,6 +28,7 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+!frontend/public/i18n/**/auth.json
 
 # IDE / tool-specific config (keep local only)
 .devin/

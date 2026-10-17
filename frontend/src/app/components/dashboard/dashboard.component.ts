@@ -893,7 +893,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   formatCurrency(value: number | string | null | undefined): string {
-    return (parseFloat(String(value ?? '')) || 0).toFixed(2);
+    return this.fmtNum(parseFloat(String(value ?? '')) || 0, 2, true);
   }
 
   updateChartsWithRealData(): void {

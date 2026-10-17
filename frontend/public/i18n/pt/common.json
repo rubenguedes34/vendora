@@ -1,4 +1,5 @@
 {
+  "amountPlaceholder": "0,00",
   "language": "Idioma",
   "theme": "Tema",
   "currency": "Moeda",
@@ -66,7 +67,7 @@
     "namePlaceholder": "Nome (ex.: Apple, Bitcoin, S&P 500)",
     "assetType": "Tipo de ativo",
     "purchaseDate": "Data de compra",
-    "currentValuePlaceholder": "Valor atual (igual ao investido se desconhecido)",
+    "currentValuePlaceholder": "Valor atual (ou o investido)",
     "transactionSaved": "Transação guardada!",
     "investmentAdded": "Investimento adicionado!",
     "saveFailed": "Não foi possível guardar. Tente novamente.",

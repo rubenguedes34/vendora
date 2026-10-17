@@ -173,7 +173,7 @@
         type="number"
         step="any"
         min="0.01"
-        placeholder="0.00"
+        [placeholder]="'common.amountPlaceholder' | translate"
         [attr.aria-label]="'common.quickAdd.amount' | translate"
         class="w-40 bg-transparent text-4xl font-bold tracking-tight tabular-nums text-center focus:outline-none"
         [class.text-red-600]="activeTab === 'expense'"
@@ -256,7 +256,7 @@
         type="number"
         step="any"
         min="0.01"
-        placeholder="0.00"
+        [placeholder]="'common.amountPlaceholder' | translate"
         [attr.aria-label]="'common.quickAdd.amountInvested' | translate"
         class="w-40 bg-transparent text-4xl font-bold tracking-tight tabular-nums text-center text-purple-600 focus:outline-none"
       />
