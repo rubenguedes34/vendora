@@ -143,7 +143,7 @@ class RecurrentTransactionController extends Controller
 
         $item->delete();
 
-        return response()->json(['message' => 'Recurrent transaction deleted']);
+        return response()->json(['message' => __('messages.recurrent_deleted')]);
     }
 
     /**

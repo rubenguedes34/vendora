@@ -9,6 +9,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../services/language.service';
+import { NotificationTextPipe } from '../../pipes/notification-text.pipe';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService, AppNotification } from '../../services/notification.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
@@ -39,7 +42,14 @@ const COLORS: Record<string, string> = {
   selector: 'app-notifications',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, SidebarComponent, AlertRulesComponent, CurrencyTextPipe],
+  imports: [
+    CommonModule,
+    SidebarComponent,
+    AlertRulesComponent,
+    CurrencyTextPipe,
+    NotificationTextPipe,
+    TranslatePipe,
+  ],
   template: `
     <div class="min-h-screen bg-slate-50 flex">
       <app-sidebar></app-sidebar>
@@ -49,8 +59,8 @@ const COLORS: Record<string, string> = {
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
               <div>
-                <h2 class="text-xl font-semibold">Notification History</h2>
-                <p class="text-primary-200 text-xs">View and manage all notifications</p>
+                <h2 class="text-xl font-semibold">{{ 'notifications.title' | translate }}</h2>
+                <p class="text-primary-200 text-xs">{{ 'notifications.subtitle' | translate }}</p>
               </div>
               <button
                 *ngIf="unreadCount > 0"
@@ -58,7 +68,7 @@ const COLORS: Record<string, string> = {
                 [disabled]="markingAll"
                 class="text-xs bg-primary-600 hover:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
-                Mark all as read
+                {{ 'notifications.markAllRead' | translate }}
               </button>
             </div>
           </div>
@@ -71,7 +81,9 @@ const COLORS: Record<string, string> = {
             {{ errorMessage }}
           </div>
 
-          <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading…</div>
+          <div *ngIf="loading" class="text-center py-12 text-gray-400">
+            {{ 'notifications.loading' | translate }}
+          </div>
 
           <div
             *ngIf="!loading && notifications.length === 0"
@@ -90,7 +102,7 @@ const COLORS: Record<string, string> = {
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               />
             </svg>
-            <p class="text-gray-500">No notifications yet.</p>
+            <p class="text-gray-500">{{ 'notifications.empty' | translate }}</p>
           </div>
 
           <div *ngIf="!loading" class="space-y-2">
@@ -108,11 +120,13 @@ const COLORS: Record<string, string> = {
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2">
                   <div>
-                    <p class="font-medium text-gray-800">{{ n.title }}</p>
-                    <p class="text-sm text-gray-500">{{ n.body | currencyText }}</p>
+                    <p class="font-medium text-gray-800">{{ n | notificationText: 'title' }}</p>
+                    <p class="text-sm text-gray-500">
+                      {{ n | notificationText: 'body' | currencyText }}
+                    </p>
                   </div>
                   <span class="text-xs text-gray-400 whitespace-nowrap">{{
-                    n.created_at | date: 'medium'
+                    n.created_at | date: 'medium' : undefined : lang.locale
                   }}</span>
                 </div>
               </div>
@@ -149,7 +163,7 @@ const COLORS: Record<string, string> = {
                   [disabled]="marking === n.id"
                   class="text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded-md hover:bg-primary-100 transition-colors"
                 >
-                  {{ marking === n.id ? '…' : 'Mark read' }}
+                  {{ marking === n.id ? '…' : ('notifications.markRead' | translate) }}
                 </button>
               </div>
             </div>
@@ -162,6 +176,8 @@ const COLORS: Record<string, string> = {
 export class NotificationsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
+  readonly lang = inject(LanguageService);
 
   notifications: AppNotification[] = [];
   unreadCount = 0;
@@ -207,7 +223,7 @@ export class NotificationsComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Could not load notifications.';
+        this.errorMessage = this.translate.instant('notifications.errLoad');
         this.cdr.markForCheck();
       },
     });
@@ -223,7 +239,7 @@ export class NotificationsComponent implements OnInit {
       },
       error: () => {
         this.marking = null;
-        this.errorMessage = 'Could not mark the notification as read.';
+        this.errorMessage = this.translate.instant('notifications.errMarkRead');
         this.cdr.markForCheck();
       },
     });
@@ -239,7 +255,7 @@ export class NotificationsComponent implements OnInit {
       },
       error: () => {
         this.markingAll = false;
-        this.errorMessage = 'Could not mark all notifications as read.';
+        this.errorMessage = this.translate.instant('notifications.errMarkAll');
         this.cdr.markForCheck();
       },
     });
@@ -255,7 +271,7 @@ export class NotificationsComponent implements OnInit {
       },
       error: () => {
         this.deleting = null;
-        this.errorMessage = 'Could not delete the notification.';
+        this.errorMessage = this.translate.instant('notifications.errDelete');
         this.cdr.markForCheck();
       },
     });

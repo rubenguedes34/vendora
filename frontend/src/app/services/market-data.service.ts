@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
@@ -30,6 +31,8 @@ export interface MarketQuote {
 export class MarketDataService {
   private apiUrl = environment.apiUrl;
 
+  private translate = inject(TranslateService);
+
   constructor(
     private http: HttpClient,
     private authService: AuthService,
@@ -54,10 +57,12 @@ export class MarketDataService {
   }
 
   private handleError(error: ApiError): Error {
-    if (error.status === 0) return new Error('Network error');
-    if (error.status === 404) return new Error('Symbol not found');
+    if (error.status === 0) return new Error(this.translate.instant('errors.network'));
+    if (error.status === 404) return new Error(this.translate.instant('errors.symbolNotFound'));
     if (error.status === 502 || error.status === 503)
-      return new Error('Market data provider unavailable');
-    return new Error(error.error?.error || error.error?.message || 'Market data request failed');
+      return new Error(this.translate.instant('errors.providerUnavailable'));
+    return new Error(
+      error.error?.error || error.error?.message || this.translate.instant('errors.marketFailed'),
+    );
   }
 }

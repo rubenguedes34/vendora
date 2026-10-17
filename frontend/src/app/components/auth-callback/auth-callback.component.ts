@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -7,12 +8,12 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-auth-callback',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-100">
       <div class="text-center">
-        <div class="text-2xl font-bold text-gray-800 mb-2">Completing login...</div>
-        <div class="text-gray-600">Please wait while we redirect you.</div>
+        <div class="text-2xl font-bold text-gray-800 mb-2">{{ 'auth.completing' | translate }}</div>
+        <div class="text-gray-600">{{ 'auth.pleaseWait' | translate }}</div>
       </div>
     </div>
   `,
@@ -22,6 +23,7 @@ export class AuthCallbackComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -35,7 +37,9 @@ export class AuthCallbackComponent implements OnInit {
     }
 
     if (!code) {
-      this.router.navigate(['/login'], { queryParams: { error: 'Missing login data' } });
+      this.router.navigate(['/login'], {
+        queryParams: { error: this.translate.instant('auth.missingData') },
+      });
       return;
     }
 
@@ -48,7 +52,7 @@ export class AuthCallbackComponent implements OnInit {
       },
       error: () => {
         this.router.navigate(['/login'], {
-          queryParams: { error: 'Google login failed. Please try again.' },
+          queryParams: { error: this.translate.instant('auth.googleFailed') },
         });
       },
     });

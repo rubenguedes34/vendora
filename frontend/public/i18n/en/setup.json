@@ -1,0 +1,17 @@
+{
+  "welcome": "Welcome to Vendora",
+  "subtitle": "Set your monthly baseline to personalize your dashboard",
+  "income": "Monthly Income (€)",
+  "expenses": "Estimated Monthly Expenses (€)",
+  "incomePlaceholder": "e.g., 3,000",
+  "expensesPlaceholder": "e.g., 2,000",
+  "incomeRequired": "Monthly income is required.",
+  "incomeNegative": "Monthly income cannot be negative.",
+  "expensesRequired": "Estimated expenses are required.",
+  "expensesNegative": "Estimated expenses cannot be negative.",
+  "amountMax": "Enter an amount below €100,000,000.",
+  "complete": "Complete Setup",
+  "saving": "Saving...",
+  "unreachable": "Could not reach the backend. Make sure php artisan serve is running at {{url}}.",
+  "failed": "Setup failed. Please try again."
+}

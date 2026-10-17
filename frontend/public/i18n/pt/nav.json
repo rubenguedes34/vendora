@@ -1,0 +1,15 @@
+{
+  "dashboard": "Painel",
+  "budget": "Orçamento",
+  "investments": "Investimentos",
+  "netWorth": "Património líquido",
+  "healthScore": "Saúde financeira",
+  "aiSupport": "Apoio com IA",
+  "notifications": "Notificações",
+  "admin": "Administração",
+  "openAdminPanel": "Abrir painel de administração",
+  "logout": "Terminar sessão",
+  "pwaUpdate": "Nova versão disponível — recarregar",
+  "pwaInstall": "Instalar aplicação",
+  "pwaIosHint": "Para instalar: Partilhar → Adicionar ao ecrã principal."
+}

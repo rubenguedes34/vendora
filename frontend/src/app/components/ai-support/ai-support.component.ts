@@ -11,6 +11,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../services/language.service';
 import { timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
@@ -29,19 +31,20 @@ interface Conversation {
 interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
+  greeting?: boolean;
 }
 
 @Component({
   selector: 'app-ai-support',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
   template: `
     <div class="p-6 max-w-4xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Support</h1>
-          <p class="text-gray-600">Ask anything about Vendora or browse the FAQs below.</p>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ 'ai.title' | translate }}</h1>
+          <p class="text-gray-600">{{ 'ai.subtitle' | translate }}</p>
         </div>
         <a
           routerLink="/dashboard"
@@ -55,15 +58,19 @@ interface ChatMessage {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Back to Dashboard
+          {{ 'ai.back' | translate }}
         </a>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- FAQ list -->
         <div class="bg-white rounded-lg shadow p-4">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Frequently Asked Questions</h2>
-          <div *ngIf="faqsLoading()" class="text-gray-500">Loading FAQs...</div>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            {{ 'ai.faqTitle' | translate }}
+          </h2>
+          <div *ngIf="faqsLoading()" class="text-gray-500">
+            {{ 'ai.faqLoading' | translate }}
+          </div>
           <div *ngIf="faqsError()" class="text-red-600 text-sm bg-red-50 p-2 rounded">
             {{ faqsError() }}
           </div>
@@ -83,20 +90,20 @@ interface ChatMessage {
         <!-- Chat -->
         <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[500px]">
           <div class="flex items-center justify-between mb-4 relative">
-            <h2 class="text-lg font-semibold text-gray-800">Chat with AI</h2>
+            <h2 class="text-lg font-semibold text-gray-800">{{ 'ai.chatTitle' | translate }}</h2>
             <div class="flex items-center gap-4">
               <button
                 (click)="historyOpen.set(!historyOpen())"
                 class="text-sm text-primary-600 hover:underline"
               >
-                History ({{ conversations().length }})
+                {{ 'ai.history' | translate: { count: conversations().length } }}
               </button>
               <button
                 (click)="newChat()"
                 [disabled]="loading()"
                 class="text-sm text-primary-600 hover:underline disabled:opacity-50"
               >
-                New chat
+                {{ 'ai.newChat' | translate }}
               </button>
             </div>
 
@@ -105,7 +112,7 @@ interface ChatMessage {
               class="absolute right-0 top-full mt-2 w-72 max-h-72 overflow-y-auto bg-white border rounded-md shadow-lg z-10"
             >
               <p *ngIf="!conversations().length" class="p-3 text-sm text-gray-500">
-                No previous conversations.
+                {{ 'ai.noHistory' | translate }}
               </p>
               <div
                 *ngFor="let c of conversations()"
@@ -120,13 +127,13 @@ interface ChatMessage {
                 >
                   {{ c.title }}
                   <span class="block text-xs text-gray-500">{{
-                    c.updated_at | date: 'short'
+                    c.updated_at | date: 'short' : undefined : lang.locale
                   }}</span>
                 </button>
                 <button
                   (click)="deleteConversation(c.id)"
                   [disabled]="loading()"
-                  aria-label="Delete conversation"
+                  [attr.aria-label]="'ai.deleteConversation' | translate"
                   class="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50"
                 >
                   ✕
@@ -149,10 +156,12 @@ interface ChatMessage {
                 [class.bg-gray-100]="msg.role === 'assistant'"
                 [class.text-gray-800]="msg.role === 'assistant'"
               >
-                {{ msg.text }}
+                {{ msg.greeting ? ('ai.greeting' | translate) : msg.text }}
               </div>
             </div>
-            <div *ngIf="loading()" class="text-gray-500 text-sm">AI is typing...</div>
+            <div *ngIf="loading()" class="text-gray-500 text-sm">
+              {{ 'ai.typing' | translate }}
+            </div>
             <div *ngIf="error()" class="text-red-600 text-sm bg-red-50 p-2 rounded">
               {{ error() }}
             </div>
@@ -164,7 +173,7 @@ interface ChatMessage {
               [(ngModel)]="newMessage"
               (keydown.enter)="send()"
               type="text"
-              placeholder="Type your support question..."
+              [placeholder]="'ai.placeholder' | translate"
               class="flex-1 min-w-0 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               [disabled]="loading()"
             />
@@ -173,7 +182,7 @@ interface ChatMessage {
               [disabled]="!newMessage.trim() || loading() || opening()"
               class="shrink-0 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send
+              {{ 'ai.send' | translate }}
             </button>
           </div>
         </div>
@@ -184,6 +193,8 @@ interface ChatMessage {
 export class AiSupportComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
+  readonly lang = inject(LanguageService);
 
   private chatInput = viewChild<ElementRef<HTMLInputElement>>('chatInput');
 
@@ -204,7 +215,8 @@ export class AiSupportComponent implements OnInit {
   private greeting(): ChatMessage {
     return {
       role: 'assistant',
-      text: 'Hi! I am your Vendora AI assistant. How can I help you today?',
+      text: '',
+      greeting: true,
     };
   }
 
@@ -239,7 +251,7 @@ export class AiSupportComponent implements OnInit {
         },
         error: () => {
           this.opening.set(false);
-          this.error.set('Could not open that conversation.');
+          this.error.set(this.translate.instant('ai.errOpen'));
         },
       });
   }
@@ -253,7 +265,7 @@ export class AiSupportComponent implements OnInit {
           this.newChat();
         }
       },
-      error: () => this.error.set('Could not delete that conversation.'),
+      error: () => this.error.set(this.translate.instant('ai.errDelete')),
     });
   }
 
@@ -285,14 +297,12 @@ export class AiSupportComponent implements OnInit {
           this.faqsLoading.set(false);
           if (err.name === 'TimeoutError' || err.status === 0) {
             this.faqsError.set(
-              'Could not reach the backend. Make sure php artisan serve is running at ' +
-                environment.backendUrl +
-                '.',
+              this.translate.instant('ai.errBackend', { url: environment.backendUrl }),
             );
           } else if (err.status === 401) {
-            this.faqsError.set('Your session has expired. Please log in again.');
+            this.faqsError.set(this.translate.instant('ai.errSession'));
           } else {
-            this.faqsError.set(err.error?.message || 'Could not load FAQs. Please try again.');
+            this.faqsError.set(err.error?.message || this.translate.instant('ai.errFaqs'));
           }
         },
       });
@@ -333,17 +343,12 @@ export class AiSupportComponent implements OnInit {
         error: (err) => {
           if (err.name === 'TimeoutError' || err.status === 0) {
             this.error.set(
-              'Could not reach the backend. Make sure php artisan serve is running at ' +
-                environment.backendUrl +
-                '.',
+              this.translate.instant('ai.errBackend', { url: environment.backendUrl }),
             );
           } else if (err.status === 401) {
-            this.error.set('Your session has expired. Please log in again.');
+            this.error.set(this.translate.instant('ai.errSession'));
           } else {
-            this.error.set(
-              err.error?.message ||
-                'Could not get a response from the AI support service. Please try again.',
-            );
+            this.error.set(err.error?.message || this.translate.instant('ai.errChat'));
           }
           this.loading.set(false);
         },

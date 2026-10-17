@@ -35,12 +35,12 @@ class SetupController extends Controller
             $user = TokenService::verify($request->token);
 
             if (! $user) {
-                return response()->json(['message' => 'Invalid token'], 401);
+                return response()->json(['message' => __('messages.invalid_token')], 401);
             }
 
             // Same gate as the auth.custom middleware: this route is public and reads the token itself.
             if ($user->isBlacklisted()) {
-                return response()->json(['message' => 'Your account has been suspended.'], 403);
+                return response()->json(['message' => __('messages.account_suspended')], 403);
             }
 
             $user->update([
@@ -58,6 +58,7 @@ class SetupController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'locale' => $user->locale,
                 'monthly_income' => $user->monthly_income,
                 'monthly_expenses' => $user->monthly_expenses,
                 'current_year' => $currentYear,
@@ -66,14 +67,14 @@ class SetupController extends Controller
             ];
 
             return response()->json([
-                'message' => 'Setup completed successfully',
+                'message' => __('messages.setup_done'),
                 'user' => $userData,
             ]);
         } catch (\Exception $e) {
             Log::error('Setup failed', ['exception' => $e]);
 
             return response()->json([
-                'message' => 'Setup failed. Please try again.',
+                'message' => __('messages.setup_failed'),
             ], 500);
         }
     }

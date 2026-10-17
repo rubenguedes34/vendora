@@ -1,0 +1,27 @@
+{
+  "title": "Distribuição da carteira",
+  "subtitle": "Detalhe por tipo de ativo e filtros",
+  "refresh": "Atualizar",
+  "assetType": "Tipo de ativo",
+  "allTypes": "Todos os tipos",
+  "account": "Conta",
+  "filterByAccount": "Filtrar por conta",
+  "from": "De",
+  "to": "Até",
+  "noMatch": "Nenhum investimento corresponde aos filtros selecionados.",
+  "clearFilters": "Limpar filtros",
+  "allocation": "Distribuição",
+  "totalInvested": "Total investido",
+  "breakdown": "Detalhe",
+  "assetOne": "{{count}} ativo",
+  "assetMany": "{{count}} ativos",
+  "loadFailed": "Não foi possível carregar a distribuição",
+  "types": {
+    "stocks": "Ações",
+    "etf": "ETF",
+    "crypto": "Cripto",
+    "bonds": "Obrigações",
+    "cash": "Dinheiro",
+    "other": "Outro"
+  }
+}

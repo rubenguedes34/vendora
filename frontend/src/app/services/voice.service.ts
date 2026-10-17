@@ -1,4 +1,5 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 interface SpeechRecognitionResultList {
@@ -63,6 +64,8 @@ export class VoiceService {
   readonly transcript$ = this._transcript.asObservable();
   readonly error$ = this._error.asObservable();
 
+  private translate = inject(TranslateService);
+
   constructor(private zone: NgZone) {}
 
   get supported(): boolean {
@@ -74,7 +77,7 @@ export class VoiceService {
 
   start(): void {
     if (!this.supported) {
-      this._error.next('Voice input is not supported in this browser.');
+      this._error.next(this.translate.instant('common.voice.unsupported'));
       return;
     }
     if (this._listening.value) return;
@@ -112,11 +115,11 @@ export class VoiceService {
     this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       this.zone.run(() => {
         if (event.error === 'not-allowed') {
-          this._error.next('Microphone permission denied.');
+          this._error.next(this.translate.instant('common.voice.permissionDenied'));
         } else if (event.error === 'no-speech') {
-          this._error.next('No speech detected. Try again.');
+          this._error.next(this.translate.instant('common.voice.noSpeech'));
         } else {
-          this._error.next(`Voice error: ${event.error}`);
+          this._error.next(this.translate.instant('common.voice.error', { error: event.error }));
         }
         this._listening.next(false);
       });

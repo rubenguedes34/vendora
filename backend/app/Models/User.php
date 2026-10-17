@@ -40,6 +40,7 @@ class User extends Authenticatable implements FilamentUser
         'monthly_income',
         'monthly_expenses',
         'google_id',
+        'locale',
     ];
 
     /**

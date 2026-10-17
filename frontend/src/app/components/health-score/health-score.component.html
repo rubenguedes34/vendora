@@ -6,8 +6,8 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <div>
-            <h2 class="text-xl font-semibold">Financial Health Score</h2>
-            <p class="text-primary-200 text-xs">A modular view of your financial wellbeing</p>
+            <h2 class="text-xl font-semibold">{{ 'health.title' | translate }}</h2>
+            <p class="text-primary-200 text-xs">{{ 'health.subtitle' | translate }}</p>
           </div>
           <button
             (click)="load()"
@@ -28,7 +28,7 @@
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            Refresh
+            {{ 'health.refresh' | translate }}
           </button>
         </div>
       </div>
@@ -76,16 +76,30 @@
                 <span class="text-3xl font-bold" [style.color]="scoreColor">{{
                   data.score.overall_score
                 }}</span>
-                <span class="text-xs text-gray-400 uppercase tracking-wide">out of 100</span>
+                <span class="text-xs text-gray-400 uppercase tracking-wide">{{
+                  'health.outOf' | translate
+                }}</span>
               </div>
             </div>
             <p class="mt-4 text-sm font-medium text-gray-700">{{ scoreLabel }}</p>
-            <p class="text-xs text-gray-400 mt-1">as of {{ data.score.as_of }}</p>
+            <p class="text-xs text-gray-400 mt-1">
+              {{
+                'health.asOf'
+                  | translate
+                    : {
+                        date:
+                          (data.score.as_of
+                          | date: 'mediumDate' : undefined : languageService.locale),
+                      }
+              }}
+            </p>
           </div>
 
           <!-- Category scores -->
           <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Category Scores</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">
+              {{ 'health.categoryScores' | translate }}
+            </h3>
             <div class="space-y-3">
               <div
                 *ngFor="let cat of data.score.categories"
@@ -95,7 +109,9 @@
                   <span class="text-lg">{{ iconFor(cat.key) }}</span>
                   <div class="flex-1">
                     <div class="flex justify-between items-center">
-                      <span class="text-sm font-medium text-gray-800">{{ cat.name }}</span>
+                      <span class="text-sm font-medium text-gray-800">{{
+                        textFor('categories.' + cat.key + '.name', cat.name)
+                      }}</span>
                       <span class="text-xs font-bold text-gray-700">{{ cat.score }}/100</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
@@ -108,7 +124,7 @@
                   </div>
                   <span class="text-xs text-gray-400 w-16 text-right">{{ cat.weight }}%</span>
                 </div>
-                <p class="text-xs text-gray-500 pl-8">{{ cat.suggestion }}</p>
+                <p class="text-xs text-gray-500 pl-8">{{ suggestionFor(cat) }}</p>
               </div>
             </div>
           </div>
@@ -116,7 +132,7 @@
 
         <!-- History chart -->
         <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">6-Month Trend</h3>
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ 'health.trend' | translate }}</h3>
           <div style="height: 200px; position: relative">
             <canvas #historyChart></canvas>
           </div>

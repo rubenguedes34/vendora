@@ -1,0 +1,163 @@
+{
+  "greeting": {
+    "morning": "Bom dia",
+    "afternoon": "Boa tarde",
+    "evening": "Boa noite"
+  },
+  "subtitle": "Veja como está a correr {{month}}.",
+  "months": {
+    "january": "Janeiro",
+    "february": "Fevereiro",
+    "march": "Março",
+    "april": "Abril",
+    "may": "Maio",
+    "june": "Junho",
+    "july": "Julho",
+    "august": "Agosto",
+    "september": "Setembro",
+    "october": "Outubro",
+    "november": "Novembro",
+    "december": "Dezembro"
+  },
+  "income": "Rendimentos",
+  "expenses": "Despesas",
+  "savings": "Poupança",
+  "balance": "Saldo",
+  "picker": {
+    "prevMonth": "Mês anterior",
+    "nextMonth": "Mês seguinte",
+    "prevYear": "Ano anterior",
+    "nextYear": "Ano seguinte",
+    "thisMonth": "Este mês"
+  },
+  "alerts": {
+    "title": "Alertas",
+    "clearAll": "Limpar tudo",
+    "notifications": "Notificações",
+    "viewAll": "Ver todas as notificações",
+    "markRead": "Marcar como lida",
+    "dismiss": "Dispensar",
+    "healthy": "As suas finanças estão saudáveis este mês.",
+    "overspent": {
+      "title": "As despesas excedem os rendimentos",
+      "message": "Gastou mais {{amount}} do que ganhou em {{month}}."
+    },
+    "nearLimit": {
+      "title": "Gastos acima de 90% dos rendimentos",
+      "message": "Só restam {{amount}} dos seus rendimentos em {{month}}."
+    },
+    "lowSavings": {
+      "title": "Taxa de poupança baixa",
+      "message": "Está a poupar {{rate}}% dos rendimentos em {{month}}. O objetivo é, no mínimo, 20%."
+    },
+    "negativeProjection": {
+      "title": "Projeção negativa para {{month}}",
+      "message": "Ao ritmo atual de gastos diários ({{daily}}/dia), terminará {{month}} com um défice de {{amount}}."
+    },
+    "tightBalance": {
+      "title": "Saldo projetado reduzido",
+      "message": "O saldo projetado para o fim de {{month}} é de apenas {{amount}}."
+    },
+    "onTrack": {
+      "title": "Tudo em ordem em {{month}}",
+      "message": "Prevê-se poupar {{amount}} até ao fim de {{month}}."
+    },
+    "endingSoon": {
+      "title": "O mês está a terminar",
+      "message": "Faltam {{count}} dias para o fim de {{month}}. Controle os gastos para manter o saldo positivo."
+    }
+  },
+  "heading": {
+    "new": "Novas notificações",
+    "allGood": "Tudo bem!",
+    "attention": "Requer atenção",
+    "onTrack": "Tudo em ordem",
+    "oneWarning": "1 aviso",
+    "warnings": "{{count}} avisos"
+  },
+  "projection": {
+    "title": "Projeção mensal",
+    "balance": "Saldo projetado",
+    "dailyAvg": "Gasto médio diário",
+    "daysRemaining": "Dias restantes",
+    "days": "{{count}} dias",
+    "savingsRate": "Taxa de poupança"
+  },
+  "quick": {
+    "budget": "Orçamento",
+    "transactions": "Transações",
+    "recurrent": "Recorrentes",
+    "investments": "Investimentos"
+  },
+  "available": {
+    "title": "Disponível este mês",
+    "daysLeft": "{{count}} dias restantes · fim projetado",
+    "perDay": "Pode gastar por dia",
+    "netRecurrents": "Recorrentes líquidas por pagar",
+    "exportCsv": "Exportar CSV",
+    "exportPdf": "Exportar PDF",
+    "premium": "Premium",
+    "premiumFeature": "Funcionalidade Premium"
+  },
+  "daily": {
+    "title": "Saldo deste mês vs anterior",
+    "subtitle": "Saldo acumulado de cada dia, até hoje"
+  },
+  "compare": {
+    "title": "Comparação com o mês anterior",
+    "subtitle": "Mês completo face ao mês anterior",
+    "now": "Agora",
+    "before": "Antes",
+    "none": "Sem dados para comparar"
+  },
+  "base": {
+    "custom": "Mês personalizado",
+    "for": "Base de {{month}}:",
+    "incomeWord": "de rendimentos,",
+    "expensesWord": "de despesas",
+    "edit": "Editar este mês",
+    "customize": "Personalizar este mês",
+    "reset": "Repor predefinição",
+    "incomeBase": "Base de rendimentos",
+    "expensesBase": "Base de despesas",
+    "save": "Guardar",
+    "saving": "A guardar…",
+    "cancel": "Cancelar",
+    "invalid": "Introduza valores iguais ou superiores a zero.",
+    "saveFailed": "Não foi possível guardar este mês. Tente novamente."
+  },
+  "monthly": {
+    "title": "Saldo mensal",
+    "subtitle": "Rendimentos, despesas e saldo de cada mês de {{year}}",
+    "soFar": "{{year}} até agora (Jan–{{month}}) vs {{previous}}",
+    "lastYear": "no ano passado",
+    "in": "Entradas",
+    "out": "Saídas",
+    "none": "Ainda sem dados mensais",
+    "trend": "Evolução do saldo"
+  },
+  "yearly": {
+    "title": "Rendimentos vs Despesas",
+    "overview": "Resumo de {{year}}",
+    "none": "Ainda sem dados"
+  },
+  "snapshot": {
+    "title": "Resumo mensal",
+    "total": "Total",
+    "saved": "Poupado"
+  },
+  "byCategory": {
+    "title": "Despesas por categoria",
+    "none": "Sem despesas neste mês"
+  },
+  "recent": {
+    "title": "Transações recentes",
+    "viewAll": "Ver tudo",
+    "none": "Ainda sem transações"
+  },
+  "charts": {
+    "thisMonth": "Este mês",
+    "previousMonth": "Mês anterior",
+    "day": "Dia {{day}}"
+  }
+}

@@ -34,6 +34,12 @@ class FaqResource extends Resource
                 Forms\Components\Textarea::make('answer')
                     ->required()
                     ->rows(4),
+                Forms\Components\TextInput::make('question_pt')
+                    ->label('Question (pt-PT, optional)')
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('answer_pt')
+                    ->label('Answer (pt-PT, optional)')
+                    ->rows(4),
                 Forms\Components\TextInput::make('keywords')
                     ->required()
                     ->placeholder('transaction, add, expense, income')
@@ -67,6 +73,10 @@ class FaqResource extends Resource
                     ->searchable()
                     ->limit(80)
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('has_pt')
+                    ->label('PT')
+                    ->boolean()
+                    ->state(fn ($record) => filled($record->question_pt) && filled($record->answer_pt)),
                 Tables\Columns\TextColumn::make('keywords')
                     ->badge()
                     ->separator(','),
@@ -81,7 +91,9 @@ class FaqResource extends Resource
             ])
             ->defaultSort('id', 'asc')
             ->filters([
-                //
+                Tables\Filters\Filter::make('missing_pt')
+                    ->label('Missing pt-PT translation')
+                    ->query(fn ($query) => $query->where(fn ($q) => $q->whereNull('question_pt')->orWhereNull('answer_pt'))),
             ])
             ->actions([
                 Actions\EditAction::make(),

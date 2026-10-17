@@ -62,7 +62,7 @@ class AiChatController extends Controller
         $conversationId = $request->input('conversation_id');
 
         if ($conversationId !== null && ! $this->userConversations($user)->whereKey($conversationId)->exists()) {
-            return response()->json(['message' => 'Conversation not found.'], 404);
+            return response()->json(['message' => __('messages.conversation_not_found')], 404);
         }
 
         // Ollama has no default model name, so an empty list there means "not configured".
@@ -184,7 +184,7 @@ class AiChatController extends Controller
             $conversation->delete();
         });
 
-        return response()->json(['message' => 'Conversation deleted.']);
+        return response()->json(['message' => __('messages.conversation_deleted')]);
     }
 
     private function userConversations(object $user)
@@ -203,8 +203,8 @@ class AiChatController extends Controller
     private function faqList(): array
     {
         return Faq::all()->map(fn (Faq $faq) => [
-            'question' => $faq->question,
-            'answer' => $faq->answer,
+            'question' => $faq->localized('question'),
+            'answer' => $faq->localized('answer'),
             'keywords' => $faq->keywords,
         ])->all();
     }

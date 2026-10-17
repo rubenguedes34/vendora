@@ -1,0 +1,47 @@
+{
+  "title": "Orçamento",
+  "tabs": {
+    "setup": "Configuração",
+    "transactions": "Transações",
+    "recurrent": "Recorrentes"
+  },
+  "intro": "Defina o seu orçamento mensal para cada categoria",
+  "totalIncome": "Receitas totais",
+  "totalExpenses": "Despesas totais",
+  "totalSavings": "Poupança total",
+  "sections": {
+    "income": "Receitas",
+    "expenses": "Despesas",
+    "savings": "Poupança"
+  },
+  "noIncome": "Ainda não há categorias de receitas.",
+  "noExpense": "Ainda não há categorias de despesas.",
+  "noSavings": "Ainda não há categorias de poupança.",
+  "savingsGoal": "Meta de poupança",
+  "goalPlaceholder": "ex.: 500 ou 10",
+  "targetSavings": "Poupança objetivo: {{amount}}",
+  "vsActual": "Orçamento vs Real",
+  "vsActualHint": "Como as suas despesas se comparam com os orçamentos planeados deste mês",
+  "refresh": "Atualizar",
+  "loadingComparison": "A carregar comparação...",
+  "retry": "Tentar novamente",
+  "noBudgets": "Ainda não há orçamentos definidos para este mês.",
+  "budgetLabel": "Orçamento:",
+  "types": {
+    "income": "receita",
+    "expense": "despesa",
+    "savings": "poupança"
+  },
+  "remaining": "{{amount}} restantes",
+  "overBudget": "{{amount}} acima do orçamento",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "saving": "A guardar...",
+  "errors": {
+    "loadCategories": "Falha ao carregar as categorias",
+    "loadSummary": "Falha ao carregar o resumo",
+    "saveBudget": "Falha ao guardar o orçamento",
+    "updateGoal": "Falha ao atualizar a meta de poupança",
+    "loadComparison": "Falha ao carregar. O servidor está a funcionar?"
+  }
+}

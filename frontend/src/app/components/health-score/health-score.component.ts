@@ -7,13 +7,19 @@ import {
   ViewChild,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { monthLabel } from '../../utils/month-label';
+import { LanguageService } from '../../services/language.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService } from '../../services/financial.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
-import { HealthScore } from '../../models/health-score';
+import { HealthScore, HealthScoreCategory } from '../../models/health-score';
 import { CartesianTooltipItem, ChartInstance, chartConstructor } from '../../models/chart';
 
 const COLORS: Record<string, string> = {
@@ -38,7 +44,7 @@ const ICONS: Record<string, string> = {
   selector: 'app-health-score',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, TranslatePipe],
   templateUrl: './health-score.component.html',
 })
 export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy {
@@ -50,13 +56,24 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
 
   private chartInstance: ChartInstance | null = null;
   private needsRender = false;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private financialService: FinancialService,
     private cd: ChangeDetectorRef,
-  ) {}
+    private translate: TranslateService,
+    public languageService: LanguageService,
+  ) {
+    this.translate.onLangChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (!this.chartInstance) return;
+      this.chartInstance.destroy();
+      this.chartInstance = null;
+      this.needsRender = true;
+      this.cd.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) {
@@ -87,7 +104,7 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
         this.cd.markForCheck();
       },
       error: (e) => {
-        this.errorMessage = e?.message || 'Failed to load health score';
+        this.errorMessage = e?.message || this.translate.instant('health.loadError');
         this.isLoading = false;
         this.cd.markForCheck();
       },
@@ -103,10 +120,27 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
 
   get scoreLabel(): string {
     const s = this.data?.score?.overall_score ?? 0;
-    if (s >= 80) return 'Excellent';
-    if (s >= 60) return 'Good';
-    if (s >= 40) return 'Fair';
-    return 'Needs attention';
+    if (s >= 80) return this.translate.instant('health.labels.excellent');
+    if (s >= 60) return this.translate.instant('health.labels.good');
+    if (s >= 40) return this.translate.instant('health.labels.fair');
+    return this.translate.instant('health.labels.attention');
+  }
+
+  textFor(key: string, fallback: string): string {
+    const k = `health.${key}`;
+    const t = this.translate.instant(k);
+    return t === k ? fallback : t;
+  }
+
+  suggestionFor(cat: HealthScoreCategory): string {
+    if (!cat.suggestion_key) return cat.suggestion;
+    let key = `suggestions.${cat.suggestion_key}`;
+    if (cat.suggestion_key === 'budget_adherence_exceeded') {
+      key += cat.suggestion_params?.['count'] === 1 ? '_one' : '_other';
+    }
+    const k = `health.${key}`;
+    const t = this.translate.instant(k, cat.suggestion_params);
+    return t === k ? cat.suggestion : t;
   }
 
   colorFor(key: string): string {
@@ -129,7 +163,7 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
     const ctx = this.chartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.history.map((h) => h.month);
+    const labels = this.data.history.map((h) => monthLabel(h.month, this.languageService.locale));
     const values = this.data.history.map((h) => h.score);
 
     if (this.chartInstance) {
@@ -149,7 +183,7 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
         labels,
         datasets: [
           {
-            label: 'Health Score',
+            label: this.translate.instant('health.chartLabel'),
             data: values,
             borderColor: '#7c3aed',
             backgroundColor: gr,
@@ -181,7 +215,10 @@ export class HealthScoreComponent implements OnInit, AfterViewChecked, OnDestroy
             bodyColor: '#d1d5db',
             padding: 10,
             cornerRadius: 8,
-            callbacks: { label: (c: CartesianTooltipItem) => ` Score: ${c.parsed.y}` },
+            callbacks: {
+              label: (c: CartesianTooltipItem) =>
+                this.translate.instant('health.tooltipScore', { score: c.parsed.y }),
+            },
           },
         },
       },

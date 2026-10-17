@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -17,6 +17,8 @@ import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { CategoryNamePipe } from '../../pipes/category-name.pipe';
 
 interface RecurrentTransaction {
   id?: number;
@@ -32,11 +34,21 @@ interface RecurrentTransaction {
   selector: 'app-recurrent-transactions',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    SidebarComponent,
+    CurrencySymbolPipe,
+    CategoryNamePipe,
+    TranslatePipe,
+  ],
   templateUrl: './recurrent-transactions.component.html',
 })
 export class RecurrentTransactionsComponent implements OnInit {
   @Input() embedded = false;
+
+  private translate = inject(TranslateService);
 
   form: FormGroup;
   recurrentList: RecurrentTransaction[] = [];
@@ -95,7 +107,7 @@ export class RecurrentTransactionsComponent implements OnInit {
         this.errorMessage = '';
       },
       error: (err) =>
-        (this.errorMessage = err.error?.message || 'Failed to load recurrent transactions'),
+        (this.errorMessage = err.error?.message || this.translate.instant('recurrent.loadFailed')),
     });
   }
 
@@ -115,7 +127,9 @@ export class RecurrentTransactionsComponent implements OnInit {
             this.cancelEdit();
             this.errorMessage = '';
           },
-          error: (err) => (this.errorMessage = err.error?.message || 'Failed to update'),
+          error: (err) =>
+            (this.errorMessage =
+              err.error?.message || this.translate.instant('recurrent.updateFailed')),
         });
     } else {
       this.http
@@ -126,7 +140,9 @@ export class RecurrentTransactionsComponent implements OnInit {
             this.form.reset({ type: 'expense' });
             this.errorMessage = '';
           },
-          error: (err) => (this.errorMessage = err.error?.message || 'Failed to add'),
+          error: (err) =>
+            (this.errorMessage =
+              err.error?.message || this.translate.instant('recurrent.addFailed')),
         });
     }
   }
@@ -145,10 +161,12 @@ export class RecurrentTransactionsComponent implements OnInit {
   }
 
   deleteItem(id: number): void {
-    if (!confirm('Delete this recurrent transaction?')) return;
+    if (!confirm(this.translate.instant('recurrent.confirmDelete'))) return;
     this.http.delete(`${this.apiUrl}/recurrent-transactions/${id}`).subscribe({
       next: () => this.loadRecurrent(),
-      error: (err) => (this.errorMessage = err.error?.message || 'Failed to delete'),
+      error: (err) =>
+        (this.errorMessage =
+          err.error?.message || this.translate.instant('recurrent.deleteFailed')),
     });
   }
 
@@ -164,12 +182,15 @@ export class RecurrentTransactionsComponent implements OnInit {
         next: (res) => {
           this.isCopying = false;
           this.copySuccess = true;
-          this.copyMessage = `Copied ${res.created} transaction(s) to ${this.copyTargetMonth}.`;
+          this.copyMessage = this.translate.instant('recurrent.copied', {
+            count: res.created,
+            month: this.copyTargetMonth,
+          });
         },
         error: (err) => {
           this.isCopying = false;
           this.copySuccess = false;
-          this.copyMessage = err.error?.message || 'Failed to copy transactions';
+          this.copyMessage = err.error?.message || this.translate.instant('recurrent.copyFailed');
         },
       });
   }

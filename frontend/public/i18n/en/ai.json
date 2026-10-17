@@ -1,0 +1,22 @@
+{
+  "title": "AI Support",
+  "subtitle": "Ask anything about Vendora or browse the FAQs below.",
+  "back": "Back to Dashboard",
+  "faqTitle": "Frequently Asked Questions",
+  "faqLoading": "Loading FAQs...",
+  "chatTitle": "Chat with AI",
+  "history": "History ({{count}})",
+  "newChat": "New chat",
+  "noHistory": "No previous conversations.",
+  "deleteConversation": "Delete conversation",
+  "typing": "AI is typing...",
+  "placeholder": "Type your support question...",
+  "send": "Send",
+  "greeting": "Hi! I am your Vendora AI assistant. How can I help you today?",
+  "errOpen": "Could not open that conversation.",
+  "errDelete": "Could not delete that conversation.",
+  "errSession": "Your session has expired. Please log in again.",
+  "errFaqs": "Could not load FAQs. Please try again.",
+  "errChat": "Could not get a response from the AI support service. Please try again.",
+  "errBackend": "Could not reach the backend. Make sure php artisan serve is running at {{url}}."
+}

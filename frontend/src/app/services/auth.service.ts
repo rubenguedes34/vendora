@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subject, throwError, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from './language.service';
 import { ApiError, ApiErrorMessage, MessageResponse } from '../models/api';
 
 export interface User {
@@ -19,6 +21,7 @@ export interface User {
   current_year?: number;
   current_month?: number;
   needs_setup?: boolean;
+  locale?: 'en' | 'pt';
 }
 
 interface AuthResponse {
@@ -34,6 +37,9 @@ export class AuthService {
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private userSubject = new BehaviorSubject<User | null>(null);
   readonly loggedOut$ = new Subject<void>();
+
+  private language = inject(LanguageService);
+  private translate = inject(TranslateService);
 
   constructor(private http: HttpClient) {
     const token = localStorage.getItem('token');
@@ -64,7 +70,9 @@ export class AuthService {
       catchError((error) => {
         // Handle 401 errors specifically
         if (error.status === 401) {
-          return throwError(() => ({ message: 'Invalid email or password. Please try again.' }));
+          return throwError(() => ({
+            message: this.translate.instant('errors.invalidCredentials'),
+          }));
         }
         return throwError(() => this.handleError(error));
       }),
@@ -94,15 +102,15 @@ export class AuthService {
 
   private handleError(error: ApiError): ApiErrorMessage {
     if (error.name === 'TimeoutError') {
-      return { message: 'Request timeout. Please check your connection and try again.' };
+      return { message: this.translate.instant('errors.timeout') };
     }
     if (error.status === 0) {
-      return { message: 'Unable to connect to server. Please check if the backend is running.' };
+      return { message: this.translate.instant('errors.connection') };
     }
     if (error.status === 401) {
-      return { message: 'Invalid email or password. Please try again.' };
+      return { message: this.translate.instant('errors.invalidCredentials') };
     }
-    return error.error || { message: 'An error occurred. Please try again.' };
+    return error.error || { message: this.translate.instant('errors.generic') };
   }
 
   setToken(token: string): void {
@@ -111,8 +119,10 @@ export class AuthService {
   }
 
   setUser(user: User): void {
+    const isLogin = !this.userSubject.value;
     localStorage.setItem('user', JSON.stringify(user));
     this.userSubject.next(user);
+    if (isLogin) this.language.syncWithUser(user.locale);
   }
 
   clearAuth(): void {

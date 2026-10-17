@@ -1,0 +1,74 @@
+{
+  "title": "Notification History",
+  "subtitle": "View and manage all notifications",
+  "markAllRead": "Mark all as read",
+  "loading": "Loading…",
+  "empty": "No notifications yet.",
+  "markRead": "Mark read",
+  "errLoad": "Could not load notifications.",
+  "errMarkRead": "Could not mark the notification as read.",
+  "errMarkAll": "Could not mark all notifications as read.",
+  "errDelete": "Could not delete the notification.",
+  "rules": {
+    "title": "Alert rules",
+    "intro": "Get notified when your spending this month reaches a limit you set.",
+    "none": "No rules yet.",
+    "limitPerMonth": "Limit {{amount}} per month",
+    "active": "Active",
+    "activeAria": "Active: {{label}}",
+    "deleteAria": "Delete rule: {{label}}",
+    "type": "Type",
+    "categoryLimit": "Category limit",
+    "totalLimit": "Total spending limit",
+    "category": "Category",
+    "choose": "Choose…",
+    "limit": "Limit",
+    "placeholder": "e.g. 200",
+    "adding": "Adding…",
+    "add": "Add rule",
+    "errLoad": "Could not load alert rules.",
+    "errAdd": "Could not add the rule.",
+    "errUpdate": "Could not update the rule.",
+    "errDelete": "Could not delete the rule.",
+    "categoryFallback": "Category",
+    "totalSpending": "Total spending"
+  },
+  "items": {
+    "budget_exceeded": {
+      "title": "Budget exceeded",
+      "body": "You exceeded your {{category}} budget by {{amount}}."
+    },
+    "budget_almost_exceeded": {
+      "title": "Budget almost exceeded",
+      "body": "You have used {{percent}} of your {{category}} budget."
+    },
+    "alert_rule_category": {
+      "title": "Spending limit reached",
+      "body": "You have spent {{spent}} on {{category}}, reaching your limit of {{limit}}."
+    },
+    "alert_rule_total": {
+      "title": "Spending limit reached",
+      "body": "You have spent {{spent}} this month, reaching your limit of {{limit}}."
+    },
+    "recurring_due_today": {
+      "title": "Recurring transaction due",
+      "body": "{{description}} is due today."
+    },
+    "recurring_due_past": {
+      "title": "Recurring transaction due",
+      "body": "{{description}} was due on {{date}}."
+    },
+    "monthly_report_ready": {
+      "title": "Monthly report ready",
+      "body": "Your financial summary for {{month}} is ready to view."
+    },
+    "savings_goal_completed": {
+      "title": "Savings goal reached",
+      "body": "You saved {{saved}} this month (≥20% of income)."
+    },
+    "investment_reached_target": {
+      "title": "Investment target reached",
+      "body": "Your portfolio is up {{gain}} (+{{percent}})."
+    }
+  }
+}

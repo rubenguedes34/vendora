@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
 import { AuthService } from '../../services/auth.service';
@@ -13,7 +14,7 @@ import { User } from '../../services/auth.service';
   selector: 'app-setup',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ThemePickerComponent, TranslatePipe],
   template: `
     <div class="relative min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
       <div
@@ -36,17 +37,19 @@ import { User } from '../../services/auth.service';
                 />
               </svg>
             </div>
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome to Vendora</h1>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+              {{ 'setup.welcome' | translate }}
+            </h1>
             <p class="text-sm text-gray-500 mt-1 text-center">
-              Set your monthly baseline to personalize your dashboard
+              {{ 'setup.subtitle' | translate }}
             </p>
           </div>
 
           <form [formGroup]="setupForm" (ngSubmit)="onSubmit()">
             <div class="mb-5">
-              <label class="block text-gray-700 text-sm font-semibold mb-2"
-                >Monthly Income (€)</label
-              >
+              <label class="block text-gray-700 text-sm font-semibold mb-2">{{
+                'setup.income' | translate
+              }}</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -67,7 +70,7 @@ import { User } from '../../services/auth.service';
                   type="number"
                   formControlName="monthly_income"
                   class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
-                  placeholder="e.g., 3,000"
+                  [placeholder]="'setup.incomePlaceholder' | translate"
                   min="0"
                   max="99999999.99"
                   step="any"
@@ -80,7 +83,7 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Monthly income is required.
+                {{ 'setup.incomeRequired' | translate }}
               </p>
               <p
                 *ngIf="
@@ -89,7 +92,7 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Monthly income cannot be negative.
+                {{ 'setup.incomeNegative' | translate }}
               </p>
               <p
                 *ngIf="
@@ -98,14 +101,14 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Enter an amount below €100,000,000.
+                {{ 'setup.amountMax' | translate }}
               </p>
             </div>
 
             <div class="mb-6">
-              <label class="block text-gray-700 text-sm font-semibold mb-2"
-                >Estimated Monthly Expenses (€)</label
-              >
+              <label class="block text-gray-700 text-sm font-semibold mb-2">{{
+                'setup.expenses' | translate
+              }}</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -126,7 +129,7 @@ import { User } from '../../services/auth.service';
                   type="number"
                   formControlName="monthly_expenses"
                   class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
-                  placeholder="e.g., 2,000"
+                  [placeholder]="'setup.expensesPlaceholder' | translate"
                   min="0"
                   max="99999999.99"
                   step="any"
@@ -139,7 +142,7 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Estimated expenses are required.
+                {{ 'setup.expensesRequired' | translate }}
               </p>
               <p
                 *ngIf="
@@ -148,7 +151,7 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Estimated expenses cannot be negative.
+                {{ 'setup.expensesNegative' | translate }}
               </p>
               <p
                 *ngIf="
@@ -157,7 +160,7 @@ import { User } from '../../services/auth.service';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Enter an amount below €100,000,000.
+                {{ 'setup.amountMax' | translate }}
               </p>
             </div>
 
@@ -166,8 +169,8 @@ import { User } from '../../services/auth.service';
               [disabled]="setupForm.invalid || isLoading"
               class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
             >
-              <span *ngIf="!isLoading">Complete Setup</span>
-              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">{{ 'setup.complete' | translate }}</span>
+              <span *ngIf="isLoading">{{ 'setup.saving' | translate }}</span>
             </button>
           </form>
 
@@ -192,6 +195,7 @@ export class SetupComponent implements OnInit {
     private authService: AuthService,
     private http: HttpClient,
     private router: Router,
+    private translate: TranslateService,
   ) {
     this.setupForm = this.fb.group({
       monthly_income: ['', [Validators.required, Validators.min(0), Validators.max(99999999.99)]],
@@ -227,14 +231,13 @@ export class SetupComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           if (error.name === 'TimeoutError' || error.status === 0) {
-            this.errorMessage =
-              'Could not reach the backend. Make sure php artisan serve is running at ' +
-              environment.backendUrl +
-              '.';
+            this.errorMessage = this.translate.instant('setup.unreachable', {
+              url: environment.backendUrl,
+            });
           } else if (error instanceof HttpErrorResponse && error.error?.message) {
             this.errorMessage = error.error.message;
           } else {
-            this.errorMessage = error.message || 'Setup failed. Please try again.';
+            this.errorMessage = error.message || this.translate.instant('setup.failed');
           }
         },
       });

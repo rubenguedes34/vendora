@@ -121,14 +121,14 @@ class AdminController extends Controller
     public function updateRole(UpdateUserRoleRequest $request, User $user): JsonResponse
     {
         if ($request->role !== 'admin' && $this->isLastAdmin($user)) {
-            return response()->json(['message' => 'You cannot demote the last admin.'], 422);
+            return response()->json(['message' => __('messages.last_admin_demote')], 422);
         }
 
         Role::firstOrCreate(['name' => $request->role, 'guard_name' => 'web']);
         $user->syncRoles([$request->role]);
 
         return response()->json([
-            'message' => 'Role updated.',
+            'message' => __('messages.role_updated'),
             'user' => $user->fresh()->load('roles'),
         ]);
     }
@@ -158,7 +158,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'message' => $user->isBlacklisted() ? 'User blacklisted.' : 'User unblacklisted.',
+            'message' => $user->isBlacklisted() ? __('messages.user_blacklisted') : __('messages.user_unblacklisted'),
             'user' => $user->fresh()->load('roles'),
         ]);
     }
@@ -182,7 +182,7 @@ class AdminController extends Controller
         $this->authorizeOrJson('delete', $user);
 
         if ($this->isLastAdmin($user)) {
-            return response()->json(['message' => 'You cannot delete the last admin.'], 422);
+            return response()->json(['message' => __('messages.last_admin_delete')], 422);
         }
 
         Conversation::where('participant_type', Conversation::participantType($user))
@@ -191,7 +191,7 @@ class AdminController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'User deleted.']);
+        return response()->json(['message' => __('messages.user_deleted')]);
     }
 
     private function isLastAdmin(User $user): bool

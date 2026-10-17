@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -21,13 +22,15 @@ export class TagService {
   private _tags$ = new BehaviorSubject<Tag[]>([]);
   readonly tags$ = this._tags$.asObservable();
 
+  private translate = inject(TranslateService);
+
   constructor(
     private http: HttpClient,
     private authService: AuthService,
   ) {}
 
   private handleError(error: ApiError): ApiErrorMessage {
-    return error.error || { message: 'An error occurred. Please try again.' };
+    return error.error || { message: this.translate.instant('errors.generic') };
   }
 
   loadTags(): void {

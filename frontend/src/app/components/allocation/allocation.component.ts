@@ -6,7 +6,11 @@ import {
   ElementRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,6 +25,8 @@ import {
 } from '../../services/financial.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
+import { assetTypeLabel } from '../../models/investment';
+import { LanguageService } from '../../services/language.service';
 import { ChartInstance, RadialTooltipItem, chartConstructor } from '../../models/chart';
 
 const COLORS: Record<string, string> = {
@@ -36,7 +42,7 @@ const COLORS: Record<string, string> = {
   selector: 'app-allocation',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [CommonModule, FormsModule, SidebarComponent, CurrencySymbolPipe, TranslatePipe],
   templateUrl: './allocation.component.html',
 })
 export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -51,6 +57,9 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
   filterDateFrom = '';
   filterDateTo = '';
 
+  private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
+  private destroyRef = inject(DestroyRef);
   private chartInstance: ChartInstance | null = null;
   private chartsReady = false;
   private destroy$ = new Subject<void>();
@@ -64,6 +73,10 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.languageService.language$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.chartsReady && this.data) this.renderChart();
+    });
+
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
@@ -117,10 +130,14 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.chartsReady) setTimeout(() => this.renderChart(), 50);
         },
         error: (e) => {
-          this.errorMessage = e?.message || 'Failed to load allocation';
+          this.errorMessage = e?.message || this.translate.instant('allocation.loadFailed');
           this.isLoading = false;
         },
       });
+  }
+
+  typeLabel(type: string): string {
+    return assetTypeLabel(this.translate, 'allocation', type);
   }
 
   colorFor(type: string): string {
@@ -132,7 +149,7 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
     const ctx = this.chartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.breakdown.map((b) => b.type);
+    const labels = this.data.breakdown.map((b) => this.typeLabel(b.type));
     const values = this.data.breakdown.map((b) => b.total);
     const colors = this.data.breakdown.map((b) => this.colorFor(b.type));
 
@@ -176,7 +193,7 @@ export class AllocationComponent implements OnInit, AfterViewInit, OnDestroy {
               label: (c: RadialTooltipItem) => {
                 const sym = this.currencyService.symbol;
                 const item: AllocationBreakdown = this.data!.breakdown[c.dataIndex];
-                return ` ${item.type}: ${sym}${item.total.toFixed(2)} (${item.percentage.toFixed(1)}%)`;
+                return ` ${this.typeLabel(item.type)}: ${sym}${item.total.toFixed(2)} (${item.percentage.toFixed(1)}%)`;
               },
             },
           },

@@ -1,0 +1,67 @@
+{
+  "title": "Financial Health Score",
+  "subtitle": "A modular view of your financial wellbeing",
+  "refresh": "Refresh",
+  "outOf": "out of 100",
+  "asOf": "as of {{date}}",
+  "categoryScores": "Category Scores",
+  "trend": "6-Month Trend",
+  "chartLabel": "Health Score",
+  "tooltipScore": " Score: {{score}}",
+  "loadError": "Failed to load health score",
+  "labels": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "attention": "Needs attention"
+  },
+  "categories": {
+    "savings_rate": {
+      "name": "Savings rate"
+    },
+    "emergency_fund": {
+      "name": "Emergency fund"
+    },
+    "budget_adherence": {
+      "name": "Budget adherence",
+      "description": "Percent of monthly budgets not exceeded"
+    },
+    "debt_ratio": {
+      "name": "Debt ratio"
+    },
+    "investment_rate": {
+      "name": "Investment rate"
+    },
+    "income_stability": {
+      "name": "Income stability",
+      "description": "Income variability (lower is better)"
+    }
+  },
+  "suggestions": {
+    "savings_rate_30": "Excellent — keep saving at this pace.",
+    "savings_rate_20": "Good, but aim for 30% to build wealth faster.",
+    "savings_rate_10": "Moderate. Try to reduce discretionary spending.",
+    "savings_rate_0": "Low savings rate. Build an emergency fund first.",
+    "savings_rate_neg1000": "Negative savings. Review your budget immediately.",
+    "emergency_fund_6": "You have 6+ months of expenses saved.",
+    "emergency_fund_3": "Solid cushion. Target 6 months for extra security.",
+    "emergency_fund_1": "Minimum cushion. Prioritize building reserves.",
+    "emergency_fund_0": "No emergency fund. Set aside cash before investing.",
+    "debt_ratio_0": "No recorded debt — great position.",
+    "savings_rate_fallback": "No data available.",
+    "emergency_fund_fallback": "No data available.",
+    "investment_rate_fallback": "No data available.",
+    "debt_ratio_fallback": "Debt data is not tracked yet; add debt accounts to refine this score.",
+    "investment_rate_50": "Excellent investment rate.",
+    "investment_rate_30": "Strong focus on growing assets.",
+    "investment_rate_10": "Moderate. Consider increasing contributions.",
+    "investment_rate_0": "Low investment rate. Small regular contributions help.",
+    "budget_adherence_none": "No budgets set for this month.",
+    "budget_adherence_ok": "All budgets on track this month.",
+    "budget_adherence_exceeded_one": "{{count}} budget exceeded. Review overspending categories.",
+    "budget_adherence_exceeded_other": "{{count}} budgets exceeded. Review overspending categories.",
+    "income_stability_none": "No income recorded yet.",
+    "income_stability_stable": "Income is stable month to month.",
+    "income_stability_variable": "Income varies significantly. Build a larger emergency fund to smooth gaps."
+  }
+}

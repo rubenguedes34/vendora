@@ -1,3 +1,4 @@
+import { provideTestTranslate } from '../../../testing/translate-testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -13,7 +14,12 @@ describe('DashboardComponent alert dismissal', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslate(),
+      ],
     });
     TestBed.overrideComponent(DashboardComponent, { set: { template: '' } });
 
@@ -66,7 +72,12 @@ describe('DashboardComponent month handling', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslate(),
+      ],
     });
     TestBed.overrideComponent(DashboardComponent, { set: { template: '' } });
     return TestBed.createComponent(DashboardComponent).componentInstance;

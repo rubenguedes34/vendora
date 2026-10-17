@@ -1,0 +1,15 @@
+{
+  "invalidCredentials": "Email ou palavra-passe inválidos. Tente novamente.",
+  "timeout": "Tempo de resposta excedido. Verifique a ligação e tente novamente.",
+  "connection": "Não foi possível ligar ao servidor. Verifique se o backend está a correr.",
+  "generic": "Ocorreu um erro. Tente novamente.",
+  "sessionExpired": "A sessão expirou. Inicie sessão novamente.",
+  "sessionExpiredShort": "Sessão expirada. Inicie sessão novamente.",
+  "backendUnreachable": "Não foi possível contactar o servidor. Confirme que o php artisan serve está a correr.",
+  "network": "Erro de rede",
+  "symbolNotFound": "Símbolo não encontrado",
+  "providerUnavailable": "Fornecedor de dados de mercado indisponível",
+  "marketFailed": "O pedido de dados de mercado falhou",
+  "notificationFailed": "O pedido de notificações falhou",
+  "reportFailed": "Não foi possível criar o relatório. Tente novamente."
+}

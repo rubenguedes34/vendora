@@ -135,7 +135,7 @@ class BudgetController extends Controller
 
         $budget->delete();
 
-        return response()->json(['message' => 'Budget deleted']);
+        return response()->json(['message' => __('messages.budget_deleted')]);
     }
 
     /**

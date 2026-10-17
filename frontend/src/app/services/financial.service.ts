@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subject, throwError, timeout } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -158,6 +159,8 @@ export class FinancialService {
   private netWorthCache: Observable<NetWorth> | null = null;
   private healthScoreCache: Observable<HealthScore> | null = null;
 
+  private translate = inject(TranslateService);
+
   constructor(
     private http: HttpClient,
     private authService: AuthService,
@@ -201,17 +204,17 @@ export class FinancialService {
 
   private handleError(error: ApiError): ApiErrorMessage {
     if (error.name === 'TimeoutError') {
-      return { message: 'Request timeout. Please check your connection and try again.' };
+      return { message: this.translate.instant('errors.timeout') };
     }
     if (error.status === 0) {
-      return { message: 'Unable to connect to server. Please check if the backend is running.' };
+      return { message: this.translate.instant('errors.connection') };
     }
     if (error.status === 401) {
       this.authService.clearAuth();
       this.router.navigate(['/login']);
-      return { message: 'Session expired. Please log in again.' };
+      return { message: this.translate.instant('errors.sessionExpiredShort') };
     }
-    return error.error || { message: 'An error occurred. Please try again.' };
+    return error.error || { message: this.translate.instant('errors.generic') };
   }
 
   getCurrentRecord(): Observable<FinancialRecord> {

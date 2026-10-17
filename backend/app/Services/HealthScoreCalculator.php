@@ -237,6 +237,8 @@ class HealthScoreCalculator
                 'value' => null,
                 'unit' => '',
                 'suggestion' => 'No budgets set for this month.',
+                'suggestion_key' => 'budget_adherence_none',
+                'suggestion_params' => [],
                 'description' => '',
             ];
         }
@@ -266,6 +268,8 @@ class HealthScoreCalculator
             'value' => round((($total - $bad) / $total) * 100, 1),
             'unit' => '%',
             'suggestion' => $suggestion,
+            'suggestion_key' => $score === 100 ? 'budget_adherence_ok' : 'budget_adherence_exceeded',
+            'suggestion_params' => ['count' => $bad],
             'description' => 'Percent of monthly budgets not exceeded',
         ];
     }
@@ -288,6 +292,8 @@ class HealthScoreCalculator
                 'value' => null,
                 'unit' => '',
                 'suggestion' => 'No income recorded yet.',
+                'suggestion_key' => 'income_stability_none',
+                'suggestion_params' => [],
                 'description' => '',
             ];
         }
@@ -309,6 +315,8 @@ class HealthScoreCalculator
             'value' => round($cv * 100, 1),
             'unit' => '%',
             'suggestion' => $suggestion,
+            'suggestion_key' => $score >= 80 ? 'income_stability_stable' : 'income_stability_variable',
+            'suggestion_params' => [],
             'description' => 'Income variability (lower is better)',
         ];
     }
@@ -319,10 +327,12 @@ class HealthScoreCalculator
 
         $score = 0;
         $suggestion = $fallbackSuggestion ?? 'No data available.';
+        $suggestionKey = "{$key}_fallback";
         foreach ($thresholds as $t) {
             if ($value >= $t[0]) {
                 $score = $t[1];
                 $suggestion = $t[2];
+                $suggestionKey = $key.'_'.str_replace('-', 'neg', (string) $t[0]);
                 break;
             }
         }
@@ -335,6 +345,8 @@ class HealthScoreCalculator
             'value' => round($value, 1),
             'unit' => $unit,
             'suggestion' => $suggestion,
+            'suggestion_key' => $suggestionKey,
+            'suggestion_params' => [],
             'description' => '',
         ];
     }

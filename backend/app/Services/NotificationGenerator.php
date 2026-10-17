@@ -23,7 +23,7 @@ class NotificationGenerator
         $this->generateInvestmentTargetNotifications($user);
     }
 
-    private function addOnce(User $user, string $type, string $key, string $title, string $body, array $data = []): void
+    private function addOnce(User $user, string $type, string $key, string $title, string $body, array $data = [], array $i18n = []): void
     {
         // withTrashed: a notification the user deleted must not be generated again.
         $exists = $user->appNotifications()
@@ -37,7 +37,8 @@ class NotificationGenerator
                 'type' => $type,
                 'title' => $title,
                 'body' => $body,
-                'data' => array_merge($data, ['key' => $key]),
+                // English title/body stay as the fallback; the SPA translates from data.i18n when present.
+                'data' => array_merge($data, ['key' => $key], $i18n ? ['i18n' => $i18n] : []),
             ]);
         }
     }
@@ -81,7 +82,8 @@ class NotificationGenerator
                     $key,
                     'Budget exceeded',
                     "You exceeded your {$budget->category->name} budget by {$this->money($actual - $limit)}.",
-                    ['budget_id' => $budget->id, 'category' => $budget->category->name]
+                    ['budget_id' => $budget->id, 'category' => $budget->category->name],
+                    ['key' => 'budget_exceeded', 'params' => ['category' => $budget->category->name, 'amount' => $this->money($actual - $limit)]]
                 );
             } elseif ($actual >= $limit * 0.8) {
                 $this->addOnce(
@@ -90,7 +92,8 @@ class NotificationGenerator
                     $key,
                     'Budget almost exceeded',
                     "You have used {$this->pct($actual, $limit)} of your {$budget->category->name} budget.",
-                    ['budget_id' => $budget->id, 'category' => $budget->category->name]
+                    ['budget_id' => $budget->id, 'category' => $budget->category->name],
+                    ['key' => 'budget_almost_exceeded', 'params' => ['category' => $budget->category->name, 'percent' => $this->pct($actual, $limit)]]
                 );
             }
         }
@@ -132,7 +135,11 @@ class NotificationGenerator
                 "alert-rule-{$rule->id}-{$month}-".number_format($limit, 2, '.', ''),
                 'Spending limit reached',
                 "You have spent {$this->money($spent)} {$what}, reaching your limit of {$this->money($limit)}.",
-                ['alert_rule_id' => $rule->id, 'category' => $rule->category?->name]
+                ['alert_rule_id' => $rule->id, 'category' => $rule->category?->name],
+                [
+                    'key' => $isCategory ? 'alert_rule_category' : 'alert_rule_total',
+                    'params' => ['category' => $rule->category?->name, 'spent' => $this->money($spent), 'limit' => $this->money($limit)],
+                ]
             );
         }
     }
@@ -163,7 +170,11 @@ class NotificationGenerator
                 $dueDate->isSameDay($today)
                     ? "{$rt->description} is due today."
                     : "{$rt->description} was due on {$dueDate->format('M j')}.",
-                ['recurrent_transaction_id' => $rt->id]
+                ['recurrent_transaction_id' => $rt->id],
+                [
+                    'key' => $dueDate->isSameDay($today) ? 'recurring_due_today' : 'recurring_due_past',
+                    'params' => ['description' => $rt->description, 'date' => $dueDate->toDateString()],
+                ]
             );
         }
     }
@@ -179,7 +190,8 @@ class NotificationGenerator
             $key,
             'Monthly report ready',
             "Your financial summary for {$month} is ready to view.",
-            ['month' => $month]
+            ['month' => $month],
+            ['key' => 'monthly_report_ready', 'params' => ['month' => Carbon::now()->format('Y-m')]]
         );
     }
 
@@ -200,7 +212,8 @@ class NotificationGenerator
                 $key,
                 'Savings goal reached',
                 "You saved {$this->money($saved)} this month (≥20% of income).",
-                ['saved' => $saved]
+                ['saved' => $saved],
+                ['key' => 'savings_goal_completed', 'params' => ['saved' => $this->money($saved)]]
             );
         }
     }
@@ -226,7 +239,8 @@ class NotificationGenerator
                 $key,
                 'Investment target reached',
                 "Your portfolio is up {$this->money($gain)} (+{$this->pct($totalCurrent, $totalCost, true)}).",
-                ['gain' => $gain]
+                ['gain' => $gain],
+                ['key' => 'investment_reached_target', 'params' => ['gain' => $this->money($gain), 'percent' => $this->pct($totalCurrent, $totalCost, true)]]
             );
         }
     }

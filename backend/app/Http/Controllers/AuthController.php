@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\ExchangeGoogleCodeRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateLocaleRequest;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Models\FinancialRecord;
@@ -73,6 +74,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'locale' => $user->locale,
                     'monthly_income' => null,
                     'monthly_expenses' => null,
                     'savings_goal' => null,
@@ -87,7 +89,7 @@ class AuthController extends Controller
             Log::error('Registration failed', ['exception' => $e]);
 
             return response()->json([
-                'message' => 'Registration failed. Please try again.',
+                'message' => __('messages.register_failed'),
             ], 500);
         }
     }
@@ -116,7 +118,7 @@ class AuthController extends Controller
         try {
             if (! Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
                 return response()->json([
-                    'message' => 'Invalid credentials',
+                    'message' => __('messages.invalid_credentials'),
                 ], 401);
             }
 
@@ -125,7 +127,7 @@ class AuthController extends Controller
             if ($user->isBlacklisted()) {
                 Auth::logout();
 
-                return response()->json(['message' => 'Your account has been suspended.'], 403);
+                return response()->json(['message' => __('messages.account_suspended')], 403);
             }
 
             $currentYear = date('Y');
@@ -156,6 +158,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'locale' => $user->locale,
                     'roles' => $user->getRoleNames()->values(),
                     'blacklisted_at' => $user->blacklisted_at,
                     'monthly_income' => $financialRecord?->monthly_income ?? null,
@@ -170,7 +173,7 @@ class AuthController extends Controller
             Log::error('Login failed', ['exception' => $e]);
 
             return response()->json([
-                'message' => 'Login failed. Please try again.',
+                'message' => __('messages.login_failed'),
             ], 500);
         }
     }
@@ -190,7 +193,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json([
-            'message' => 'Logged out successfully',
+            'message' => __('messages.logged_out'),
         ]);
     }
 
@@ -208,6 +211,31 @@ class AuthController extends Controller
     {
         // Return authenticated user
         return response()->json($request->user());
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/user/locale",
+     *     tags={"Auth"},
+     *     summary="Save the user's interface language",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(required=true,
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="locale", type="string", enum={"en","pt"})
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Language saved")
+     * )
+     */
+    public function updateLocale(UpdateLocaleRequest $request)
+    {
+        $request->user()->update(['locale' => $request->locale]);
+
+        return response()->json(['locale' => $request->locale]);
     }
 
     /**
@@ -239,7 +267,7 @@ class AuthController extends Controller
         if ($request->email !== $user->email
             && ! Hash::check((string) $request->current_password, $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['Your current password is required to change your email.'],
+                'current_password' => [__('messages.email_needs_password')],
             ]);
         }
 
@@ -251,7 +279,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Profile updated successfully.',
+            'message' => __('messages.profile_updated'),
             'user' => $user->fresh(),
         ]);
     }
@@ -281,7 +309,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (! Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Current password is incorrect.'], 422);
+            return response()->json(['message' => __('messages.current_password_wrong')], 422);
         }
 
         $user->update(['password' => Hash::make($request->password)]);
@@ -289,7 +317,7 @@ class AuthController extends Controller
         // Sign out every other session; the current one stays valid.
         TokenService::revokeAll($user, $user->currentAccessToken());
 
-        return response()->json(['message' => 'Password updated successfully.']);
+        return response()->json(['message' => __('messages.password_updated')]);
     }
 
     /**
@@ -361,7 +389,7 @@ class AuthController extends Controller
             if ($user && $user->isBlacklisted()) {
                 $frontendUrl = config('app.frontend_url');
 
-                return redirect($frontendUrl.'/login?error='.urlencode('Your account has been suspended.'));
+                return redirect($frontendUrl.'/login?error='.urlencode(__('messages.account_suspended')));
             }
 
             if (! $user) {
@@ -426,7 +454,7 @@ class AuthController extends Controller
         $user = $payload ? User::find($payload['user_id']) : null;
 
         if (! $user || $user->isBlacklisted()) {
-            return response()->json(['message' => 'Invalid or expired login code.'], 401);
+            return response()->json(['message' => __('messages.login_code_invalid')], 401);
         }
 
         $currentYear = date('Y');
@@ -456,6 +484,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'locale' => $user->locale,
                 'roles' => $user->getRoleNames()->values(),
                 'blacklisted_at' => $user->blacklisted_at,
                 'monthly_income' => $financialRecord?->monthly_income ?? null,

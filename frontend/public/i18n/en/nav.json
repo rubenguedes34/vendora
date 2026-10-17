@@ -1,0 +1,15 @@
+{
+  "dashboard": "Dashboard",
+  "budget": "Budget",
+  "investments": "Investments",
+  "netWorth": "Net Worth",
+  "healthScore": "Health Score",
+  "aiSupport": "AI Support",
+  "notifications": "Notifications",
+  "admin": "Admin",
+  "openAdminPanel": "Open admin panel",
+  "logout": "Logout",
+  "pwaUpdate": "New version available — reload",
+  "pwaInstall": "Install app",
+  "pwaIosHint": "To install: Share → Add to Home Screen."
+}

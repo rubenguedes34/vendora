@@ -1,0 +1,19 @@
+{
+  "salary": "Salary",
+  "freelance": "Freelance",
+  "sideIncome": "Side Income",
+  "investments": "Investments",
+  "food": "Food",
+  "transport": "Transport",
+  "rent": "Rent",
+  "entertainment": "Entertainment",
+  "shopping": "Shopping",
+  "bills": "Bills",
+  "health": "Health",
+  "education": "Education",
+  "emergencyFund": "Emergency Fund",
+  "vacation": "Vacation",
+  "generalSavings": "General Savings",
+  "car": "Car",
+  "gbr": "GBR"
+}

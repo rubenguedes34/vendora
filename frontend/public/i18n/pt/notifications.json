@@ -1,0 +1,74 @@
+{
+  "title": "Histórico de notificações",
+  "subtitle": "Veja e gira todas as notificações",
+  "markAllRead": "Marcar todas como lidas",
+  "loading": "A carregar…",
+  "empty": "Ainda não tem notificações.",
+  "markRead": "Marcar como lida",
+  "errLoad": "Não foi possível carregar as notificações.",
+  "errMarkRead": "Não foi possível marcar a notificação como lida.",
+  "errMarkAll": "Não foi possível marcar todas as notificações como lidas.",
+  "errDelete": "Não foi possível eliminar a notificação.",
+  "rules": {
+    "title": "Regras de alerta",
+    "intro": "Receba um aviso quando as suas despesas deste mês atingirem um limite definido por si.",
+    "none": "Ainda não há regras.",
+    "limitPerMonth": "Limite de {{amount}} por mês",
+    "active": "Ativa",
+    "activeAria": "Ativa: {{label}}",
+    "deleteAria": "Eliminar regra: {{label}}",
+    "type": "Tipo",
+    "categoryLimit": "Limite por categoria",
+    "totalLimit": "Limite total de despesas",
+    "category": "Categoria",
+    "choose": "Escolher…",
+    "limit": "Limite",
+    "placeholder": "ex.: 200",
+    "adding": "A adicionar…",
+    "add": "Adicionar regra",
+    "errLoad": "Não foi possível carregar as regras de alerta.",
+    "errAdd": "Não foi possível adicionar a regra.",
+    "errUpdate": "Não foi possível atualizar a regra.",
+    "errDelete": "Não foi possível eliminar a regra.",
+    "categoryFallback": "Categoria",
+    "totalSpending": "Despesas totais"
+  },
+  "items": {
+    "budget_exceeded": {
+      "title": "Orçamento excedido",
+      "body": "Excedeu o orçamento de {{category}} em {{amount}}."
+    },
+    "budget_almost_exceeded": {
+      "title": "Orçamento quase excedido",
+      "body": "Já utilizou {{percent}} do orçamento de {{category}}."
+    },
+    "alert_rule_category": {
+      "title": "Limite de despesas atingido",
+      "body": "Gastou {{spent}} em {{category}}, atingindo o seu limite de {{limit}}."
+    },
+    "alert_rule_total": {
+      "title": "Limite de despesas atingido",
+      "body": "Gastou {{spent}} este mês, atingindo o seu limite de {{limit}}."
+    },
+    "recurring_due_today": {
+      "title": "Transação recorrente a vencer",
+      "body": "{{description}} vence hoje."
+    },
+    "recurring_due_past": {
+      "title": "Transação recorrente a vencer",
+      "body": "{{description}} venceu em {{date}}."
+    },
+    "monthly_report_ready": {
+      "title": "Relatório mensal disponível",
+      "body": "O seu resumo financeiro de {{month}} está pronto a consultar."
+    },
+    "savings_goal_completed": {
+      "title": "Meta de poupança atingida",
+      "body": "Poupou {{saved}} este mês (≥20% do rendimento)."
+    },
+    "investment_reached_target": {
+      "title": "Objetivo de investimento atingido",
+      "body": "A sua carteira subiu {{gain}} (+{{percent}})."
+    }
+  }
+}

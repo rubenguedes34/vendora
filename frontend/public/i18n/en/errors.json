@@ -1,0 +1,15 @@
+{
+  "invalidCredentials": "Invalid email or password. Please try again.",
+  "timeout": "Request timeout. Please check your connection and try again.",
+  "connection": "Unable to connect to server. Please check if the backend is running.",
+  "generic": "An error occurred. Please try again.",
+  "sessionExpired": "Your session has expired. Please log in again.",
+  "sessionExpiredShort": "Session expired. Please log in again.",
+  "backendUnreachable": "Could not reach the backend. Make sure php artisan serve is running.",
+  "network": "Network error",
+  "symbolNotFound": "Symbol not found",
+  "providerUnavailable": "Market data provider unavailable",
+  "marketFailed": "Market data request failed",
+  "notificationFailed": "Notification request failed",
+  "reportFailed": "Could not create the report. Please try again."
+}

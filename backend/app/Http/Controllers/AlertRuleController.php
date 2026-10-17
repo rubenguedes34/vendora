@@ -106,7 +106,7 @@ class AlertRuleController extends Controller
 
         $rule->delete();
 
-        return response()->json(['message' => 'Alert rule deleted']);
+        return response()->json(['message' => __('messages.alert_rule_deleted')]);
     }
 
     // Notifications are generated at most every 10 minutes; a new or changed rule should apply right away.
