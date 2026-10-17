@@ -610,10 +610,6 @@
             Base for {{ monthNames[overviewMonth - 1] }}:
             <strong>{{ baseIncomeValue | currencySymbol }}</strong> income,
             <strong>{{ baseExpensesValue | currencySymbol }}</strong> expenses
-            <span class="text-gray-400"
-              >{{ monthRecord?.is_custom ? '(set for this month)' : '(your default)' }}, plus
-              transactions</span
-            >
           </span>
           <span class="flex items-center gap-2 ml-auto">
             <button
