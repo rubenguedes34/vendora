@@ -186,7 +186,7 @@ class FinancialRecordController extends Controller
             Log::error('Saving financial record failed', ['exception' => $e]);
 
             return response()->json([
-                'message' => 'Failed to save financial record. Please try again.',
+                'message' => __('messages.record_save_failed'),
             ], 500);
         }
     }
@@ -250,7 +250,7 @@ class FinancialRecordController extends Controller
             Log::error('Updating financial record failed', ['exception' => $e]);
 
             return response()->json([
-                'message' => 'Failed to update financial record. Please try again.',
+                'message' => __('messages.record_update_failed'),
             ], 500);
         }
     }
@@ -307,7 +307,7 @@ class FinancialRecordController extends Controller
 
         $record->delete();
 
-        return response()->json(['message' => 'Financial record deleted']);
+        return response()->json(['message' => __('messages.record_deleted')]);
     }
 
     /**

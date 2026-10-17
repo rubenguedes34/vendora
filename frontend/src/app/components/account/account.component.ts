@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { timeout, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -10,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
+import { LanguagePickerComponent } from '../shared/language-picker/language-picker.component';
 import { CurrencyPickerComponent } from '../shared/currency-picker/currency-picker.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
@@ -27,12 +29,15 @@ import { ApiError } from '../../models/api';
     SidebarComponent,
     ThemePickerComponent,
     CurrencyPickerComponent,
+    LanguagePickerComponent,
     CurrencySymbolPipe,
+    TranslatePipe,
   ],
   templateUrl: './account.component.html',
 })
 export class AccountComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   user: User | null = null;
   initials = '';
@@ -138,7 +143,7 @@ export class AccountComponent implements OnInit {
           this.savingProfile = false;
           this.authService.setUser({ ...this.user, ...profile });
           this.profileForm.patchValue({ current_password: '' });
-          this.profileSuccess = 'Profile updated successfully.';
+          this.profileSuccess = this.translate.instant('account.profileUpdated');
           setTimeout(() => (this.profileSuccess = ''), 4000);
         },
         error: (err: ApiError) => {
@@ -146,7 +151,7 @@ export class AccountComponent implements OnInit {
           this.profileError =
             err?.error?.errors?.['current_password']?.[0] ||
             err?.error?.message ||
-            'Failed to update profile. Please try again.';
+            this.translate.instant('account.profileFailed');
           setTimeout(() => (this.profileError = ''), 5000);
         },
       });
@@ -167,14 +172,14 @@ export class AccountComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savingPassword = false;
-          this.passwordSuccess = 'Password updated successfully.';
+          this.passwordSuccess = this.translate.instant('account.passwordUpdated');
           this.passwordForm.reset();
           setTimeout(() => (this.passwordSuccess = ''), 4000);
         },
         error: (err: ApiError) => {
           this.savingPassword = false;
           this.passwordError =
-            err?.error?.message || 'Failed to update password. Check your current password.';
+            err?.error?.message || this.translate.instant('account.passwordFailed');
           setTimeout(() => (this.passwordError = ''), 5000);
         },
       });

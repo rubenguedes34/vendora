@@ -77,6 +77,19 @@ class AiChatControllerTest extends TestCase
             ->assertJsonFragment(['question' => 'How do budgets work?']);
     }
 
+    public function test_faqs_use_pt_translation_when_available_else_english(): void
+    {
+        Faq::create(['question' => 'Q1', 'answer' => 'A1', 'question_pt' => 'P1', 'answer_pt' => 'R1', 'keywords' => ['a']]);
+        Faq::create(['question' => 'Q2', 'answer' => 'A2', 'keywords' => ['b']]);
+
+        $this->getJson('/api/ai/faqs', $this->authHeader() + ['Accept-Language' => 'pt-PT'])
+            ->assertJsonFragment(['question' => 'P1', 'answer' => 'R1'])
+            ->assertJsonFragment(['question' => 'Q2', 'answer' => 'A2']);
+
+        $this->getJson('/api/ai/faqs', $this->authHeader())
+            ->assertJsonFragment(['question' => 'Q1']);
+    }
+
     public function test_chat_uses_local_faq_response_without_openai_key(): void
     {
         Faq::create([
@@ -170,5 +183,14 @@ class AiChatControllerTest extends TestCase
         $this->postJson('/api/ai/chat', [], $this->authHeader())
             ->assertStatus(422)
             ->assertJsonValidationErrors(['message']);
+    }
+
+    public function test_agent_instructions_ask_for_european_portuguese_only_in_pt(): void
+    {
+        $this->assertStringNotContainsString('European Portuguese', (new SupportAgent)->instructions());
+
+        app()->setLocale('pt');
+
+        $this->assertStringContainsString('European Portuguese', (new SupportAgent)->instructions());
     }
 }

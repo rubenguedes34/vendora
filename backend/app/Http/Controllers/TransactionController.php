@@ -195,7 +195,7 @@ class TransactionController extends Controller
 
         $transaction->delete();
 
-        return response()->json(['message' => 'Transaction deleted']);
+        return response()->json(['message' => __('messages.transaction_deleted')]);
     }
 
     /**
@@ -216,7 +216,7 @@ class TransactionController extends Controller
         $this->authorize('view', $transaction);
 
         if (! $transaction->attachment_path || ! Storage::exists($transaction->attachment_path)) {
-            return response()->json(['message' => 'Attachment not found'], 404);
+            return response()->json(['message' => __('messages.attachment_not_found')], 404);
         }
 
         $mime = Storage::mimeType($transaction->attachment_path);
@@ -243,13 +243,13 @@ class TransactionController extends Controller
         $this->authorize('update', $transaction);
 
         if (! $transaction->attachment_path) {
-            return response()->json(['message' => 'No attachment to delete'], 404);
+            return response()->json(['message' => __('messages.no_attachment')], 404);
         }
 
         Storage::delete($transaction->attachment_path);
         $transaction->update(['attachment_path' => null]);
 
-        return response()->json(['message' => 'Attachment deleted']);
+        return response()->json(['message' => __('messages.attachment_deleted')]);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CustomAuth;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->throttleApi();
+        $middleware->appendToGroup('api', SetLocale::class);
 
         // Unauthenticated browser requests go to the Filament login (JSON requests still get 401).
         $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));

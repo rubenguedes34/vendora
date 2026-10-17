@@ -1,0 +1,27 @@
+{
+  "title": "Portfolio Allocation",
+  "subtitle": "Breakdown by asset type and filters",
+  "refresh": "Refresh",
+  "assetType": "Asset type",
+  "allTypes": "All types",
+  "account": "Account",
+  "filterByAccount": "Filter by account",
+  "from": "From",
+  "to": "To",
+  "noMatch": "No investments match the selected filters.",
+  "clearFilters": "Clear filters",
+  "allocation": "Allocation",
+  "totalInvested": "Total invested",
+  "breakdown": "Breakdown",
+  "assetOne": "{{count}} asset",
+  "assetMany": "{{count}} assets",
+  "loadFailed": "Failed to load allocation",
+  "types": {
+    "stocks": "Stocks",
+    "etf": "ETF",
+    "crypto": "Crypto",
+    "bonds": "Bonds",
+    "cash": "Cash",
+    "other": "Other"
+  }
+}

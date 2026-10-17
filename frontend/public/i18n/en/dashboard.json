@@ -1,0 +1,163 @@
+{
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "subtitle": "Here is how {{month}} is going.",
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "income": "Income",
+  "expenses": "Expenses",
+  "savings": "Savings",
+  "balance": "Balance",
+  "picker": {
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "thisMonth": "This month"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "clearAll": "Clear all",
+    "notifications": "Notifications",
+    "viewAll": "View all notifications",
+    "markRead": "Mark as read",
+    "dismiss": "Dismiss",
+    "healthy": "Your finances look healthy this month.",
+    "overspent": {
+      "title": "Expenses exceed income",
+      "message": "You've spent {{amount}} more than you earned in {{month}}."
+    },
+    "nearLimit": {
+      "title": "Spending at 90%+ of income",
+      "message": "Only {{amount}} left from your income in {{month}}."
+    },
+    "lowSavings": {
+      "title": "Low savings rate",
+      "message": "You're saving {{rate}}% of income in {{month}}. Target is at least 20%."
+    },
+    "negativeProjection": {
+      "title": "Negative {{month}} projection",
+      "message": "At current daily spend ({{daily}}/day), you'll end {{month}} {{amount}} short."
+    },
+    "tightBalance": {
+      "title": "Tight projected balance",
+      "message": "Projected end of {{month}} balance is only {{amount}}."
+    },
+    "onTrack": {
+      "title": "On track in {{month}}",
+      "message": "Projected to save {{amount}} by end of {{month}}."
+    },
+    "endingSoon": {
+      "title": "Month ending soon",
+      "message": "{{count}} days left in {{month}}. Watch your spending to stay positive."
+    }
+  },
+  "heading": {
+    "new": "New notifications",
+    "allGood": "All good!",
+    "attention": "Attention needed",
+    "onTrack": "On track",
+    "oneWarning": "1 warning",
+    "warnings": "{{count}} warnings"
+  },
+  "projection": {
+    "title": "Monthly Projection",
+    "balance": "Projected balance",
+    "dailyAvg": "Daily avg spend",
+    "daysRemaining": "Days remaining",
+    "days": "{{count}} days",
+    "savingsRate": "Savings rate"
+  },
+  "quick": {
+    "budget": "Budget",
+    "transactions": "Transactions",
+    "recurrent": "Recurrent",
+    "investments": "Investments"
+  },
+  "available": {
+    "title": "Available this month",
+    "daysLeft": "{{count}} days left · projected end",
+    "perDay": "You can spend per day",
+    "netRecurrents": "Net recurrents still due",
+    "exportCsv": "Export CSV",
+    "exportPdf": "Export PDF",
+    "premium": "Premium",
+    "premiumFeature": "Premium feature"
+  },
+  "daily": {
+    "title": "Balance this month vs last",
+    "subtitle": "Running balance for each day, up to today"
+  },
+  "compare": {
+    "title": "Compared with last month",
+    "subtitle": "Full month against the month before",
+    "now": "Now",
+    "before": "Before",
+    "none": "No data to compare"
+  },
+  "base": {
+    "custom": "Custom month",
+    "for": "Base for {{month}}:",
+    "incomeWord": "income,",
+    "expensesWord": "expenses",
+    "edit": "Edit this month",
+    "customize": "Customize this month",
+    "reset": "Reset to default",
+    "incomeBase": "Income base",
+    "expensesBase": "Expenses base",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "invalid": "Enter amounts of zero or more.",
+    "saveFailed": "Could not save this month. Please try again."
+  },
+  "monthly": {
+    "title": "Monthly Balance",
+    "subtitle": "Income, expenses and balance for each month of {{year}}",
+    "soFar": "{{year}} so far (Jan–{{month}}) vs {{previous}}",
+    "lastYear": "last year",
+    "in": "In",
+    "out": "Out",
+    "none": "No monthly data yet",
+    "trend": "Balance trend"
+  },
+  "yearly": {
+    "title": "Income vs Expenses",
+    "overview": "{{year}} overview",
+    "none": "No data yet"
+  },
+  "snapshot": {
+    "title": "Monthly Snapshot",
+    "total": "Total",
+    "saved": "Saved"
+  },
+  "byCategory": {
+    "title": "Expenses by Category",
+    "none": "No expense transactions this month"
+  },
+  "recent": {
+    "title": "Recent transactions",
+    "viewAll": "View all",
+    "none": "No transactions yet"
+  },
+  "charts": {
+    "thisMonth": "This month",
+    "previousMonth": "Previous month",
+    "day": "Day {{day}}"
+  }
+}

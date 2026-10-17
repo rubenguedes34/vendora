@@ -28,12 +28,16 @@ class SupportAgent implements Agent, Conversational
             ->map(fn (array $faq) => "Q: {$faq['question']}\nA: {$faq['answer']}")
             ->implode("\n\n") ?: '(no matching FAQ)';
 
+        $language = app()->getLocale() === 'pt'
+            ? "\nReply in European Portuguese (pt-PT) unless the user writes in another language.\n"
+            : '';
+
         return <<<PROMPT
 You are the friendly and concise AI support assistant for Vendora, a personal finance
 management application. You help users with questions about budgeting, transactions,
 investments, categories, recurring payments, the admin panel, and account settings.
 
-Use the language the user writes in. If you do not know the answer or the question
+Use the language the user writes in.{$language}If you do not know the answer or the question
 is unrelated to Vendora, say so clearly and suggest contacting support.
 Only describe features that appear in the reference below; never invent features.
 

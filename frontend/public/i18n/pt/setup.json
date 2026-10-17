@@ -1,0 +1,17 @@
+{
+  "welcome": "Bem-vindo ao Vendora",
+  "subtitle": "Defina a sua base mensal para personalizar o painel",
+  "income": "Rendimento mensal (€)",
+  "expenses": "Despesas mensais estimadas (€)",
+  "incomePlaceholder": "ex.: 3 000",
+  "expensesPlaceholder": "ex.: 2 000",
+  "incomeRequired": "O rendimento mensal é obrigatório.",
+  "incomeNegative": "O rendimento mensal não pode ser negativo.",
+  "expensesRequired": "As despesas estimadas são obrigatórias.",
+  "expensesNegative": "As despesas estimadas não podem ser negativas.",
+  "amountMax": "Introduza um valor inferior a 100 000 000 €.",
+  "complete": "Concluir configuração",
+  "saving": "A guardar...",
+  "unreachable": "Não foi possível contactar o servidor. Confirme que o php artisan serve está a correr em {{url}}.",
+  "failed": "A configuração falhou. Tente novamente."
+}

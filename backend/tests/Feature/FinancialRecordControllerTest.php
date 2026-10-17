@@ -60,6 +60,10 @@ class FinancialRecordControllerTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $response->json('score.overall_score'));
         $this->assertLessThanOrEqual(100, $response->json('score.overall_score'));
         $this->assertCount(6, $response->json('history'));
+
+        foreach ($response->json('score.categories') as $category) {
+            $this->assertNotEmpty($category['suggestion_key']);
+        }
     }
 
     public function test_current_returns_default_record_when_none_exists(): void

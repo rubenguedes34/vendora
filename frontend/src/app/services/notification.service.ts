@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap, timeout } from 'rxjs/operators';
@@ -27,6 +28,8 @@ export class NotificationService {
 
   private _unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this._unreadCount.asObservable();
+
+  private translate = inject(TranslateService);
 
   constructor(
     private http: HttpClient,
@@ -99,7 +102,7 @@ export class NotificationService {
   }
 
   private handleError(error: ApiError): Error {
-    if (error.status === 0) return new Error('Network error');
-    return new Error(error.error?.message || 'Notification request failed');
+    if (error.status === 0) return new Error(this.translate.instant('errors.network'));
+    return new Error(error.error?.message || this.translate.instant('errors.notificationFailed'));
   }
 }

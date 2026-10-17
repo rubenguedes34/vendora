@@ -1,8 +1,17 @@
-import { Component, OnInit, OnDestroy, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { CategoryNamePipe } from '../../../pipes/category-name.pipe';
 import { FinancialService, Category } from '../../../services/financial.service';
 import { AuthService } from '../../../services/auth.service';
 import { CurrencyService } from '../../../services/currency.service';
@@ -23,7 +32,7 @@ const INVESTMENT_TYPES = [
   selector: 'app-quick-add',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, CategoryNamePipe],
   templateUrl: './quick-add.component.html',
 })
 export class QuickAddComponent implements OnInit, OnDestroy {
@@ -56,6 +65,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
 
   readonly investmentTypes = INVESTMENT_TYPES;
   private apiUrl = environment.apiUrl;
+  private translate = inject(TranslateService);
 
   voiceSupported = false;
   voiceListening = false;
@@ -119,6 +129,10 @@ export class QuickAddComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.voiceSub.unsubscribe();
     this.voiceService.stop();
+  }
+
+  typeLabel(type: string): string {
+    return this.translate.instant(`common.quickAdd.types.${type.replace(/\s+/g, '')}`);
   }
 
   toggleVoice(): void {
@@ -213,7 +227,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
     this.http.post(`${this.apiUrl}/transactions`, payload).subscribe({
       next: () => {
         this.saving = false;
-        this.successMsg = 'Transaction saved!';
+        this.successMsg = this.translate.instant('common.quickAdd.transactionSaved');
         this.financialService.dataChanged$.next();
         this.form.patchValue({
           amount: '',
@@ -228,7 +242,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.saving = false;
-        this.errorMsg = err?.error?.message || 'Failed to save. Try again.';
+        this.errorMsg = err?.error?.message || this.translate.instant('common.quickAdd.saveFailed');
       },
     });
   }
@@ -254,7 +268,7 @@ export class QuickAddComponent implements OnInit, OnDestroy {
     this.http.post(`${this.apiUrl}/investments`, payload).subscribe({
       next: () => {
         this.invSaving = false;
-        this.invSuccessMsg = 'Investment added!';
+        this.invSuccessMsg = this.translate.instant('common.quickAdd.investmentAdded');
         this.financialService.dataChanged$.next();
         this.invForm.reset({ purchase_date: new Date().toISOString().slice(0, 10) });
         setTimeout(() => {
@@ -264,7 +278,8 @@ export class QuickAddComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.invSaving = false;
-        this.invErrorMsg = err?.error?.message || 'Failed to save. Try again.';
+        this.invErrorMsg =
+          err?.error?.message || this.translate.instant('common.quickAdd.saveFailed');
       },
     });
   }

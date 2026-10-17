@@ -1,5 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { CategoryNamePipe } from '../../pipes/category-name.pipe';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AlertRule, AlertRuleService, AlertRuleType } from '../../services/alert-rule.service';
 import { Category, FinancialService } from '../../services/financial.service';
@@ -9,15 +17,17 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
   selector: 'app-alert-rules',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CurrencySymbolPipe],
+  imports: [CommonModule, ReactiveFormsModule, CurrencySymbolPipe, CategoryNamePipe, TranslatePipe],
   template: `
     <section
       class="bg-white rounded-2xl border border-gray-200 p-5 mb-6"
       aria-labelledby="alert-rules-title"
     >
-      <h3 id="alert-rules-title" class="font-semibold text-gray-800">Alert rules</h3>
+      <h3 id="alert-rules-title" class="font-semibold text-gray-800">
+        {{ 'notifications.rules.title' | translate }}
+      </h3>
       <p class="text-xs text-gray-500 mb-4">
-        Get notified when your spending this month reaches a limit you set.
+        {{ 'notifications.rules.intro' | translate }}
       </p>
 
       <div
@@ -28,7 +38,9 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
         {{ errorMessage }}
       </div>
 
-      <p *ngIf="!loading && rules.length === 0" class="text-sm text-gray-500 mb-4">No rules yet.</p>
+      <p *ngIf="!loading && rules.length === 0" class="text-sm text-gray-500 mb-4">
+        {{ 'notifications.rules.none' | translate }}
+      </p>
 
       <ul class="space-y-2 mb-4">
         <li
@@ -40,7 +52,10 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
               {{ label(rule) }}
             </p>
             <p class="text-xs text-gray-500">
-              Limit {{ rule.threshold | currencySymbol }} per month
+              {{
+                'notifications.rules.limitPerMonth'
+                  | translate: { amount: rule.threshold | currencySymbol }
+              }}
             </p>
           </div>
           <label class="flex items-center gap-1.5 text-xs text-gray-600">
@@ -49,16 +64,18 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
               [checked]="rule.is_active"
               (change)="toggle(rule)"
               [disabled]="busyId === rule.id"
-              [attr.aria-label]="'Active: ' + label(rule)"
+              [attr.aria-label]="
+                'notifications.rules.activeAria' | translate: { label: label(rule) }
+              "
             />
-            Active
+            {{ 'notifications.rules.active' | translate }}
           </label>
           <button
             type="button"
             (click)="remove(rule)"
             [disabled]="busyId === rule.id"
             class="text-gray-400 hover:text-red-500 p-1"
-            [attr.aria-label]="'Delete rule: ' + label(rule)"
+            [attr.aria-label]="'notifications.rules.deleteAria' | translate: { label: label(rule) }"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -74,27 +91,35 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 
       <form [formGroup]="form" (ngSubmit)="add()" class="flex flex-wrap items-end gap-3">
         <label class="text-xs text-gray-600">
-          Type
+          {{ 'notifications.rules.type' | translate }}
           <select
             formControlName="type"
             class="block mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm"
           >
-            <option value="category_limit">Category limit</option>
-            <option value="total_spend_limit">Total spending limit</option>
+            <option value="category_limit">
+              {{ 'notifications.rules.categoryLimit' | translate }}
+            </option>
+            <option value="total_spend_limit">
+              {{ 'notifications.rules.totalLimit' | translate }}
+            </option>
           </select>
         </label>
         <label *ngIf="form.value.type === 'category_limit'" class="text-xs text-gray-600">
-          Category
+          {{ 'notifications.rules.category' | translate }}
           <select
             formControlName="category_id"
             class="block mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm"
           >
-            <option [ngValue]="null" disabled>Choose…</option>
-            <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+            <option [ngValue]="null" disabled>
+              {{ 'notifications.rules.choose' | translate }}
+            </option>
+            <option *ngFor="let c of categories" [ngValue]="c.id">
+              {{ c.name | categoryName }}
+            </option>
           </select>
         </label>
         <label class="text-xs text-gray-600">
-          Limit
+          {{ 'notifications.rules.limit' | translate }}
           <input
             type="number"
             min="0.01"
@@ -102,7 +127,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
             step="any"
             formControlName="threshold"
             class="block mt-1 w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm"
-            placeholder="e.g. 200"
+            [placeholder]="'notifications.rules.placeholder' | translate"
           />
         </label>
         <button
@@ -110,7 +135,7 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
           [disabled]="form.invalid || saving"
           class="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 disabled:opacity-50"
         >
-          {{ saving ? 'Adding…' : 'Add rule' }}
+          {{ (saving ? 'notifications.rules.adding' : 'notifications.rules.add') | translate }}
         </button>
       </form>
     </section>
@@ -119,6 +144,8 @@ import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 export class AlertRulesComponent implements OnInit {
   rules: AlertRule[] = [];
   categories: Category[] = [];
+  private translate = inject(TranslateService);
+  private categoryName = new CategoryNamePipe();
   loading = true;
   saving = false;
   busyId: number | null = null;
@@ -164,14 +191,17 @@ export class AlertRulesComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Could not load alert rules.';
+        this.errorMessage = this.translate.instant('notifications.rules.errLoad');
         this.cdr.markForCheck();
       },
     });
   }
 
   label(rule: AlertRule): string {
-    return rule.type === 'category_limit' ? rule.category?.name || 'Category' : 'Total spending';
+    return rule.type === 'category_limit'
+      ? this.categoryName.transform(rule.category?.name) ||
+          this.translate.instant('notifications.rules.categoryFallback')
+      : this.translate.instant('notifications.rules.totalSpending');
   }
 
   add(): void {
@@ -195,7 +225,8 @@ export class AlertRulesComponent implements OnInit {
         },
         error: (err) => {
           this.saving = false;
-          this.errorMessage = err?.error?.message || 'Could not add the rule.';
+          this.errorMessage =
+            err?.error?.message || this.translate.instant('notifications.rules.errAdd');
           this.cdr.markForCheck();
         },
       });
@@ -211,7 +242,7 @@ export class AlertRulesComponent implements OnInit {
       },
       error: () => {
         this.busyId = null;
-        this.errorMessage = 'Could not update the rule.';
+        this.errorMessage = this.translate.instant('notifications.rules.errUpdate');
         this.cdr.markForCheck();
       },
     });
@@ -227,7 +258,7 @@ export class AlertRulesComponent implements OnInit {
       },
       error: () => {
         this.busyId = null;
-        this.errorMessage = 'Could not delete the rule.';
+        this.errorMessage = this.translate.instant('notifications.rules.errDelete');
         this.cdr.markForCheck();
       },
     });

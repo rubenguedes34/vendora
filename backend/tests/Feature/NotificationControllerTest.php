@@ -72,6 +72,17 @@ class NotificationControllerTest extends TestCase
             ->assertStatus(200);
     }
 
+    public function test_generated_notifications_carry_a_translation_key_with_english_fallback(): void
+    {
+        $list = $this->getJson('/api/notifications', $this->authHeader())->assertStatus(200)->json();
+
+        $report = collect($list)->firstWhere('type', 'monthly_report_ready');
+        $this->assertNotNull($report);
+        $this->assertSame('Monthly report ready', $report['title']);
+        $this->assertSame('monthly_report_ready', $report['data']['i18n']['key']);
+        $this->assertSame(now()->format('Y-m'), $report['data']['i18n']['params']['month']);
+    }
+
     public function test_deleted_notification_is_not_generated_again(): void
     {
         $list = $this->getJson('/api/notifications', $this->authHeader())->json();

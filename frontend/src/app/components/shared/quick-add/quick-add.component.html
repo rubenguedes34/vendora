@@ -2,8 +2,8 @@
 <button
   (click)="open = !open"
   class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-xl hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center safe-bottom"
-  title="Quick add"
-  aria-label="Quick add"
+  [title]="'common.quickAdd.title' | translate"
+  [attr.aria-label]="'common.quickAdd.title' | translate"
   aria-haspopup="dialog"
   [attr.aria-expanded]="open"
 >
@@ -30,19 +30,25 @@
   *ngIf="open"
   role="dialog"
   aria-modal="true"
-  aria-label="Quick add"
+  [attr.aria-label]="'common.quickAdd.title' | translate"
   class="fixed bottom-[max(6rem,env(safe-area-inset-bottom)+4.5rem)] right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[22rem] max-h-[80dvh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-gray-200 p-5"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
-    <h2 class="text-base font-semibold text-gray-900">Quick add</h2>
+    <h2 class="text-base font-semibold text-gray-900">{{ 'common.quickAdd.title' | translate }}</h2>
     <div class="flex items-center gap-1">
       <button
         *ngIf="voiceSupported"
         type="button"
         (click)="toggleVoice()"
-        [title]="voiceListening ? 'Stop listening' : 'Add by voice'"
-        [attr.aria-label]="voiceListening ? 'Stop listening' : 'Add by voice'"
+        [title]="
+          (voiceListening ? 'common.quickAdd.stopListening' : 'common.quickAdd.addByVoice')
+            | translate
+        "
+        [attr.aria-label]="
+          (voiceListening ? 'common.quickAdd.stopListening' : 'common.quickAdd.addByVoice')
+            | translate
+        "
         class="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
         [class.bg-primary-600]="voiceListening"
         [class.text-white]="voiceListening"
@@ -62,7 +68,7 @@
       <button
         type="button"
         (click)="close()"
-        aria-label="Close"
+        [attr.aria-label]="'common.close' | translate"
         class="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +99,7 @@
       [class.text-red-600]="activeTab === 'expense'"
       [class.text-gray-500]="activeTab !== 'expense'"
     >
-      Expense
+      {{ 'common.quickAdd.expense' | translate }}
     </button>
     <button
       type="button"
@@ -106,7 +112,7 @@
       [class.text-green-600]="activeTab === 'income'"
       [class.text-gray-500]="activeTab !== 'income'"
     >
-      Income
+      {{ 'common.quickAdd.income' | translate }}
     </button>
     <button
       type="button"
@@ -119,7 +125,7 @@
       [class.text-purple-600]="activeTab === 'investment'"
       [class.text-gray-500]="activeTab !== 'investment'"
     >
-      Invest
+      {{ 'common.quickAdd.invest' | translate }}
     </button>
   </div>
 
@@ -132,7 +138,7 @@
       *ngIf="voiceListening && !voiceTranscript"
       class="text-primary-700 font-medium animate-pulse"
     >
-      Listening…
+      {{ 'common.quickAdd.listening' | translate }}
     </p>
     <p *ngIf="voiceTranscript" class="text-gray-700 italic">“{{ voiceTranscript }}”</p>
     <p *ngIf="voiceError" class="text-red-600">{{ voiceError }}</p>
@@ -141,7 +147,7 @@
     *ngIf="voiceSupported && !voiceListening && !voiceTranscript && !voiceError"
     class="mb-4 text-xs text-gray-500 leading-snug"
   >
-    Tip: tap the mic and say
+    {{ 'common.quickAdd.tip' | translate }}
     <span class="italic">{{
       activeTab === 'investment'
         ? '“Investment 500 Apple stock”'
@@ -168,7 +174,7 @@
         step="any"
         min="0.01"
         placeholder="0.00"
-        aria-label="Amount"
+        [attr.aria-label]="'common.quickAdd.amount' | translate"
         class="w-40 bg-transparent text-4xl font-bold tracking-tight tabular-nums text-center focus:outline-none"
         [class.text-red-600]="activeTab === 'expense'"
         [class.text-green-600]="activeTab === 'income'"
@@ -179,7 +185,7 @@
     <input
       formControlName="description"
       type="text"
-      placeholder="Description (e.g. Groceries)"
+      [placeholder]="'common.quickAdd.descriptionPlaceholder' | translate"
       class="w-full px-3.5 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
     />
 
@@ -187,18 +193,18 @@
     <div class="grid grid-cols-2 gap-3">
       <select
         formControlName="category_id"
-        aria-label="Category"
+        [attr.aria-label]="'common.quickAdd.category' | translate"
         class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
       >
-        <option value="">Category</option>
+        <option value="">{{ 'common.quickAdd.category' | translate }}</option>
         <option *ngFor="let c of filteredCategories" [value]="c.id">
-          {{ selectIcon(c.icon) }} {{ c.name }}
+          {{ selectIcon(c.icon) }} {{ c.name | categoryName }}
         </option>
       </select>
       <input
         formControlName="transaction_date"
         type="date"
-        aria-label="Date"
+        [attr.aria-label]="'common.quickAdd.date' | translate"
         class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
       />
     </div>
@@ -206,7 +212,12 @@
       *ngIf="filteredCategories.length === 0 && !loadingCategories"
       class="text-xs text-orange-500"
     >
-      No {{ activeTab }} categories are available.
+      {{
+        (activeTab === 'income'
+          ? 'common.quickAdd.noIncomeCategories'
+          : 'common.quickAdd.noExpenseCategories'
+        ) | translate
+      }}
     </p>
 
     <p *ngIf="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p>
@@ -217,7 +228,14 @@
       [disabled]="form.invalid || saving"
       class="w-full py-3 rounded-xl text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
     >
-      {{ saving ? 'Saving…' : activeTab === 'income' ? 'Add income' : 'Add expense' }}
+      {{
+        (saving
+          ? 'common.quickAdd.saving'
+          : activeTab === 'income'
+            ? 'common.quickAdd.addIncome'
+            : 'common.quickAdd.addExpense'
+        ) | translate
+      }}
     </button>
   </form>
 
@@ -239,7 +257,7 @@
         step="any"
         min="0.01"
         placeholder="0.00"
-        aria-label="Amount invested"
+        [attr.aria-label]="'common.quickAdd.amountInvested' | translate"
         class="w-40 bg-transparent text-4xl font-bold tracking-tight tabular-nums text-center text-purple-600 focus:outline-none"
       />
     </label>
@@ -247,23 +265,23 @@
     <input
       formControlName="name"
       type="text"
-      placeholder="Name (e.g. Apple, Bitcoin, S&P 500)"
+      [placeholder]="'common.quickAdd.namePlaceholder' | translate"
       class="w-full px-3.5 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
     />
 
     <div class="grid grid-cols-2 gap-3">
       <select
         formControlName="type"
-        aria-label="Asset type"
+        [attr.aria-label]="'common.quickAdd.assetType' | translate"
         class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
       >
-        <option value="">Asset type</option>
-        <option *ngFor="let t of investmentTypes" [value]="t">{{ t }}</option>
+        <option value="">{{ 'common.quickAdd.assetType' | translate }}</option>
+        <option *ngFor="let t of investmentTypes" [value]="t">{{ typeLabel(t) }}</option>
       </select>
       <input
         formControlName="purchase_date"
         type="date"
-        aria-label="Purchase date"
+        [attr.aria-label]="'common.quickAdd.purchaseDate' | translate"
         class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
       />
     </div>
@@ -273,7 +291,7 @@
       type="number"
       step="any"
       min="0"
-      placeholder="Current value (same as invested if unknown)"
+      [placeholder]="'common.quickAdd.currentValuePlaceholder' | translate"
       class="w-full px-3.5 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
     />
 
@@ -285,7 +303,7 @@
       [disabled]="invForm.invalid || invSaving"
       class="w-full py-3 rounded-xl text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
     >
-      {{ invSaving ? 'Saving…' : 'Add investment' }}
+      {{ (invSaving ? 'common.quickAdd.saving' : 'common.quickAdd.addInvestment') | translate }}
     </button>
   </form>
 </div>

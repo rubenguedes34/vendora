@@ -24,7 +24,9 @@ import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
 import { ApiError } from '../../models/api';
-import { CoinMarket } from '../../models/investment';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { CoinMarket, assetTypeLabel } from '../../models/investment';
+import { LanguageService } from '../../services/language.service';
 import { MarketSearchResult } from '../../services/market-data.service';
 
 const INVESTMENT_TYPES = [
@@ -64,11 +66,20 @@ const ACCOUNT_COLORS = [
   selector: 'app-investments',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    SidebarComponent,
+    CurrencySymbolPipe,
+    TranslatePipe,
+  ],
   templateUrl: './investments.component.html',
 })
 export class InvestmentsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  readonly languageService = inject(LanguageService);
 
   investments: any[] = [];
   investmentForm: FormGroup;
@@ -179,7 +190,9 @@ export class InvestmentsComponent implements OnInit {
         },
         error: (err) => {
           this.fetchingPrice = false;
-          this.quoteError = err?.error?.error || 'Could not fetch price for ' + asset.symbol;
+          this.quoteError =
+            err?.error?.error ||
+            this.translate.instant('investments.errors.quoteFailed', { symbol: asset.symbol });
           this.cdr.detectChanges();
         },
       });
@@ -236,6 +249,12 @@ export class InvestmentsComponent implements OnInit {
       purchase_date: ['', Validators.required],
     });
 
+    // Group labels ("No account") and type names are translated: rebuild when the language changes.
+    this.languageService.language$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.recalcDonut();
+      this.cdr.markForCheck();
+    });
+
     this.investmentForm
       .get('initial_amount')!
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
@@ -284,7 +303,7 @@ export class InvestmentsComponent implements OnInit {
           (err?.message ||
             err?.error?.message ||
             JSON.stringify(err) ||
-            'Failed to load investments') + status;
+            this.translate.instant('investments.errors.loadFailed')) + status;
         this.cdr.detectChanges();
       },
     });
@@ -346,14 +365,15 @@ export class InvestmentsComponent implements OnInit {
         },
         error: (err) => {
           this.fetchingPrice = false;
-          this.quoteError = err?.error?.error || 'Symbol not found. Try: AAPL, BTC-USD, VWCE.DE';
+          this.quoteError =
+            err?.error?.error || this.translate.instant('investments.errors.symbolNotFound');
         },
       });
   }
 
   get pricePerUnitForDisplay(): string {
     const v = parseFloat(this.investmentForm.get('price_per_unit')?.value);
-    return v > 0 ? v.toLocaleString('en-US', { maximumFractionDigits: 6 }) : '';
+    return v > 0 ? v.toLocaleString(this.languageService.locale, { maximumFractionDigits: 6 }) : '';
   }
 
   get quoteCurrency(): string {
@@ -453,7 +473,10 @@ export class InvestmentsComponent implements OnInit {
     const circumference = 2 * Math.PI * 54;
     const grouped: Record<string, number> = {};
     for (const inv of this.investments) {
-      const key = this.groupBy === 'account' ? inv.account || 'No account' : inv.type;
+      const key =
+        this.groupBy === 'account'
+          ? inv.account || this.translate.instant('investments.noAccount')
+          : inv.type;
       grouped[key] = (grouped[key] || 0) + +inv.current_amount;
     }
     let offset = 0;
@@ -464,6 +487,21 @@ export class InvestmentsComponent implements OnInit {
       const seg = { type, color: this.colorForGroup(type), pct, dash, gap, offset };
       offset -= dash;
       return seg;
+    });
+  }
+
+  typeLabel(type: string): string {
+    return assetTypeLabel(this.translate, 'investments', type);
+  }
+
+  segLabel(seg: { type: string }): string {
+    return this.groupBy === 'type' ? this.typeLabel(seg.type) : seg.type;
+  }
+
+  formatDate(date: string): string {
+    return new Date(date).toLocaleDateString(this.languageService.locale, {
+      dateStyle: 'medium',
+      timeZone: 'UTC',
     });
   }
 
@@ -538,7 +576,7 @@ export class InvestmentsComponent implements OnInit {
       },
       error: (err: ApiError) => {
         this.isSaving = false;
-        this.errorMessage = err.message || 'Failed to save investment';
+        this.errorMessage = err.message || this.translate.instant('investments.errors.saveFailed');
         this.cdr.detectChanges();
       },
     });
@@ -565,11 +603,12 @@ export class InvestmentsComponent implements OnInit {
   }
 
   deleteInvestment(id: number): void {
-    if (!confirm('Delete this investment?')) return;
+    if (!confirm(this.translate.instant('investments.confirmDelete'))) return;
     this.financialService.deleteInvestment(id).subscribe({
       next: () => this.loadInvestments(true),
       error: (err: ApiError) => {
-        this.errorMessage = err.message || 'Failed to delete';
+        this.errorMessage =
+          err.message || this.translate.instant('investments.errors.deleteFailed');
         this.cdr.detectChanges();
       },
     });
@@ -610,8 +649,7 @@ export class InvestmentsComponent implements OnInit {
         },
         error: () => {
           this.cryptoLoading = false;
-          this.cryptoError =
-            'Failed to load crypto data. CoinGecko may be rate-limiting — try again in a minute.';
+          this.cryptoError = this.translate.instant('investments.errors.cryptoLoadFailed');
           this.cdr.detectChanges();
         },
       });
@@ -640,8 +678,9 @@ export class InvestmentsComponent implements OnInit {
   }
 
   formatPrice(p: number): string {
-    if (p >= 1000) return p.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    if (p >= 1) return p.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (p >= 1000)
+      return p.toLocaleString(this.languageService.locale, { maximumFractionDigits: 0 });
+    if (p >= 1) return p.toLocaleString(this.languageService.locale, { maximumFractionDigits: 2 });
     return p.toFixed(6);
   }
 
@@ -720,7 +759,9 @@ export class InvestmentsComponent implements OnInit {
           this.stockLoading = false;
           this.stockError =
             err?.error?.error ||
-            '"' + this.stockSearch + '" not found. Try a valid ticker like AAPL or VOO.';
+            this.translate.instant('investments.errors.tickerNotFound', {
+              symbol: this.stockSearch,
+            });
           this.cdr.detectChanges();
         },
       });

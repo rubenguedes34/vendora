@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -50,17 +51,20 @@ export interface PaginatedResponse<T> {
 export class TransactionService {
   private apiUrl = environment.apiUrl;
 
+  private translate = inject(TranslateService);
+
   constructor(
     private http: HttpClient,
     private authService: AuthService,
   ) {}
 
   private handleError(error: ApiError): ApiErrorMessage {
-    if (error.status === 401) return { message: 'Session expired. Please log in again.' };
+    if (error.status === 401)
+      return { message: this.translate.instant('errors.sessionExpiredShort') };
     if (error.name === 'TimeoutError' || error.status === 0) {
-      return { message: 'Could not reach the backend. Make sure php artisan serve is running.' };
+      return { message: this.translate.instant('errors.backendUnreachable') };
     }
-    return error.error || { message: 'An error occurred. Please try again.' };
+    return error.error || { message: this.translate.instant('errors.generic') };
   }
 
   getTransactions(filters?: {
@@ -221,6 +225,6 @@ export class TransactionService {
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 10000); // some browsers read the blob after the click
       })
-      .catch(() => alert('Could not create the report. Please try again.'));
+      .catch(() => alert(this.translate.instant('errors.reportFailed')));
   }
 }

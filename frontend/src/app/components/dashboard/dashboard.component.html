@@ -9,10 +9,11 @@
         <div class="flex justify-between h-16 items-center">
           <div>
             <h2 class="text-xl font-semibold tracking-tight">
-              Good {{ greeting }}{{ firstName ? ', ' + firstName : '' }}
+              {{ 'dashboard.greeting.' + greeting | translate
+              }}{{ firstName ? ', ' + firstName : '' }}
             </h2>
             <p class="text-primary-200 text-xs">
-              Here is how {{ monthNames[overviewMonth - 1] }} is going.
+              {{ 'dashboard.subtitle' | translate: { month: monthInText(overviewMonth) } }}
             </p>
           </div>
           <div class="flex items-center gap-3">
@@ -22,7 +23,7 @@
                 <button
                   type="button"
                   (click)="prevMonth()"
-                  aria-label="Previous month"
+                  [attr.aria-label]="'dashboard.picker.prevMonth' | translate"
                   class="p-2.5 sm:p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +47,7 @@
                 <button
                   type="button"
                   (click)="nextMonth()"
-                  aria-label="Next month"
+                  [attr.aria-label]="'dashboard.picker.nextMonth' | translate"
                   class="p-2.5 sm:p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +69,7 @@
                   <button
                     type="button"
                     (click)="pickerYear = pickerYear - 1"
-                    aria-label="Previous year"
+                    [attr.aria-label]="'dashboard.picker.prevYear' | translate"
                     class="p-2.5 sm:p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +87,7 @@
                   <button
                     type="button"
                     (click)="pickerYear = pickerYear + 1"
-                    aria-label="Next year"
+                    [attr.aria-label]="'dashboard.picker.nextYear' | translate"
                     class="p-2.5 sm:p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +126,7 @@
                     (click)="pickMonth(todayMonth, todayYear)"
                     class="text-xs font-semibold text-primary-600 hover:text-primary-700"
                   >
-                    This month
+                    {{ 'dashboard.picker.thisMonth' | translate }}
                   </button>
                 </div>
               </div>
@@ -164,14 +165,16 @@
                 class="fixed left-4 right-4 top-20 z-50 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-96 sm:max-w-sm"
               >
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                  <h3 class="font-semibold text-gray-800 text-base">Alerts</h3>
+                  <h3 class="font-semibold text-gray-800 text-base">
+                    {{ 'dashboard.alerts.title' | translate }}
+                  </h3>
                   <div class="flex items-center gap-3">
                     <button
                       *ngIf="visibleAlerts.length > 0"
                       (click)="clearAllAlerts()"
                       class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors"
                     >
-                      Clear all
+                      {{ 'dashboard.alerts.clearAll' | translate }}
                     </button>
                     <button
                       (click)="showAlerts = false"
@@ -195,7 +198,7 @@
                     <p
                       class="px-5 pt-3 text-xs font-semibold text-gray-500 uppercase tracking-wide"
                     >
-                      Notifications
+                      {{ 'dashboard.alerts.notifications' | translate }}
                     </p>
                     <div
                       *ngFor="let n of unreadNotifications.slice(0, 5)"
@@ -203,15 +206,19 @@
                     >
                       <div class="flex items-start gap-3">
                         <div class="flex-1 min-w-0">
-                          <p class="text-sm font-medium text-gray-800">{{ n.title }}</p>
-                          <p class="text-xs text-gray-500 mt-0.5">{{ n.body | currencyText }}</p>
+                          <p class="text-sm font-medium text-gray-800">
+                            {{ n | notificationText: 'title' }}
+                          </p>
+                          <p class="text-xs text-gray-500 mt-0.5">
+                            {{ n | notificationText: 'body' | currencyText }}
+                          </p>
                         </div>
                         <button
                           type="button"
                           (click)="markNotificationRead(n)"
                           class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors"
-                          title="Mark as read"
-                          aria-label="Mark as read"
+                          [title]="'dashboard.alerts.markRead' | translate"
+                          [attr.aria-label]="'dashboard.alerts.markRead' | translate"
                         >
                           <svg
                             class="w-3.5 h-3.5"
@@ -232,7 +239,7 @@
                     <a
                       routerLink="/notifications"
                       class="block px-5 py-2 text-xs font-semibold text-primary-600 hover:text-primary-700"
-                      >View all notifications</a
+                      >{{ 'dashboard.alerts.viewAll' | translate }}</a
                     >
                   </div>
 
@@ -269,7 +276,7 @@
                       *ngIf="visibleAlerts.length === 0 && unreadNotifications.length === 0"
                       class="text-xs text-green-600 mt-1 ml-7"
                     >
-                      Your finances look healthy this month.
+                      {{ 'dashboard.alerts.healthy' | translate }}
                     </p>
                   </div>
 
@@ -316,7 +323,7 @@
                       <button
                         (click)="dismissAlert(alert)"
                         class="shrink-0 mt-0.5 text-gray-300 hover:text-gray-500 transition-colors"
-                        title="Dismiss"
+                        [title]="'dashboard.alerts.dismiss' | translate"
                       >
                         <svg
                           class="w-3.5 h-3.5"
@@ -338,11 +345,13 @@
                   <!-- Monthly projection -->
                   <div *ngIf="available" class="px-5 py-4 bg-gray-50">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                      Monthly Projection
+                      {{ 'dashboard.projection.title' | translate }}
                     </p>
                     <div class="space-y-2">
                       <div class="flex justify-between items-center gap-2 text-xs">
-                        <span class="text-gray-500 whitespace-nowrap">Projected balance</span>
+                        <span class="text-gray-500 whitespace-nowrap">{{
+                          'dashboard.projection.balance' | translate
+                        }}</span>
                         <span
                           class="whitespace-nowrap shrink-0"
                           [class]="
@@ -354,19 +363,25 @@
                         >
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
-                        <span class="text-gray-500 whitespace-nowrap">Daily avg spend</span>
+                        <span class="text-gray-500 whitespace-nowrap">{{
+                          'dashboard.projection.dailyAvg' | translate
+                        }}</span>
                         <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{
                           dailyAvgSpend | currencySymbol
                         }}</span>
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
-                        <span class="text-gray-500 whitespace-nowrap">Days remaining</span>
-                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0"
-                          >{{ daysRemaining }} days</span
-                        >
+                        <span class="text-gray-500 whitespace-nowrap">{{
+                          'dashboard.projection.daysRemaining' | translate
+                        }}</span>
+                        <span class="font-semibold text-gray-700 whitespace-nowrap shrink-0">{{
+                          'dashboard.projection.days' | translate: { count: daysRemaining }
+                        }}</span>
                       </div>
                       <div class="flex justify-between items-center gap-2 text-xs">
-                        <span class="text-gray-500 whitespace-nowrap">Savings rate</span>
+                        <span class="text-gray-500 whitespace-nowrap">{{
+                          'dashboard.projection.savingsRate' | translate
+                        }}</span>
                         <span
                           class="whitespace-nowrap shrink-0"
                           [class]="
@@ -377,7 +392,7 @@
                                 : 'font-semibold text-red-500'
                           "
                         >
-                          {{ savingsRate.toFixed(1) }}%
+                          {{ fmtNum(savingsRate, 1, true) }}%
                         </span>
                       </div>
                     </div>
@@ -423,7 +438,7 @@
               />
             </svg>
           </span>
-          <span>Budget</span>
+          <span>{{ 'dashboard.quick.budget' | translate }}</span>
           <svg
             class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
             fill="none"
@@ -454,7 +469,7 @@
               />
             </svg>
           </span>
-          <span>Transactions</span>
+          <span>{{ 'dashboard.quick.transactions' | translate }}</span>
           <svg
             class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
             fill="none"
@@ -485,7 +500,7 @@
               />
             </svg>
           </span>
-          <span>Recurrent</span>
+          <span>{{ 'dashboard.quick.recurrent' | translate }}</span>
           <svg
             class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
             fill="none"
@@ -516,7 +531,7 @@
               />
             </svg>
           </span>
-          <span>Investments</span>
+          <span>{{ 'dashboard.quick.investments' | translate }}</span>
           <svg
             class="w-3.5 h-3.5 ml-auto text-gray-300 group-hover:text-gray-500 transition-colors"
             fill="none"
@@ -539,7 +554,9 @@
         class="bg-white p-5 rounded-2xl border border-gray-200 mb-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3"
       >
         <div>
-          <h3 class="text-sm font-medium text-gray-500">Available this month</h3>
+          <h3 class="text-sm font-medium text-gray-500">
+            {{ 'dashboard.available.title' | translate }}
+          </h3>
           <p
             class="text-3xl font-bold tracking-tight tabular-nums mt-1"
             [class]="a.available >= 0 ? 'text-primary-600' : 'text-red-500'"
@@ -547,7 +564,7 @@
             {{ a.available | currencySymbol }}
           </p>
           <p class="text-xs text-gray-500 mt-1">
-            {{ a.days_remaining }} days left · projected end
+            {{ 'dashboard.available.daysLeft' | translate: { count: a.days_remaining } }}
             <span class="font-semibold text-gray-700">{{
               a.projected_balance | currencySymbol
             }}</span>
@@ -555,13 +572,15 @@
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-3 text-sm">
           <div *ngIf="a.days_remaining > 0">
-            <p class="text-xs text-gray-500">You can spend per day</p>
+            <p class="text-xs text-gray-500">{{ 'dashboard.available.perDay' | translate }}</p>
             <p class="font-semibold text-gray-900 tabular-nums">
               {{ a.daily_allowance | currencySymbol }}
             </p>
           </div>
           <div *ngIf="a.pending_expenses > 0 || a.pending_income > 0">
-            <p class="text-xs text-gray-500">Net recurrents still due</p>
+            <p class="text-xs text-gray-500">
+              {{ 'dashboard.available.netRecurrents' | translate }}
+            </p>
             <p class="font-semibold text-gray-900 tabular-nums">
               {{ a.pending_income - a.pending_expenses | currencySymbol }}
             </p>
@@ -572,17 +591,19 @@
               (click)="exportMonth('csv')"
               class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
             >
-              Export CSV
+              {{ 'dashboard.available.exportCsv' | translate }}
             </button>
             <button
               type="button"
               (click)="exportMonth('pdf')"
               [disabled]="!canExportPdf"
-              [title]="canExportPdf ? '' : 'Premium feature'"
+              [title]="canExportPdf ? '' : ('dashboard.available.premiumFeature' | translate)"
               class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             >
-              Export PDF
-              <span *ngIf="!canExportPdf" class="ml-1 text-primary-600 font-semibold">Premium</span>
+              {{ 'dashboard.available.exportPdf' | translate }}
+              <span *ngIf="!canExportPdf" class="ml-1 text-primary-600 font-semibold">{{
+                'dashboard.available.premium' | translate
+              }}</span>
             </button>
           </div>
         </div>
@@ -591,7 +612,7 @@
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-          <h3 class="text-sm font-medium text-gray-500">Income</h3>
+          <h3 class="text-sm font-medium text-gray-500">{{ 'dashboard.income' | translate }}</h3>
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
             {{ overviewIncome | currencySymbol }}
           </p>
@@ -604,12 +625,12 @@
               [class.bg-red-100]="!(d.pct >= 0)"
               [class.text-red-700]="!(d.pct >= 0)"
             >
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 1) }}%
             </span>
           </div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-          <h3 class="text-sm font-medium text-gray-500">Expenses</h3>
+          <h3 class="text-sm font-medium text-gray-500">{{ 'dashboard.expenses' | translate }}</h3>
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
             {{ overviewExpenses | currencySymbol }}
           </p>
@@ -622,19 +643,19 @@
               [class.bg-red-100]="!(d.pct <= 0)"
               [class.text-red-700]="!(d.pct <= 0)"
             >
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 1) }}%
             </span>
           </div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-          <h3 class="text-sm font-medium text-gray-500">Savings</h3>
+          <h3 class="text-sm font-medium text-gray-500">{{ 'dashboard.savings' | translate }}</h3>
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
             {{ overviewSavings | currencySymbol }}
           </p>
           <div class="h-6 mt-2"></div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-          <h3 class="text-sm font-medium text-gray-500">Balance</h3>
+          <h3 class="text-sm font-medium text-gray-500">{{ 'dashboard.balance' | translate }}</h3>
           <p class="text-2xl font-bold tracking-tight text-gray-900 tabular-nums mt-2">
             {{ overviewBalance | currencySymbol }}
           </p>
@@ -647,7 +668,7 @@
               [class.bg-red-100]="!(d.pct >= 0)"
               [class.text-red-700]="!(d.pct >= 0)"
             >
-              {{ d.pct >= 0 ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-1' }}%
+              {{ d.pct >= 0 ? '▲' : '▼' }} {{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 1) }}%
             </span>
           </div>
         </div>
@@ -656,24 +677,32 @@
       <!-- This month vs last month, day by day -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
-          <h3 class="text-base font-semibold text-gray-800">Balance this month vs last</h3>
-          <p class="text-xs text-gray-500 mt-0.5 mb-4">Running balance for each day, up to today</p>
+          <h3 class="text-base font-semibold text-gray-800">
+            {{ 'dashboard.daily.title' | translate }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">
+            {{ 'dashboard.daily.subtitle' | translate }}
+          </p>
           <div style="height: 240px">
             <canvas #dailyBalanceChart></canvas>
           </div>
         </div>
         <div class="bg-white p-6 rounded-2xl border border-gray-200">
-          <h3 class="text-base font-semibold text-gray-800">Compared with last month</h3>
-          <p class="text-xs text-gray-500 mt-0.5 mb-4">Full month against the month before</p>
+          <h3 class="text-base font-semibold text-gray-800">
+            {{ 'dashboard.compare.title' | translate }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">
+            {{ 'dashboard.compare.subtitle' | translate }}
+          </p>
           <div *ngIf="comparison as c" class="space-y-3 text-sm">
             <div class="grid grid-cols-4 gap-2 text-xs text-gray-400">
               <span></span>
-              <span class="text-right">Now</span>
-              <span class="text-right">Before</span>
+              <span class="text-right">{{ 'dashboard.compare.now' | translate }}</span>
+              <span class="text-right">{{ 'dashboard.compare.before' | translate }}</span>
               <span></span>
             </div>
             <div *ngFor="let row of comparisonRows" class="grid grid-cols-4 gap-2 items-center">
-              <span class="text-gray-600">{{ row.label }}</span>
+              <span class="text-gray-600">{{ row.label | translate }}</span>
               <span class="text-right font-semibold text-gray-900 tabular-nums">{{
                 c.current[row.key] | currencySymbol
               }}</span>
@@ -688,12 +717,12 @@
                 [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
                 [class.text-red-700]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
               >
-                {{ d.pct >= 0 ? '+' : '−' }}{{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-0' }}%
+                {{ d.pct >= 0 ? '+' : '−' }}{{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 0) }}%
               </span>
             </div>
           </div>
           <p *ngIf="!comparison" class="text-sm text-gray-300 py-6 text-center">
-            No data to compare
+            {{ 'dashboard.compare.none' | translate }}
           </p>
         </div>
       </div>
@@ -704,12 +733,14 @@
           <span
             *ngIf="monthRecord?.is_custom"
             class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold"
-            >Custom month</span
+            >{{ 'dashboard.base.custom' | translate }}</span
           >
           <span class="text-gray-600">
-            Base for {{ monthNames[overviewMonth - 1] }}:
-            <strong>{{ baseIncomeValue | currencySymbol }}</strong> income,
-            <strong>{{ baseExpensesValue | currencySymbol }}</strong> expenses
+            {{ 'dashboard.base.for' | translate: { month: monthInText(overviewMonth) } }}
+            <strong>{{ baseIncomeValue | currencySymbol }}</strong>
+            {{ 'dashboard.base.incomeWord' | translate }}
+            <strong>{{ baseExpensesValue | currencySymbol }}</strong>
+            {{ 'dashboard.base.expensesWord' | translate }}
           </span>
           <span class="flex items-center gap-2 ml-auto">
             <button
@@ -726,7 +757,10 @@
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 />
               </svg>
-              {{ monthRecord?.is_custom ? 'Edit this month' : 'Customize this month' }}
+              {{
+                (monthRecord?.is_custom ? 'dashboard.base.edit' : 'dashboard.base.customize')
+                  | translate
+              }}
             </button>
             <button
               type="button"
@@ -735,14 +769,14 @@
               [disabled]="savingBase"
               class="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50"
             >
-              Reset to default
+              {{ 'dashboard.base.reset' | translate }}
             </button>
           </span>
         </div>
 
         <div *ngIf="editingBase" class="flex flex-wrap items-end gap-3 mt-3">
           <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
-            Income base
+            {{ 'dashboard.base.incomeBase' | translate }}
             <input
               #baseIncomeInput
               type="number"
@@ -753,7 +787,7 @@
             />
           </label>
           <label class="flex flex-col gap-1 text-xs font-semibold text-gray-500">
-            Expenses base
+            {{ 'dashboard.base.expensesBase' | translate }}
             <input
               #baseExpensesInput
               type="number"
@@ -769,14 +803,14 @@
             [disabled]="savingBase"
             class="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50"
           >
-            {{ savingBase ? 'Saving…' : 'Save' }}
+            {{ (savingBase ? 'dashboard.base.saving' : 'dashboard.base.save') | translate }}
           </button>
           <button
             type="button"
             (click)="editingBase = false"
             class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50"
           >
-            Cancel
+            {{ 'dashboard.base.cancel' | translate }}
           </button>
         </div>
         <p *ngIf="baseError" class="text-red-500 text-xs mt-2">{{ baseError }}</p>
@@ -785,15 +819,24 @@
       <!-- Monthly Balance Breakdown -->
       <div class="bg-white rounded-2xl border border-gray-200 mb-6 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50">
-          <h3 class="text-base font-semibold text-gray-800">Monthly Balance</h3>
+          <h3 class="text-base font-semibold text-gray-800">
+            {{ 'dashboard.monthly.title' | translate }}
+          </h3>
           <p class="text-xs text-gray-400">
-            Income, expenses and balance for each month of {{ overviewYear }}
+            {{ 'dashboard.monthly.subtitle' | translate: { year: overviewYear } }}
           </p>
         </div>
         <div *ngIf="yearToDate as y" class="px-6 pt-6">
           <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            {{ overviewYear }} so far (Jan–{{ monthNames[overviewMonth - 1].slice(0, 3) }}) vs
-            {{ overviewYear - 1 }}
+            {{
+              'dashboard.monthly.soFar'
+                | translate
+                  : {
+                      year: overviewYear,
+                      month: monthShort(overviewMonth),
+                      previous: overviewYear - 1,
+                    }
+            }}
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div
@@ -801,12 +844,13 @@
               class="rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-2"
             >
               <div class="min-w-0">
-                <p class="text-xs text-gray-500">{{ row.label }}</p>
+                <p class="text-xs text-gray-500">{{ row.label | translate }}</p>
                 <p class="text-sm font-semibold text-gray-900 tabular-nums">
                   {{ y.current[row.key] | currencySymbol }}
                 </p>
                 <p class="text-xs text-gray-400 tabular-nums">
-                  {{ y.previous[row.key] | currencySymbol }} last year
+                  {{ y.previous[row.key] | currencySymbol }}
+                  {{ 'dashboard.monthly.lastYear' | translate }}
                 </p>
               </div>
               <span
@@ -817,7 +861,7 @@
                 [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
                 [class.text-red-700]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
               >
-                {{ d.pct >= 0 ? '+' : '−' }}{{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.0-0' }}%
+                {{ d.pct >= 0 ? '+' : '−' }}{{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 0) }}%
               </span>
             </div>
           </div>
@@ -836,14 +880,14 @@
                 <div
                   class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-bold shrink-0"
                 >
-                  {{ monthNames[m.month - 1].slice(0, 3) }}
+                  {{ monthShort(m.month) }}
                 </div>
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-gray-800 truncate">
                     {{ monthNames[m.month - 1] }}
                   </p>
                   <p class="text-xs text-gray-500">
-                    Balance
+                    {{ 'dashboard.balance' | translate }}
                     <span
                       [class.text-green-600]="m.balance >= 0"
                       [class.text-red-600]="m.balance < 0"
@@ -855,23 +899,23 @@
               </div>
               <div class="text-right shrink-0">
                 <p class="text-xs text-gray-400">
-                  In
+                  {{ 'dashboard.monthly.in' | translate }}
                   <span class="font-semibold text-gray-700">{{ m.income | currencySymbol }}</span>
                 </p>
                 <p class="text-xs text-gray-400">
-                  Out
+                  {{ 'dashboard.monthly.out' | translate }}
                   <span class="font-semibold text-gray-700">{{ m.expenses | currencySymbol }}</span>
                 </p>
               </div>
             </div>
             <div *ngIf="monthBreakdown.length === 0" class="text-gray-300 text-center py-8 text-sm">
-              No monthly data yet
+              {{ 'dashboard.monthly.none' | translate }}
             </div>
           </div>
           <!-- Balance trend chart -->
           <div class="flex flex-col">
             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Balance trend
+              {{ 'dashboard.monthly.trend' | translate }}
             </h4>
             <div style="height: 220px">
               <canvas #monthlyBalanceChart></canvas>
@@ -886,23 +930,30 @@
         <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-3">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h3 class="text-base font-semibold text-gray-800">Income vs Expenses</h3>
-              <p class="text-xs text-gray-400">{{ overviewYear }} overview</p>
+              <h3 class="text-base font-semibold text-gray-800">
+                {{ 'dashboard.yearly.title' | translate }}
+              </h3>
+              <p class="text-xs text-gray-400">
+                {{ 'dashboard.yearly.overview' | translate: { year: overviewYear } }}
+              </p>
             </div>
             <div class="flex items-center gap-4 text-xs text-gray-500">
               <span class="flex items-center gap-1"
-                ><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span>Income</span
+                ><span class="inline-block w-3 h-3 rounded-full bg-primary-400"></span
+                >{{ 'dashboard.income' | translate }}</span
               >
               <span class="flex items-center gap-1"
-                ><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span>Expenses</span
+                ><span class="inline-block w-3 h-3 rounded-full bg-red-400"></span
+                >{{ 'dashboard.expenses' | translate }}</span
               >
               <span class="flex items-center gap-1"
-                ><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span>Savings</span
+                ><span class="inline-block w-3 h-3 rounded-full bg-indigo-400"></span
+                >{{ 'dashboard.savings' | translate }}</span
               >
             </div>
           </div>
           <div *ngIf="yearlyRecords.length === 0" class="text-gray-300 text-center py-14 text-sm">
-            No data yet
+            {{ 'dashboard.yearly.none' | translate }}
           </div>
           <canvas #incomeExpenseChart style="max-height: 220px"></canvas>
         </div>
@@ -910,29 +961,31 @@
         <!-- Doughnut: monthly overview (spans 2 cols) -->
         <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-semibold text-gray-800">Monthly Snapshot</h3>
+            <h3 class="text-base font-semibold text-gray-800">
+              {{ 'dashboard.snapshot.title' | translate }}
+            </h3>
             <span class="text-xs font-medium text-gray-600"
-              >{{ monthNames[overviewMonth - 1].slice(0, 3) }} {{ overviewYear }}</span
+              >{{ monthShort(overviewMonth) }} {{ overviewYear }}</span
             >
           </div>
           <div class="relative flex items-center justify-center" style="height: 170px">
             <canvas #categoryChart></canvas>
             <div class="absolute text-center pointer-events-none">
-              <p class="text-xs text-gray-400">Total</p>
+              <p class="text-xs text-gray-400">{{ 'dashboard.snapshot.total' | translate }}</p>
               <p class="text-lg font-bold text-gray-700">{{ overviewIncome | currencySymbol }}</p>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
             <div class="bg-primary-50 rounded-lg p-2">
-              <p class="text-gray-600">Income</p>
+              <p class="text-gray-600">{{ 'dashboard.income' | translate }}</p>
               <p class="font-bold text-primary-600">{{ overviewIncome | currencySymbol }}</p>
             </div>
             <div class="bg-red-50 rounded-lg p-2">
-              <p class="text-gray-600">Expenses</p>
+              <p class="text-gray-600">{{ 'dashboard.expenses' | translate }}</p>
               <p class="font-bold text-red-700">{{ overviewExpenses | currencySymbol }}</p>
             </div>
             <div class="bg-indigo-50 rounded-lg p-2">
-              <p class="text-gray-600">Saved</p>
+              <p class="text-gray-600">{{ 'dashboard.snapshot.saved' | translate }}</p>
               <p class="font-bold text-indigo-700">{{ overviewSavings | currencySymbol }}</p>
             </div>
           </div>
@@ -943,14 +996,16 @@
       <div class="bg-white p-6 rounded-2xl border border-gray-200 mb-6">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-semibold text-gray-800">Expenses by Category</h3>
+            <h3 class="text-base font-semibold text-gray-800">
+              {{ 'dashboard.byCategory.title' | translate }}
+            </h3>
             <p class="text-xs text-gray-400">
               {{ monthNames[overviewMonth - 1] }} {{ overviewYear }}
             </p>
           </div>
         </div>
         <div *ngIf="expensesByCategory.length === 0" class="text-gray-300 text-center py-8 text-sm">
-          No expense transactions this month
+          {{ 'dashboard.byCategory.none' | translate }}
         </div>
         <div
           *ngIf="expensesByCategory.length > 0"
@@ -960,7 +1015,7 @@
           <div class="space-y-3">
             <div *ngFor="let item of expensesByCategory" class="flex items-center gap-3">
               <div class="w-24 shrink-0">
-                <div class="text-xs text-gray-600 truncate">{{ item.category }}</div>
+                <div class="text-xs text-gray-600 truncate">{{ item.category | categoryName }}</div>
                 <div
                   *ngIf="item.change_pct !== null"
                   class="font-semibold"
@@ -969,9 +1024,7 @@
                   [class.text-green-600]="item.change_pct <= 0"
                 >
                   {{ item.change_pct > 0 ? '▲' : '▼' }}
-                  {{
-                    (item.change_pct < 0 ? -item.change_pct : item.change_pct) | number: '1.0-0'
-                  }}%
+                  {{ fmtNum(item.change_pct < 0 ? -item.change_pct : item.change_pct, 0) }}%
                 </div>
               </div>
               <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
@@ -1017,15 +1070,17 @@
       <!-- Recent transactions -->
       <div class="bg-white p-6 rounded-2xl border border-gray-200 mb-6">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-base font-semibold text-gray-800">Recent transactions</h3>
+          <h3 class="text-base font-semibold text-gray-800">
+            {{ 'dashboard.recent.title' | translate }}
+          </h3>
           <a
             routerLink="/transactions"
             class="text-xs font-semibold text-primary-600 hover:text-primary-700"
-            >View all</a
+            >{{ 'dashboard.recent.viewAll' | translate }}</a
           >
         </div>
         <div *ngIf="recentTransactions.length === 0" class="text-gray-300 text-center py-8 text-sm">
-          No transactions yet
+          {{ 'dashboard.recent.none' | translate }}
         </div>
         <div
           *ngFor="let t of recentTransactions"
@@ -1039,7 +1094,7 @@
           <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-800 truncate">{{ t.description }}</p>
             <p class="text-xs text-gray-400">
-              {{ t.category?.name }} · {{ t.transaction_date | date: 'MMM d' }}
+              {{ t.category?.name | categoryName }} · {{ fmtDate(t.transaction_date) }}
             </p>
           </div>
           <span

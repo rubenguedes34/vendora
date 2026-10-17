@@ -1,0 +1,67 @@
+{
+  "title": "Pontuação de saúde financeira",
+  "subtitle": "Uma visão modular do seu bem-estar financeiro",
+  "refresh": "Atualizar",
+  "outOf": "em 100",
+  "asOf": "a {{date}}",
+  "categoryScores": "Pontuações por categoria",
+  "trend": "Tendência de 6 meses",
+  "chartLabel": "Pontuação de saúde",
+  "tooltipScore": " Pontuação: {{score}}",
+  "loadError": "Falha ao carregar a pontuação de saúde",
+  "labels": {
+    "excellent": "Excelente",
+    "good": "Bom",
+    "fair": "Razoável",
+    "attention": "Requer atenção"
+  },
+  "categories": {
+    "savings_rate": {
+      "name": "Taxa de poupança"
+    },
+    "emergency_fund": {
+      "name": "Fundo de emergência"
+    },
+    "budget_adherence": {
+      "name": "Cumprimento do orçamento",
+      "description": "Percentagem de orçamentos mensais não excedidos"
+    },
+    "debt_ratio": {
+      "name": "Rácio de endividamento"
+    },
+    "investment_rate": {
+      "name": "Taxa de investimento"
+    },
+    "income_stability": {
+      "name": "Estabilidade do rendimento",
+      "description": "Variabilidade do rendimento (quanto menor, melhor)"
+    }
+  },
+  "suggestions": {
+    "savings_rate_30": "Excelente — continue a poupar a este ritmo.",
+    "savings_rate_20": "Bom, mas aponte para 30% para criar riqueza mais depressa.",
+    "savings_rate_10": "Moderado. Tente reduzir as despesas supérfluas.",
+    "savings_rate_0": "Taxa de poupança baixa. Crie primeiro um fundo de emergência.",
+    "savings_rate_neg1000": "Poupança negativa. Reveja o seu orçamento de imediato.",
+    "emergency_fund_6": "Tem 6 ou mais meses de despesas poupados.",
+    "emergency_fund_3": "Boa margem de segurança. Aponte para 6 meses para maior segurança.",
+    "emergency_fund_1": "Margem mínima. Dê prioridade à criação de reservas.",
+    "emergency_fund_0": "Sem fundo de emergência. Reserve dinheiro antes de investir.",
+    "debt_ratio_0": "Sem dívidas registadas — excelente situação.",
+    "savings_rate_fallback": "Sem dados disponíveis.",
+    "emergency_fund_fallback": "Sem dados disponíveis.",
+    "investment_rate_fallback": "Sem dados disponíveis.",
+    "debt_ratio_fallback": "Os dados de dívida ainda não são registados; adicione contas de dívida para refinar esta pontuação.",
+    "investment_rate_50": "Excelente taxa de investimento.",
+    "investment_rate_30": "Forte foco no crescimento do património.",
+    "investment_rate_10": "Moderado. Considere aumentar as contribuições.",
+    "investment_rate_0": "Taxa de investimento baixa. Pequenas contribuições regulares ajudam.",
+    "budget_adherence_none": "Não há orçamentos definidos para este mês.",
+    "budget_adherence_ok": "Todos os orçamentos estão em dia este mês.",
+    "budget_adherence_exceeded_one": "{{count}} orçamento excedido. Reveja as categorias com excesso de despesa.",
+    "budget_adherence_exceeded_other": "{{count}} orçamentos excedidos. Reveja as categorias com excesso de despesa.",
+    "income_stability_none": "Ainda não há rendimentos registados.",
+    "income_stability_stable": "O rendimento é estável de mês para mês.",
+    "income_stability_variable": "O rendimento varia bastante. Crie um fundo de emergência maior para compensar as falhas."
+  }
+}

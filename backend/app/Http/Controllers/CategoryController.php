@@ -66,7 +66,7 @@ class CategoryController extends Controller
         $validTypes = ['income', 'expense', 'savings'];
 
         if (! in_array($type, $validTypes)) {
-            return response()->json(['message' => 'Invalid category type'], 400);
+            return response()->json(['message' => __('messages.invalid_category_type')], 400);
         }
 
         $categories = Category::query()

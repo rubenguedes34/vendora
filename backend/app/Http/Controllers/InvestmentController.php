@@ -135,6 +135,6 @@ class InvestmentController extends Controller
 
         $investment->delete();
 
-        return response()->json(['message' => 'Investment deleted']);
+        return response()->json(['message' => __('messages.investment_deleted')]);
     }
 }

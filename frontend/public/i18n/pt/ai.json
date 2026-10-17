@@ -1,0 +1,22 @@
+{
+  "title": "Apoio com IA",
+  "subtitle": "Pergunte o que quiser sobre a Vendora ou consulte as perguntas frequentes abaixo.",
+  "back": "Voltar ao painel",
+  "faqTitle": "Perguntas frequentes",
+  "faqLoading": "A carregar perguntas frequentes...",
+  "chatTitle": "Conversar com a IA",
+  "history": "Histórico ({{count}})",
+  "newChat": "Nova conversa",
+  "noHistory": "Sem conversas anteriores.",
+  "deleteConversation": "Eliminar conversa",
+  "typing": "A IA está a escrever...",
+  "placeholder": "Escreva a sua pergunta de apoio...",
+  "send": "Enviar",
+  "greeting": "Olá! Sou o assistente de IA da Vendora. Como posso ajudá-lo hoje?",
+  "errOpen": "Não foi possível abrir essa conversa.",
+  "errDelete": "Não foi possível eliminar essa conversa.",
+  "errSession": "A sua sessão expirou. Inicie sessão novamente.",
+  "errFaqs": "Não foi possível carregar as perguntas frequentes. Tente novamente.",
+  "errChat": "Não foi possível obter uma resposta do serviço de apoio com IA. Tente novamente.",
+  "errBackend": "Não foi possível contactar o servidor. Verifique se o php artisan serve está a correr em {{url}}."
+}

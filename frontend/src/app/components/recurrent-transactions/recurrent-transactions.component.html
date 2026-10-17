@@ -16,38 +16,39 @@
   <header class="page-header">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
-        <h2 class="text-xl font-semibold">Monthly Recurrent Transactions</h2>
+        <h2 class="text-xl font-semibold">{{ 'recurrent.title' | translate }}</h2>
       </div>
     </div>
   </header>
 
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
     <p class="text-gray-600 mb-6">
-      Define transactions that repeat monthly. They will be automatically copied to each month on
-      the specified day.
+      {{ 'recurrent.intro' | translate }}
     </p>
 
     <!-- Add Form -->
     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-4">
-        {{ editing ? 'Edit Recurrent Transaction' : 'Add Recurrent Transaction' }}
+        {{ (editing ? 'recurrent.editTitle' : 'recurrent.addTitle') | translate }}
       </h3>
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Description</label>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
+              'recurrent.description' | translate
+            }}</label>
             <input
               type="text"
               formControlName="description"
               class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="e.g., Netflix subscription"
+              [placeholder]="'recurrent.descriptionPlaceholder' | translate"
             />
           </div>
 
           <div>
-            <label class="block text-gray-700 text-sm font-semibold mb-1.5"
-              >Amount ({{ currencyService.symbol }})</label
-            >
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
+              'recurrent.amount' | translate: { symbol: currencyService.symbol }
+            }}</label>
             <input
               type="number"
               step="any"
@@ -59,37 +60,45 @@
           </div>
 
           <div>
-            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Type</label>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
+              'recurrent.type' | translate
+            }}</label>
             <select
               formControlName="type"
               class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
+              <option value="expense">{{ 'recurrent.expense' | translate }}</option>
+              <option value="income">{{ 'recurrent.income' | translate }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Day of Month</label>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
+              'recurrent.dayOfMonth' | translate
+            }}</label>
             <input
               type="number"
               formControlName="day_of_month"
               class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="e.g., 1"
+              [placeholder]="'recurrent.dayPlaceholder' | translate"
               min="1"
               max="28"
             />
-            <p class="text-xs text-gray-500 mt-1">Day 1–28 to ensure all months are covered</p>
+            <p class="text-xs text-gray-500 mt-1">{{ 'recurrent.dayHint' | translate }}</p>
           </div>
 
           <div class="md:col-span-2">
-            <label class="block text-gray-700 text-sm font-semibold mb-1.5">Category</label>
+            <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
+              'recurrent.category' | translate
+            }}</label>
             <select
               formControlName="category_id"
               class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="">Select a category</option>
-              <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+              <option value="">{{ 'recurrent.selectCategory' | translate }}</option>
+              <option *ngFor="let cat of categories" [value]="cat.id">
+                {{ cat.name | categoryName }}
+              </option>
             </select>
           </div>
         </div>
@@ -100,7 +109,7 @@
             [disabled]="form.invalid"
             class="bg-primary-600 text-white px-6 py-2 rounded-xl hover:bg-primary-700 disabled:bg-gray-400 transition-colors"
           >
-            {{ editing ? 'Update' : 'Add' }}
+            {{ (editing ? 'recurrent.update' : 'recurrent.add') | translate }}
           </button>
           <button
             *ngIf="editing"
@@ -108,7 +117,7 @@
             (click)="cancelEdit()"
             class="border border-gray-300 text-gray-700 px-6 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {{ 'recurrent.cancel' | translate }}
           </button>
         </div>
       </form>
@@ -116,9 +125,11 @@
 
     <!-- Copy to Month -->
     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-3">Copy to Month</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">
+        {{ 'recurrent.copyTitle' | translate }}
+      </h3>
       <p class="text-gray-600 text-sm mb-4">
-        Copy all recurrent transactions to a specific month as real transactions.
+        {{ 'recurrent.copyIntro' | translate }}
       </p>
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <input
@@ -132,7 +143,7 @@
           [disabled]="!copyTargetMonth || isCopying"
           class="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors w-full sm:w-auto"
         >
-          {{ isCopying ? 'Copying...' : 'Copy Now' }}
+          {{ (isCopying ? 'recurrent.copying' : 'recurrent.copyNow') | translate }}
         </button>
       </div>
       <p
@@ -149,11 +160,11 @@
     <div class="bg-white rounded-lg shadow-md">
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">
-          Recurrent Transactions ({{ recurrentList.length }})
+          {{ 'recurrent.listTitle' | translate: { count: recurrentList.length } }}
         </h3>
 
         <div *ngIf="recurrentList.length === 0" class="text-gray-500 text-center py-8">
-          No recurrent transactions yet. Add one above.
+          {{ 'recurrent.empty' | translate }}
         </div>
 
         <div
@@ -163,7 +174,8 @@
           <div class="flex-1">
             <p class="font-medium text-gray-800">{{ item.description }}</p>
             <p class="text-sm text-gray-500">
-              {{ item.category?.name || 'No category' }} · Day {{ item.day_of_month }} of each month
+              {{ (item.category?.name | categoryName) || ('recurrent.noCategory' | translate) }} ·
+              {{ 'recurrent.dayOfEachMonth' | translate: { day: item.day_of_month } }}
             </p>
           </div>
           <div class="flex items-center space-x-4">
@@ -180,10 +192,10 @@
               (click)="editItem(item)"
               class="text-primary-600 hover:text-primary-800 text-sm"
             >
-              Edit
+              {{ 'recurrent.edit' | translate }}
             </button>
             <button (click)="deleteItem(item.id!)" class="text-red-600 hover:text-red-800 text-sm">
-              Delete
+              {{ 'recurrent.delete' | translate }}
             </button>
           </div>
         </div>

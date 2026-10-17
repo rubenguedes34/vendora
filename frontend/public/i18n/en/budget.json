@@ -1,0 +1,47 @@
+{
+  "title": "Budget",
+  "tabs": {
+    "setup": "Setup",
+    "transactions": "Transactions",
+    "recurrent": "Recurrent"
+  },
+  "intro": "Set your monthly budget for each category",
+  "totalIncome": "Total Income",
+  "totalExpenses": "Total Expenses",
+  "totalSavings": "Total Savings",
+  "sections": {
+    "income": "Income",
+    "expenses": "Expenses",
+    "savings": "Savings"
+  },
+  "noIncome": "No income categories yet.",
+  "noExpense": "No expense categories yet.",
+  "noSavings": "No savings categories yet.",
+  "savingsGoal": "Savings Goal",
+  "goalPlaceholder": "e.g., 500 or 10",
+  "targetSavings": "Target savings: {{amount}}",
+  "vsActual": "Budget vs Actual",
+  "vsActualHint": "How your spending compares to planned budgets this month",
+  "refresh": "Refresh",
+  "loadingComparison": "Loading comparison...",
+  "retry": "Retry",
+  "noBudgets": "No budgets set for this month yet.",
+  "budgetLabel": "Budget:",
+  "types": {
+    "income": "income",
+    "expense": "expense",
+    "savings": "savings"
+  },
+  "remaining": "{{amount}} remaining",
+  "overBudget": "{{amount}} over budget",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saving": "Saving...",
+  "errors": {
+    "loadCategories": "Failed to load categories",
+    "loadSummary": "Failed to load summary",
+    "saveBudget": "Failed to save budget",
+    "updateGoal": "Failed to update savings goal",
+    "loadComparison": "Failed to load. Is the backend running?"
+  }
+}

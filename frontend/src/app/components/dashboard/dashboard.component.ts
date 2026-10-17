@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -31,6 +32,9 @@ import { NotificationService, AppNotification } from '../../services/notificatio
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { CurrencyTextPipe } from '../../pipes/currency-text.pipe';
+import { NotificationTextPipe } from '../../pipes/notification-text.pipe';
+import { CategoryNamePipe } from '../../pipes/category-name.pipe';
+import { LanguageService } from '../../services/language.service';
 import { User } from '../../services/auth.service';
 import {
   CartesianTooltipItem,
@@ -43,7 +47,16 @@ import {
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, CurrencySymbolPipe, CurrencyTextPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    SidebarComponent,
+    CurrencySymbolPipe,
+    CurrencyTextPipe,
+    NotificationTextPipe,
+    CategoryNamePipe,
+    TranslatePipe,
+  ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
@@ -53,20 +66,52 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   user: User | null = null;
   currentYear = new Date().getFullYear();
   currentMonth = new Date().getMonth() + 1;
-  monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
+  private readonly categoryNamePipe = new CategoryNamePipe();
+  private static readonly monthKeys = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
   ];
+
+  // A getter so names follow the active language without any bookkeeping.
+  get monthNames(): string[] {
+    return DashboardComponent.monthKeys.map((k) => this.translate.instant(`dashboard.months.${k}`));
+  }
+
+  monthShort(month: number): string {
+    return this.monthNames[month - 1].slice(0, 3);
+  }
+
+  // Portuguese writes months in lower case inside a sentence.
+  monthInText(month: number): string {
+    const name = this.monthNames[month - 1];
+    return this.language.current === 'pt' ? name.toLowerCase() : name;
+  }
+
+  fmtNum(value: number, digits: number, fixed = false): string {
+    return new Intl.NumberFormat(this.language.locale, {
+      minimumFractionDigits: fixed ? digits : 0,
+      maximumFractionDigits: digits,
+    }).format(value);
+  }
+
+  fmtDate(value: string): string {
+    return new Date(value).toLocaleDateString(this.language.locale, {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
   yearlyRecords: FinancialRecord[] = [];
 
   overviewYear = new Date().getFullYear();
@@ -127,9 +172,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   previousYearRecords: FinancialRecord[] = [];
   private previousYearOf = 0;
   readonly comparisonRows: { label: string; key: keyof MonthTotals; goodWhenUp: boolean }[] = [
-    { label: 'Income', key: 'income', goodWhenUp: true },
-    { label: 'Expenses', key: 'expenses', goodWhenUp: false },
-    { label: 'Savings', key: 'savings', goodWhenUp: true },
+    { label: 'dashboard.income', key: 'income', goodWhenUp: true },
+    { label: 'dashboard.expenses', key: 'expenses', goodWhenUp: false },
+    { label: 'dashboard.savings', key: 'savings', goodWhenUp: true },
   ];
   private maxExpense = 0;
 
@@ -138,7 +183,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   pickerYear = new Date().getFullYear();
   readonly todayYear = new Date().getFullYear();
   readonly todayMonth = new Date().getMonth() + 1;
-  alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
+  alerts: { id: string; type: 'danger' | 'warning' | 'info'; title: string; message: string }[] =
+    [];
   // Persisted in localStorage: alerts are recomputed on every load, so an in-memory set would forget the dismissal.
   dismissedAlerts = this.loadDismissedAlerts();
   hasCritical = false;
@@ -189,6 +235,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.themeService.dark$
       .pipe(skip(1), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.redrawChartsForMode());
+
+    // onLangChange fires once the new translations are loaded; chart labels and alert text are built in code.
+    this.translate.onLangChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.alerts.length) {
+        this.computeAlerts(
+          this.overviewYear,
+          this.overviewMonth,
+          this.overviewIncome,
+          this.overviewExpenses,
+          this.overviewSavings,
+        );
+      }
+      this.redrawChartsForMode();
+      this.cdr.markForCheck();
+    });
 
     this.authService
       .getUserObservable()
@@ -428,32 +489,47 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     expenses: number,
     savings: number,
   ): void {
-    const alerts: { type: 'danger' | 'warning' | 'info'; title: string; message: string }[] = [];
+    const alerts: typeof this.alerts = [];
     const now = new Date();
     const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1;
-    const monthName = this.monthNames[month - 1];
+    const monthName = this.monthInText(month);
+    const symbol = this.currencyService.symbol;
+    const t = (key: string, params?: object) =>
+      this.translate.instant(`dashboard.alerts.${key}`, params);
 
     this.savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
     if (expenses > income) {
       alerts.push({
+        id: 'overspent',
         type: 'danger',
-        title: 'Expenses exceed income',
-        message: `You've spent ${this.currencyService.symbol}${this.formatCurrency(expenses - income)} more than you earned in ${monthName}.`,
+        title: t('overspent.title'),
+        message: t('overspent.message', {
+          amount: `${symbol}${this.formatCurrency(expenses - income)}`,
+          month: monthName,
+        }),
       });
     } else if (expenses > income * 0.9) {
       alerts.push({
+        id: 'nearLimit',
         type: 'warning',
-        title: 'Spending at 90%+ of income',
-        message: `Only ${this.currencyService.symbol}${this.formatCurrency(income - expenses)} left from your income in ${monthName}.`,
+        title: t('nearLimit.title'),
+        message: t('nearLimit.message', {
+          amount: `${symbol}${this.formatCurrency(income - expenses)}`,
+          month: monthName,
+        }),
       });
     }
 
     if (this.savingsRate < 10 && income > 0) {
       alerts.push({
+        id: 'lowSavings',
         type: 'warning',
-        title: 'Low savings rate',
-        message: `You're saving ${this.savingsRate.toFixed(1)}% of income in ${monthName}. Target is at least 20%.`,
+        title: t('lowSavings.title'),
+        message: t('lowSavings.message', {
+          rate: this.fmtNum(this.savingsRate, 1, true),
+          month: monthName,
+        }),
       });
     }
 
@@ -461,29 +537,43 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       // projection not loaded yet: say nothing rather than a misleading "on track"
     } else if (this.projectedBalance < 0) {
       alerts.push({
+        id: 'negativeProjection',
         type: 'danger',
-        title: `Negative ${monthName} projection`,
-        message: `At current daily spend (${this.currencyService.symbol}${this.formatCurrency(this.dailyAvgSpend)}/day), you'll end ${monthName} ${this.currencyService.symbol}${this.formatCurrency(Math.abs(this.projectedBalance))} short.`,
+        title: t('negativeProjection.title', { month: monthName }),
+        message: t('negativeProjection.message', {
+          daily: `${symbol}${this.formatCurrency(this.dailyAvgSpend)}`,
+          month: monthName,
+          amount: `${symbol}${this.formatCurrency(Math.abs(this.projectedBalance))}`,
+        }),
       });
     } else if (this.projectedBalance < income * 0.1) {
       alerts.push({
+        id: 'tightBalance',
         type: 'warning',
-        title: 'Tight projected balance',
-        message: `Projected end of ${monthName} balance is only ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)}.`,
+        title: t('tightBalance.title'),
+        message: t('tightBalance.message', {
+          month: monthName,
+          amount: `${symbol}${this.formatCurrency(this.projectedBalance)}`,
+        }),
       });
     } else {
       alerts.push({
+        id: 'onTrack',
         type: 'info',
-        title: `On track in ${monthName}`,
-        message: `Projected to save ${this.currencyService.symbol}${this.formatCurrency(this.projectedBalance)} by end of ${monthName}.`,
+        title: t('onTrack.title', { month: monthName }),
+        message: t('onTrack.message', {
+          amount: `${symbol}${this.formatCurrency(this.projectedBalance)}`,
+          month: monthName,
+        }),
       });
     }
 
     if (this.available && isCurrent && this.daysRemaining <= 7 && expenses > income * 0.8) {
       alerts.push({
+        id: 'endingSoon',
         type: 'warning',
-        title: 'Month ending soon',
-        message: `${this.daysRemaining} days left in ${monthName}. Watch your spending to stay positive.`,
+        title: t('endingSoon.title'),
+        message: t('endingSoon.message', { count: this.daysRemaining, month: monthName }),
       });
     }
 
@@ -494,8 +584,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   // Scoped to user and month so dismissing in October does not hide the same alert in November.
   // shortcut: dismissed keys are never pruned (a handful per month), clean up if it ever grows.
-  private dismissKey(alert: { title: string }): string {
-    return `${this.userId()}:${this.overviewYear}-${this.overviewMonth}:${alert.title}`;
+  // Keyed by a stable id, not the title, which changes with the language.
+  private dismissKey(alert: { id: string }): string {
+    return `${this.userId()}:${this.overviewYear}-${this.overviewMonth}:${alert.id}`;
   }
 
   // this.user is set asynchronously; fall back to the stored session so the key never flips from '' to the id.
@@ -528,7 +619,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return this.alerts.filter((a) => !this.dismissedAlerts.has(this.dismissKey(a)));
   }
 
-  dismissAlert(alert: { type: string; title: string; message: string }): void {
+  dismissAlert(alert: { id: string; type: string; title: string; message: string }): void {
     this.dismissedAlerts.add(this.dismissKey(alert));
     this.saveDismissedAlerts();
     this.hasCritical = this.visibleAlerts.some((a) => a.type === 'danger');
@@ -551,11 +642,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const visible = this.visibleAlerts;
     // Unread server notifications are listed above, so the heading cannot claim "All good!" over them.
     if (visible.length === 0)
-      return this.unreadNotifications.length > 0 ? 'New notifications' : 'All good!';
-    if (this.hasCritical) return 'Attention needed';
+      return this.translate.instant(
+        this.unreadNotifications.length > 0 ? 'dashboard.heading.new' : 'dashboard.heading.allGood',
+      );
+    if (this.hasCritical) return this.translate.instant('dashboard.heading.attention');
     const warnings = visible.filter((a) => a.type === 'warning').length;
-    if (warnings === 0) return 'On track';
-    return warnings === 1 ? '1 warning' : `${warnings} warnings`;
+    if (warnings === 0) return this.translate.instant('dashboard.heading.onTrack');
+    return this.translate.instant(
+      warnings === 1 ? 'dashboard.heading.oneWarning' : 'dashboard.heading.warnings',
+      { count: warnings },
+    );
   }
 
   get bellCount(): number {
@@ -656,7 +752,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const baseIncome = parseFloat(income);
     const baseExpenses = parseFloat(expenses);
     if (!isFinite(baseIncome) || !isFinite(baseExpenses) || baseIncome < 0 || baseExpenses < 0) {
-      this.baseError = 'Enter amounts of zero or more.';
+      this.baseError = this.translate.instant('dashboard.base.invalid');
       return;
     }
     this.submitMonthBase({ is_custom: true, base_income: baseIncome, base_expenses: baseExpenses });
@@ -698,7 +794,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           this.savingBase = false;
-          this.baseError = error?.message || 'Could not save this month. Please try again.';
+          this.baseError = error?.message || this.translate.instant('dashboard.base.saveFailed');
           this.cdr.markForCheck();
         },
       });
@@ -870,7 +966,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         labels: this.monthNames.map((m) => m.slice(0, 3)),
         datasets: [
           {
-            label: 'Income',
+            label: this.translate.instant('dashboard.income'),
             data: this.monthBreakdown.map((m) => m.income),
             backgroundColor: '#2dd4bf',
             borderRadius: 6,
@@ -879,7 +975,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             categoryPercentage: 0.8,
           },
           {
-            label: 'Expenses',
+            label: this.translate.instant('dashboard.expenses'),
             data: this.monthBreakdown.map((m) => m.expenses),
             backgroundColor: '#f87171',
             borderRadius: 6,
@@ -888,7 +984,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             categoryPercentage: 0.8,
           },
           {
-            label: 'Balance',
+            label: this.translate.instant('dashboard.balance'),
             data: this.monthBreakdown.map((m) => Math.max(0, m.balance)),
             backgroundColor: '#818cf8',
             borderRadius: 6,
@@ -951,7 +1047,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.categoryChartInstance = new (chartConstructor())(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Income', 'Expenses', 'Savings'],
+        labels: ['income', 'expenses', 'savings'].map((k) =>
+          this.translate.instant(`dashboard.${k}`),
+        ),
         datasets: [
           {
             data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
@@ -989,7 +1087,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.categoryBreakdownChartInstance = new (chartConstructor())(ctx, {
       type: 'doughnut',
       data: {
-        labels: this.expensesByCategory.map((e) => e.category),
+        labels: this.expensesByCategory.map((e) => this.categoryNamePipe.transform(e.category)),
         datasets: [
           {
             data: this.expensesByCategory.map((e) => e.total),
@@ -1033,8 +1131,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.initCategoryBreakdownChart();
       return;
     }
-    this.categoryBreakdownChartInstance.data.labels = this.expensesByCategory.map(
-      (e) => e.category,
+    this.categoryBreakdownChartInstance.data.labels = this.expensesByCategory.map((e) =>
+      this.categoryNamePipe.transform(e.category),
     );
     this.categoryBreakdownChartInstance.data.datasets[0].data = this.expensesByCategory.map(
       (e) => e.total,
@@ -1061,7 +1159,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         labels: Array.from({ length: days }, (_, i) => i + 1),
         datasets: [
           {
-            label: 'This month',
+            label: this.translate.instant('dashboard.charts.thisMonth'),
             data: current,
             borderColor: '#2dd4bf',
             backgroundColor: '#2dd4bf',
@@ -1070,7 +1168,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             pointRadius: current.map((_, i) => (i === today ? 5 : 0)),
           },
           {
-            label: 'Previous month',
+            label: this.translate.instant('dashboard.charts.previousMonth'),
             data: previous,
             borderColor: '#9ca3af',
             borderWidth: 1.5,
@@ -1093,7 +1191,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              title: (items: CartesianTooltipItem[]) => `Day ${items[0].label}`,
+              title: (items: CartesianTooltipItem[]) =>
+                this.translate.instant('dashboard.charts.day', { day: items[0].label }),
               label: (c: CartesianTooltipItem) =>
                 ` ${c.dataset.label}: ${symbol}${c.parsed.y.toFixed(2)}`,
             },
@@ -1122,6 +1221,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.monthlyBalanceChartInstance?.destroy();
     const ctx = this.monthlyBalanceChart.nativeElement.getContext('2d');
     const symbol = this.currencyService.symbol;
+    const balanceLabel = this.translate.instant('dashboard.balance');
     const data = this.monthBreakdown.map((m) => m.balance);
     const colors = this.monthBreakdown.map((m) => (m.balance >= 0 ? '#10b981' : '#ef4444'));
 
@@ -1131,7 +1231,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         labels: this.monthNames.map((m) => m.slice(0, 3)),
         datasets: [
           {
-            label: 'Balance',
+            label: balanceLabel,
             data,
             backgroundColor: colors,
             borderRadius: 6,
@@ -1152,7 +1252,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              label: (c: CartesianTooltipItem) => ` Balance: ${symbol}${c.parsed.y.toFixed(2)}`,
+              label: (c: CartesianTooltipItem) =>
+                ` ${balanceLabel}: ${symbol}${c.parsed.y.toFixed(2)}`,
             },
           },
         },

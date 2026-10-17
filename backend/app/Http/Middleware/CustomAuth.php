@@ -13,19 +13,19 @@ class CustomAuth
         $token = $request->bearerToken();
 
         if (! $token) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => __('messages.unauthorized')], 401);
         }
 
         $accessToken = TokenService::find($token);
 
         if (! $accessToken) {
-            return response()->json(['message' => 'Invalid or expired token'], 401);
+            return response()->json(['message' => __('messages.token_expired')], 401);
         }
 
         $user = $accessToken->tokenable;
 
         if ($user->isBlacklisted()) {
-            return response()->json(['message' => 'Your account has been suspended.'], 403);
+            return response()->json(['message' => __('messages.account_suspended')], 403);
         }
 
         $user->withAccessToken($accessToken);

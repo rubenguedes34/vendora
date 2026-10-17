@@ -5,7 +5,7 @@
     <header class="page-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
-          <h2 class="text-xl font-semibold">Budget</h2>
+          <h2 class="text-xl font-semibold">{{ 'budget.title' | translate }}</h2>
         </div>
       </div>
     </header>
@@ -18,7 +18,7 @@
           [class.text-gray-900]="activeTab === 'setup'"
           [class.text-gray-400]="activeTab !== 'setup'"
         >
-          <span class="relative z-10">Setup</span>
+          <span class="relative z-10">{{ 'budget.tabs.setup' | translate }}</span>
           <span
             class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
             [class.w-full]="activeTab === 'setup'"
@@ -32,7 +32,7 @@
           [class.text-gray-900]="activeTab === 'transactions'"
           [class.text-gray-400]="activeTab !== 'transactions'"
         >
-          <span class="relative z-10">Transactions</span>
+          <span class="relative z-10">{{ 'budget.tabs.transactions' | translate }}</span>
           <span
             class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
             [class.w-full]="activeTab === 'transactions'"
@@ -46,7 +46,7 @@
           [class.text-gray-900]="activeTab === 'recurrent'"
           [class.text-gray-400]="activeTab !== 'recurrent'"
         >
-          <span class="relative z-10">Recurrent</span>
+          <span class="relative z-10">{{ 'budget.tabs.recurrent' | translate }}</span>
           <span
             class="absolute left-0 bottom-0 h-[2px] rounded-full bg-gray-900 transition-all duration-300 ease-out"
             [class.w-full]="activeTab === 'recurrent'"
@@ -59,7 +59,7 @@
 
     <ng-container *ngIf="activeTab === 'setup'">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <p class="text-gray-600 mb-6">Set your monthly budget for each category</p>
+        <p class="text-gray-600 mb-6">{{ 'budget.intro' | translate }}</p>
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
@@ -67,7 +67,7 @@
             <h3
               class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2"
             >
-              Total Income
+              {{ 'budget.totalIncome' | translate }}
             </h3>
             <p class="text-xl sm:text-3xl font-bold text-blue-600">
               {{ summary.income | currencySymbol }}
@@ -77,7 +77,7 @@
             <h3
               class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2"
             >
-              Total Expenses
+              {{ 'budget.totalExpenses' | translate }}
             </h3>
             <p class="text-xl sm:text-3xl font-bold text-red-600">
               {{ summary.expenses | currencySymbol }}
@@ -87,7 +87,7 @@
             <h3
               class="text-xs sm:text-base font-semibold text-gray-500 sm:text-gray-700 uppercase tracking-wide mb-1 sm:mb-2"
             >
-              Total Savings
+              {{ 'budget.totalSavings' | translate }}
             </h3>
             <p class="text-xl sm:text-3xl font-bold text-green-600">
               {{ summary.savings | currencySymbol }}
@@ -108,7 +108,7 @@
               "
               class="flex-1 py-4 px-2 sm:px-6 font-semibold transition-colors"
             >
-              {{ section.label }}
+              {{ 'budget.sections.' + section.key | translate }}
             </button>
           </div>
 
@@ -119,7 +119,7 @@
                 *ngIf="incomeCategories.length === 0"
                 class="text-gray-400 text-center py-6 text-sm"
               >
-                No income categories yet.
+                {{ 'budget.noIncome' | translate }}
               </div>
               <div *ngFor="let category of incomeCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -127,7 +127,7 @@
                     <img
                       *ngIf="isImageIcon(category.icon); else incomeIcon"
                       [src]="category.icon"
-                      [alt]="category.name"
+                      [alt]="category.name | categoryName"
                       class="w-5 h-5 object-contain"
                     />
                     <ng-template #incomeIcon
@@ -136,7 +136,9 @@
                       }}</span></ng-template
                     >
                     <span class="w-2 h-2 rounded-full shrink-0 bg-primary-500"></span>
-                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                    <span class="font-medium text-gray-800">{{
+                      category.name | categoryName
+                    }}</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <input
@@ -160,7 +162,7 @@
                 *ngIf="expenseCategories.length === 0"
                 class="text-gray-400 text-center py-6 text-sm"
               >
-                No expense categories yet.
+                {{ 'budget.noExpense' | translate }}
               </div>
               <div *ngFor="let category of expenseCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -168,7 +170,7 @@
                     <img
                       *ngIf="isImageIcon(category.icon); else expenseIcon"
                       [src]="category.icon"
-                      [alt]="category.name"
+                      [alt]="category.name | categoryName"
                       class="w-5 h-5 object-contain"
                     />
                     <ng-template #expenseIcon
@@ -177,7 +179,9 @@
                       }}</span></ng-template
                     >
                     <span class="w-2 h-2 rounded-full shrink-0 bg-primary-500"></span>
-                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                    <span class="font-medium text-gray-800">{{
+                      category.name | categoryName
+                    }}</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <input
@@ -198,14 +202,16 @@
             <!-- Savings Section -->
             <div *ngIf="activeSection === 'savings'">
               <div class="mb-6 p-4 bg-blue-50 rounded-lg">
-                <h4 class="font-semibold text-gray-800 mb-2">Savings Goal</h4>
+                <h4 class="font-semibold text-gray-800 mb-2">
+                  {{ 'budget.savingsGoal' | translate }}
+                </h4>
                 <div class="flex items-center space-x-2">
                   <input
                     type="number"
                     [(ngModel)]="savingsGoalValue"
                     (change)="updateSavingsGoal()"
                     class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., 500 or 10"
+                    [placeholder]="'budget.goalPlaceholder' | translate"
                     min="0"
                     step="any"
                   />
@@ -219,14 +225,17 @@
                   </select>
                 </div>
                 <p class="text-gray-600 text-sm mt-2">
-                  Target savings: {{ calculateSavingsGoalAmount() | currencySymbol }}
+                  {{
+                    'budget.targetSavings'
+                      | translate: { amount: (calculateSavingsGoalAmount() | currencySymbol) }
+                  }}
                 </p>
               </div>
               <div
                 *ngIf="savingsCategories.length === 0"
                 class="text-gray-400 text-center py-6 text-sm"
               >
-                No savings categories yet.
+                {{ 'budget.noSavings' | translate }}
               </div>
               <div *ngFor="let category of savingsCategories" class="mb-3">
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -234,7 +243,7 @@
                     <img
                       *ngIf="isImageIcon(category.icon); else savingsIcon"
                       [src]="category.icon"
-                      [alt]="category.name"
+                      [alt]="category.name | categoryName"
                       class="w-5 h-5 object-contain"
                     />
                     <ng-template #savingsIcon
@@ -243,7 +252,9 @@
                       }}</span></ng-template
                     >
                     <span class="w-2 h-2 rounded-full shrink-0 bg-primary-500"></span>
-                    <span class="font-medium text-gray-800">{{ category.name }}</span>
+                    <span class="font-medium text-gray-800">{{
+                      category.name | categoryName
+                    }}</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <input
@@ -267,16 +278,18 @@
         <div class="bg-white rounded-2xl border border-gray-200 mb-6">
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div>
-              <h3 class="text-base font-semibold text-gray-800">Budget vs Actual</h3>
+              <h3 class="text-base font-semibold text-gray-800">
+                {{ 'budget.vsActual' | translate }}
+              </h3>
               <p class="text-xs text-gray-400">
-                How your spending compares to planned budgets this month
+                {{ 'budget.vsActualHint' | translate }}
               </p>
             </div>
             <button
               (click)="loadComparison()"
               class="text-xs text-primary-500 hover:text-primary-700 font-medium transition-colors"
             >
-              Refresh
+              {{ 'budget.refresh' | translate }}
             </button>
           </div>
 
@@ -284,7 +297,7 @@
             <div
               class="inline-block w-6 h-6 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-2"
             ></div>
-            <p class="text-gray-400 text-sm">Loading comparison...</p>
+            <p class="text-gray-400 text-sm">{{ 'budget.loadingComparison' | translate }}</p>
           </div>
 
           <div *ngIf="!comparisonLoading && comparisonError" class="text-center py-8">
@@ -293,7 +306,7 @@
               (click)="loadComparison()"
               class="text-xs bg-primary-600 text-white px-3 py-1.5 rounded hover:bg-primary-700 transition-colors"
             >
-              Retry
+              {{ 'budget.retry' | translate }}
             </button>
           </div>
 
@@ -301,7 +314,7 @@
             *ngIf="!comparisonLoading && !comparisonError && comparison.length === 0"
             class="text-center py-8 text-gray-400 text-sm"
           >
-            No budgets set for this month yet.
+            {{ 'budget.noBudgets' | translate }}
           </div>
 
           <div *ngIf="!comparisonLoading && comparison.length > 0" class="divide-y divide-gray-50">
@@ -313,7 +326,7 @@
                     [style.background]="item.category_color"
                   ></span>
                   <span class="font-medium text-gray-800 text-sm truncate">{{
-                    item.category_name
+                    item.category_name | categoryName
                   }}</span>
                   <span
                     class="text-xs px-1.5 py-0.5 rounded-full font-medium"
@@ -325,12 +338,12 @@
                           : 'bg-red-50 text-red-600'
                     "
                   >
-                    {{ item.category_type }}
+                    {{ 'budget.types.' + item.category_type | translate }}
                   </span>
                 </div>
                 <div class="flex items-center gap-4 shrink-0 text-sm">
                   <span class="text-gray-400"
-                    >Budget:
+                    >{{ 'budget.budgetLabel' | translate }}
                     <span class="font-medium text-gray-700">{{
                       item.budgeted | currencySymbol
                     }}</span></span
@@ -379,8 +392,10 @@
               >
                 {{
                   item.remaining >= 0
-                    ? (item.remaining | currencySymbol) + ' remaining'
-                    : (-item.remaining | currencySymbol) + ' over budget'
+                    ? ('budget.remaining'
+                      | translate: { amount: (item.remaining | currencySymbol) })
+                    : ('budget.overBudget'
+                      | translate: { amount: (-item.remaining | currencySymbol) })
                 }}
               </div>
             </div>
@@ -393,14 +408,14 @@
             (click)="goBack()"
             class="px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {{ 'budget.cancel' | translate }}
           </button>
           <button
             (click)="saveAll()"
             [disabled]="isSaving"
             class="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:bg-gray-400 transition-colors"
           >
-            {{ isSaving ? 'Saving...' : 'Save' }}
+            {{ (isSaving ? 'budget.saving' : 'budget.save') | translate }}
           </button>
         </div>
 

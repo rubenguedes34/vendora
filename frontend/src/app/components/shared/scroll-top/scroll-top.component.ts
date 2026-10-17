@@ -1,15 +1,17 @@
 import { Component, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-scroll-top',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
+  imports: [TranslatePipe],
   template: `
     <button
       type="button"
       (click)="scrollToTop()"
-      aria-label="Scroll to top"
-      title="Back to top"
+      [attr.aria-label]="'common.scrollToTop' | translate"
+      [title]="'common.backToTop' | translate"
       class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-24 z-40 w-11 h-11 rounded-full bg-white text-gray-600 border border-gray-200 shadow-lg hover:text-primary-600 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 flex items-center justify-center"
       [class.opacity-0]="!visible"
       [class.pointer-events-none]="!visible"

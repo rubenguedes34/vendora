@@ -104,6 +104,6 @@ class TagController extends Controller
 
         $tag->delete();
 
-        return response()->json(['message' => 'Tag deleted']);
+        return response()->json(['message' => __('messages.tag_deleted')]);
     }
 }

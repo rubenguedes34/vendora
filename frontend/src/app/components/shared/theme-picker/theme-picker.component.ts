@@ -1,12 +1,13 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-theme-picker',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="w-full">
       <!-- Collapsed row -->
@@ -25,10 +26,12 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
               d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
             />
           </svg>
-          <span class="text-sm font-semibold">Theme</span>
+          <span class="text-sm font-semibold">{{ 'common.theme' | translate }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">{{ activeLabel }}</span>
+          <span class="text-xs text-gray-500">{{
+            'common.themes.' + activeTheme | translate
+          }}</span>
           <div
             class="w-4 h-4 rounded-full border border-gray-200 shadow-sm flex-shrink-0"
             [style.background-color]="activeColor"
@@ -57,8 +60,8 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
             *ngFor="let theme of themes"
             type="button"
             (click)="selectTheme(theme.id)"
-            [title]="theme.label"
-            [attr.aria-label]="theme.label"
+            [title]="'common.themes.' + theme.id | translate"
+            [attr.aria-label]="'common.themes.' + theme.id | translate"
             [attr.aria-pressed]="activeTheme === theme.id"
             class="flex flex-col items-center gap-1 group/swatch focus:outline-none"
           >
@@ -87,7 +90,9 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
                 />
               </svg>
             </div>
-            <span class="text-xs text-gray-500 leading-none">{{ theme.label }}</span>
+            <span class="text-xs text-gray-500 leading-none">{{
+              'common.themes.' + theme.id | translate
+            }}</span>
           </button>
         </div>
       </div>
@@ -96,7 +101,7 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
       <div
         class="flex p-0.5 mt-2 mb-2 rounded-lg bg-gray-100 text-xs font-medium"
         role="group"
-        aria-label="Colour mode"
+        [attr.aria-label]="'common.colourMode' | translate"
       >
         <button
           *ngFor="let m of modes"
@@ -109,7 +114,7 @@ import { ThemeService, ThemeOption, ThemeMode } from '../../../services/theme.se
           [class.text-gray-500]="activeMode !== m.id"
           [attr.aria-pressed]="activeMode === m.id"
         >
-          {{ m.label }}
+          {{ 'common.' + m.id | translate }}
         </button>
       </div>
     </div>

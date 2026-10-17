@@ -7,7 +7,11 @@ import {
   ViewChild,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -15,6 +19,9 @@ import { FinancialService, NetWorth } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
+import { assetTypeLabel } from '../../models/investment';
+import { monthLabel } from '../../utils/month-label';
+import { LanguageService } from '../../services/language.service';
 import {
   CartesianTooltipItem,
   ChartInstance,
@@ -41,7 +48,7 @@ function allocationColor(type: string): string {
   selector: 'app-net-worth',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [CommonModule, SidebarComponent, CurrencySymbolPipe, TranslatePipe],
   templateUrl: './net-worth.component.html',
 })
 export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
@@ -52,6 +59,9 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
   isLoading = false;
   errorMessage = '';
 
+  private translate = inject(TranslateService);
+  languageService = inject(LanguageService);
+  private destroyRef = inject(DestroyRef);
   private historyChartInstance: any = null;
   private allocationChartInstance: ChartInstance | null = null;
   private needsRender = false;
@@ -69,6 +79,9 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
+    this.languageService.language$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.data) this.needsRender = true;
+    });
     this.load();
   }
 
@@ -94,15 +107,23 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.cd.markForCheck();
       },
       error: (e) => {
-        this.errorMessage = e?.message || 'Failed to load net worth';
+        this.errorMessage = e?.message || this.translate.instant('netWorth.loadFailed');
         this.isLoading = false;
         this.cd.markForCheck();
       },
     });
   }
 
+  typeLabel(type: string): string {
+    return assetTypeLabel(this.translate, 'netWorth', type);
+  }
+
   colorFor(type: string): string {
     return ALLOCATION_COLORS[type] ?? '#94a3b8';
+  }
+
+  monthLabel(label: string): string {
+    return monthLabel(label, this.languageService.locale);
   }
 
   private renderIfReady(): void {
@@ -124,7 +145,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
     const ctx = this.historyChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.history.map((h) => h.label);
+    const labels = this.data.history.map((h) => this.monthLabel(h.label));
     const nwData = this.data.history.map((h) => h.net_worth);
     const cashData = this.data.history.map((h) => h.cash);
     const investData = this.data.history.map((h) => h.investments);
@@ -138,6 +159,10 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     if (this.historyChartInstance) {
       this.historyChartInstance.data.labels = labels;
+      this.historyChartInstance.data.datasets[0].label = this.translate.instant('netWorth.title');
+      this.historyChartInstance.data.datasets[1].label = this.translate.instant('netWorth.cash');
+      this.historyChartInstance.data.datasets[2].label =
+        this.translate.instant('netWorth.invested');
       this.historyChartInstance.data.datasets[0].data = nwData;
       this.historyChartInstance.data.datasets[1].data = cashData;
       this.historyChartInstance.data.datasets[2].data = investData;
@@ -151,7 +176,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
         labels,
         datasets: [
           {
-            label: 'Net Worth',
+            label: this.translate.instant('netWorth.title'),
             data: nwData,
             borderColor: '#7c3aed',
             backgroundColor: mkGrad(124, 58, 237),
@@ -163,7 +188,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
             order: 1,
           },
           {
-            label: 'Cash',
+            label: this.translate.instant('netWorth.cash'),
             data: cashData,
             borderColor: '#2dd4bf',
             backgroundColor: mkGrad(45, 212, 191),
@@ -175,7 +200,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
             order: 2,
           },
           {
-            label: 'Invested',
+            label: this.translate.instant('netWorth.invested'),
             data: investData,
             borderColor: '#a78bfa',
             backgroundColor: mkGrad(167, 139, 250),
@@ -217,7 +242,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
               color: '#9ca3af',
               font: { size: 10 },
               callback: (v: number | string) =>
-                `${this.currencyService.symbol}${Number(v).toLocaleString()}`,
+                `${this.currencyService.symbol}${Number(v).toLocaleString(this.languageService.locale)}`,
             },
           },
         },
@@ -230,7 +255,7 @@ export class NetWorthComponent implements OnInit, AfterViewChecked, OnDestroy {
     const ctx = this.allocationChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.data.allocation.map((a) => a.type);
+    const labels = this.data.allocation.map((a) => this.typeLabel(a.type));
     const values = this.data.allocation.map((a) => a.value);
     const colors = this.data.allocation.map((a) => allocationColor(a.type));
 

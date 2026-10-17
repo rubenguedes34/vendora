@@ -95,7 +95,7 @@ class NotificationController extends Controller
             'read_at' => now(),
         ]);
 
-        return response()->json(['message' => 'All notifications marked as read']);
+        return response()->json(['message' => __('messages.notifications_all_read')]);
     }
 
     /**
@@ -117,7 +117,7 @@ class NotificationController extends Controller
 
         $notification->delete();
 
-        return response()->json(['message' => 'Notification deleted']);
+        return response()->json(['message' => __('messages.notification_deleted')]);
     }
 
     /** Notifications are created lazily here (no scheduler), at most once every 10 minutes per user. */

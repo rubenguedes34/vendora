@@ -29,16 +29,29 @@ import { CurrencyService } from '../../services/currency.service';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { ApiError } from '../../models/api';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { CategoryNamePipe } from '../../pipes/category-name.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-transactions',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, CurrencySymbolPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    SidebarComponent,
+    CurrencySymbolPipe,
+    CategoryNamePipe,
+    TranslatePipe,
+  ],
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  readonly language = inject(LanguageService);
 
   @Input() embedded = false;
 
@@ -304,14 +317,14 @@ export class TransactionsComponent implements OnInit {
             this.cdr.detectChanges();
           },
           error: (error) => {
-            this.errorMessage = error.message || 'Failed to load transactions';
+            this.errorMessage = error.message || this.translate.instant('transactions.loadFailed');
             this.isLoading = false;
             this.cdr.detectChanges();
           },
         });
     } catch (caught: unknown) {
       const err = caught as ApiError;
-      this.errorMessage = err?.message || 'Failed to load transactions';
+      this.errorMessage = err?.message || this.translate.instant('transactions.loadFailed');
       this.isLoading = false;
     }
   }
@@ -324,12 +337,12 @@ export class TransactionsComponent implements OnInit {
 
     const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
     if (!allowed.includes(file.type)) {
-      this.attachmentError = 'Only JPG, PNG, or PDF files are allowed.';
+      this.attachmentError = this.translate.instant('transactions.attachmentType');
       input.value = '';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      this.attachmentError = 'File must be under 5 MB.';
+      this.attachmentError = this.translate.instant('transactions.attachmentSize');
       input.value = '';
       return;
     }
@@ -406,7 +419,7 @@ export class TransactionsComponent implements OnInit {
       },
       error: (error) => {
         this.isSaving = false;
-        this.errorMessage = error.message || 'Failed to save transaction';
+        this.errorMessage = error.message || this.translate.instant('transactions.saveFailed');
       },
     });
   }
@@ -430,10 +443,11 @@ export class TransactionsComponent implements OnInit {
   }
 
   deleteTransaction(id: number): void {
-    if (!confirm('Delete this transaction?')) return;
+    if (!confirm(this.translate.instant('transactions.confirmDelete'))) return;
     this.transactionService.deleteTransaction(id).subscribe({
       next: () => this.loadTransactions(),
-      error: (error) => (this.errorMessage = error.message || 'Failed to delete transaction'),
+      error: (error) =>
+        (this.errorMessage = error.message || this.translate.instant('transactions.deleteFailed')),
     });
   }
 
@@ -467,14 +481,16 @@ export class TransactionsComponent implements OnInit {
   }
 
   deleteAttachment(transaction: Transaction): void {
-    if (!confirm('Delete this attachment?')) return;
+    if (!confirm(this.translate.instant('transactions.confirmDeleteAttachment'))) return;
     this.transactionService.deleteAttachment(transaction.id).subscribe({
       next: () => {
         transaction.attachment_path = null;
         this.closePreview();
         this.loadTransactions();
       },
-      error: (error) => (this.errorMessage = error.message || 'Failed to delete attachment'),
+      error: (error) =>
+        (this.errorMessage =
+          error.message || this.translate.instant('transactions.deleteAttachmentFailed')),
     });
   }
 
@@ -522,7 +538,7 @@ export class TransactionsComponent implements OnInit {
         this.isCreatingTag = false;
       },
       error: (err) => {
-        this.tagError = err?.message || 'Failed to create tag';
+        this.tagError = err?.message || this.translate.instant('transactions.createTagFailed');
         this.isCreatingTag = false;
       },
     });

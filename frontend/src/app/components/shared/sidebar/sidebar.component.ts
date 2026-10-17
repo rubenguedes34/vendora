@@ -16,6 +16,8 @@ import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { environment } from '../../../../environments/environment';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LanguagePickerComponent } from '../language-picker/language-picker.component';
 import { CurrencyPickerComponent } from '../currency-picker/currency-picker.component';
 import { QuickAddComponent } from '../quick-add/quick-add.component';
 import { User } from '../../../services/auth.service';
@@ -30,7 +32,9 @@ import { PwaService } from '../../../services/pwa.service';
     RouterLink,
     ThemePickerComponent,
     CurrencyPickerComponent,
+    LanguagePickerComponent,
     QuickAddComponent,
+    TranslatePipe,
   ],
   template: `
     <app-quick-add></app-quick-add>
@@ -121,7 +125,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
-          <span class="font-medium">Dashboard</span>
+          <span class="font-medium">{{ 'nav.dashboard' | translate }}</span>
         </a>
 
         <a
@@ -140,7 +144,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
             />
           </svg>
-          <span class="font-medium">Budget</span>
+          <span class="font-medium">{{ 'nav.budget' | translate }}</span>
         </a>
 
         <a
@@ -159,7 +163,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
             />
           </svg>
-          <span class="font-medium">Investments</span>
+          <span class="font-medium">{{ 'nav.investments' | translate }}</span>
         </a>
 
         <a
@@ -178,7 +182,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span class="font-medium">Net Worth</span>
+          <span class="font-medium">{{ 'nav.netWorth' | translate }}</span>
         </a>
 
         <a
@@ -197,7 +201,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span class="font-medium">Health Score</span>
+          <span class="font-medium">{{ 'nav.healthScore' | translate }}</span>
         </a>
 
         <a
@@ -216,7 +220,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
             />
           </svg>
-          <span class="font-medium">AI Support</span>
+          <span class="font-medium">{{ 'nav.aiSupport' | translate }}</span>
         </a>
 
         <a
@@ -235,7 +239,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-          <span class="font-medium">Notifications</span>
+          <span class="font-medium">{{ 'nav.notifications' | translate }}</span>
           <span
             *ngIf="unreadCount > 0"
             data-testid="sidebar-unread-badge"
@@ -250,7 +254,7 @@ import { PwaService } from '../../../services/pwa.service';
           type="button"
           (click)="openAdmin()"
           class="w-[calc(100%-1.5rem)] flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-          title="Open admin panel"
+          [title]="'nav.openAdminPanel' | translate"
         >
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -260,20 +264,21 @@ import { PwaService } from '../../../services/pwa.service';
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
             />
           </svg>
-          <span class="font-medium">Admin</span>
+          <span class="font-medium">{{ 'nav.admin' | translate }}</span>
         </button>
       </nav>
 
       <div class="p-4 border-t border-gray-200 space-y-2">
         <app-theme-picker></app-theme-picker>
         <app-currency-picker></app-currency-picker>
+        <app-language-picker></app-language-picker>
         <button
           *ngIf="pwa.updateReady()"
           data-testid="pwa-update"
           (click)="pwa.reload()"
           class="w-full px-3 py-2 text-sm rounded-xl bg-primary-600 text-white"
         >
-          New version available — reload
+          {{ 'nav.pwaUpdate' | translate }}
         </button>
         <button
           *ngIf="pwa.canInstall()"
@@ -281,10 +286,10 @@ import { PwaService } from '../../../services/pwa.service';
           (click)="pwa.install()"
           class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 hover:bg-gray-50"
         >
-          Install app
+          {{ 'nav.pwaInstall' | translate }}
         </button>
         <p *ngIf="pwa.showIosHint" data-testid="pwa-ios-hint" class="text-xs text-gray-500">
-          To install: Share → Add to Home Screen.
+          {{ 'nav.pwaIosHint' | translate }}
         </p>
       </div>
 
@@ -316,7 +321,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          <span class="font-medium">Logout</span>
+          <span class="font-medium">{{ 'nav.logout' | translate }}</span>
         </button>
       </div>
     </aside>

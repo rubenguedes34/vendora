@@ -1,8 +1,10 @@
 import { Component, ChangeDetectorRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ThemePickerComponent } from '../shared/theme-picker/theme-picker.component';
+import { LanguagePickerComponent } from '../shared/language-picker/language-picker.component';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
@@ -10,13 +12,21 @@ import { environment } from '../../../environments/environment';
   selector: 'app-login',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ThemePickerComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    ThemePickerComponent,
+    LanguagePickerComponent,
+    TranslatePipe,
+  ],
   template: `
     <div class="relative min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
       <div
         class="w-52 self-end mb-3 sm:mb-0 sm:absolute sm:top-4 sm:right-4 bg-white rounded-xl border border-gray-200 shadow-sm p-2"
       >
         <app-theme-picker></app-theme-picker>
+        <app-language-picker></app-language-picker>
       </div>
       <div class="w-full max-w-md">
         <div class="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10">
@@ -35,12 +45,14 @@ import { environment } from '../../../environments/environment';
               </svg>
             </div>
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Vendora</h1>
-            <p class="text-sm text-gray-500 mt-1">Your personal finance dashboard</p>
+            <p class="text-sm text-gray-500 mt-1">{{ 'auth.tagline' | translate }}</p>
           </div>
 
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <div class="mb-5">
-              <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-2">{{
+                'auth.email' | translate
+              }}</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -62,7 +74,7 @@ import { environment } from '../../../environments/environment';
                   formControlName="email"
                   maxlength="255"
                   class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
-                  placeholder="Enter your email"
+                  [placeholder]="'auth.emailPlaceholder' | translate"
                 />
               </div>
               <p
@@ -71,13 +83,13 @@ import { environment } from '../../../environments/environment';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Email is required.
+                {{ 'auth.emailRequired' | translate }}
               </p>
               <p
                 *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('email')"
                 class="text-red-500 text-sm mt-1"
               >
-                Enter a valid email address.
+                {{ 'auth.emailInvalid' | translate }}
               </p>
               <p
                 *ngIf="
@@ -85,12 +97,14 @@ import { environment } from '../../../environments/environment';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Email cannot exceed 255 characters.
+                {{ 'auth.emailMax' | translate }}
               </p>
             </div>
 
             <div class="mb-6">
-              <label class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+              <label class="block text-gray-700 text-sm font-semibold mb-2">{{
+                'auth.password' | translate
+              }}</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -112,7 +126,7 @@ import { environment } from '../../../environments/environment';
                   formControlName="password"
                   maxlength="72"
                   class="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition-shadow"
-                  placeholder="Enter your password"
+                  [placeholder]="'auth.passwordPlaceholderLogin' | translate"
                 />
               </div>
               <p
@@ -122,7 +136,7 @@ import { environment } from '../../../environments/environment';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Password is required.
+                {{ 'auth.passwordRequired' | translate }}
               </p>
               <p
                 *ngIf="
@@ -131,7 +145,7 @@ import { environment } from '../../../environments/environment';
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                Password cannot exceed 72 characters.
+                {{ 'auth.passwordMax' | translate }}
               </p>
             </div>
 
@@ -140,14 +154,16 @@ import { environment } from '../../../environments/environment';
               [disabled]="loginForm.invalid || isLoading"
               class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
             >
-              <span *ngIf="!isLoading">Login</span>
-              <span *ngIf="isLoading">Loading...</span>
+              <span *ngIf="!isLoading">{{ 'auth.login' | translate }}</span>
+              <span *ngIf="isLoading">{{ 'auth.loading' | translate }}</span>
             </button>
           </form>
 
           <div class="relative flex py-5 items-center">
             <div class="flex-grow border-t border-gray-200"></div>
-            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">or</span>
+            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">{{
+              'auth.or' | translate
+            }}</span>
             <div class="flex-grow border-t border-gray-200"></div>
           </div>
 
@@ -174,7 +190,7 @@ import { environment } from '../../../environments/environment';
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {{ 'auth.google' | translate }}
           </button>
 
           <div
@@ -185,11 +201,11 @@ import { environment } from '../../../environments/environment';
           </div>
 
           <p class="mt-6 text-center text-gray-600 text-sm">
-            Don't have an account?
+            {{ 'auth.noAccount' | translate }}
             <a
               routerLink="/register"
               class="font-semibold text-primary-600 hover:text-primary-800 hover:underline ml-1"
-              >Register</a
+              >{{ 'auth.register' | translate }}</a
             >
           </p>
         </div>
@@ -208,6 +224,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
+    private translate: TranslateService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
@@ -241,7 +258,7 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Login failed. Please try again.';
+        this.errorMessage = error.message || this.translate.instant('auth.loginFailed');
         this.cdr.detectChanges();
       },
     });

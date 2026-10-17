@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideTestTranslate } from '../../testing/translate-testing';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -88,7 +89,12 @@ describe('AuthService', () => {
     localStorage.setItem('token', 'persisted-token');
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslate(),
+      ],
     });
     const restored = TestBed.inject(AuthService);
     expect(restored.getTokenValue()).toBe('persisted-token');
