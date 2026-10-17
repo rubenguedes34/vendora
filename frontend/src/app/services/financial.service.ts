@@ -311,6 +311,17 @@ export class FinancialService {
       );
   }
 
+  copyPreviousBudgets(month: string): Observable<{ copied: number; source_month: string }> {
+    return this.http
+      .post<{ copied: number; source_month: string }>(`${this.apiUrl}/budgets/copy-previous`, {
+        month,
+      })
+      .pipe(
+        timeout(5000),
+        catchError((error) => throwError(() => this.handleError(error))),
+      );
+  }
+
   getBudgetSummary(month?: string): Observable<BudgetSummary> {
     const url = month
       ? `${this.apiUrl}/budgets/summary/${month}`

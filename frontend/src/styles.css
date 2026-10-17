@@ -20,6 +20,13 @@ body {
   touch-action: manipulation;
 }
 
+/* Keep the floating + / scroll-top buttons from covering the last content on phones */
+@media (max-width: 639px) {
+  body {
+    padding-bottom: 5rem;
+  }
+}
+
 /* Prevent iOS zoom on input focus */
 input,
 select,

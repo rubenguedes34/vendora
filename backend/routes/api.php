@@ -43,6 +43,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::apiResource('transactions', TransactionController::class);
 
     // Budgets - custom routes first
+    Route::post('/budgets/copy-previous', [BudgetController::class, 'copyPrevious']);
     Route::get('/budgets/summary/{month?}', [BudgetController::class, 'summary']);
     Route::get('/budgets/comparison/{month?}', [BudgetController::class, 'comparison']);
     Route::apiResource('budgets', BudgetController::class);
