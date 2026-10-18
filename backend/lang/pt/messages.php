@@ -39,4 +39,7 @@ return [
     'last_admin_delete' => 'Não pode eliminar o último administrador.',
     'user_deleted' => 'Utilizador eliminado.',
     'email_needs_password' => 'A sua palavra-passe atual é necessária para alterar o email.',
+    'import_unreadable_pdf' => 'Não foi possível ler este PDF.',
+    'import_unsupported_format' => 'Este ficheiro não parece ser um extrato bancário suportado.',
+    'import_balance_mismatch' => 'Não foi possível validar o extrato: os movimentos não batem certo com os saldos.',
 ];

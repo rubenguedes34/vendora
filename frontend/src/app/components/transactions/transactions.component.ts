@@ -19,7 +19,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { TagService, Tag } from '../../services/tag.service';
@@ -32,6 +32,23 @@ import { ApiError } from '../../models/api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CategoryNamePipe } from '../../pipes/category-name.pipe';
 import { LanguageService } from '../../services/language.service';
+import {
+  ImportRow,
+  categoriesForType,
+  allIncludable,
+  applySuggestions,
+  hasUsableSuggestions,
+  setAllSelected,
+  setSelected,
+  OtherCategories,
+  importableRows,
+  pendingForSuggestions,
+  ImportSortKey,
+  sortRows,
+  importErrorKey,
+  toImportRows,
+  withCategory,
+} from './statement-import';
 
 @Component({
   selector: 'app-transactions',
@@ -277,6 +294,207 @@ export class TransactionsComponent implements OnInit {
 
   isImageIcon(icon?: string): boolean {
     return Boolean(icon?.startsWith('http://') || icon?.startsWith('https://'));
+  }
+
+  // --- Statement import (admin only; the backend enforces the `import statements` permission) ---
+  importOpen = false;
+  importLoading = false;
+  importing = false;
+  importRows: ImportRow[] = [];
+  importPeriod: { from: string; to: string } | null = null;
+  importFileHash = '';
+  previousImport: { imported_at: string; rows_imported: number } | null = null;
+  importMessage = '';
+  importError = '';
+  suggesting = false;
+  aiUnavailable = false;
+  private suggestSub?: Subscription;
+
+  importSort: { key: ImportSortKey; direction: 'asc' | 'desc' } = { key: 'date', direction: 'asc' };
+
+  get visibleImportRows(): ImportRow[] {
+    return sortRows(this.importRows, this.importSort.key, this.importSort.direction);
+  }
+
+  sortImportBy(key: ImportSortKey): void {
+    this.importSort =
+      this.importSort.key === key
+        ? { key, direction: this.importSort.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: key === 'amount' ? 'desc' : 'asc' };
+  }
+
+  sortArrow(key: ImportSortKey): string {
+    if (this.importSort.key !== key) return '';
+    return this.importSort.direction === 'asc' ? '↑' : '↓';
+  }
+
+  // Keyed by the statement position: replacing a row (new category) must not recreate its DOM,
+  // or the <select> loses focus.
+  trackByRowId(_: number, row: ImportRow): number {
+    return row.id;
+  }
+
+  get canImportStatements(): boolean {
+    return this.authService.getUserValue()?.roles?.includes('admin') ?? false;
+  }
+
+  get importSelectedCount(): number {
+    return importableRows(this.importRows).length;
+  }
+
+  categoriesFor(type: 'income' | 'expense'): Category[] {
+    return categoriesForType(this.categories, type);
+  }
+
+  toggleImport(): void {
+    this.importOpen = !this.importOpen;
+    this.resetImport();
+  }
+
+  private resetImport(): void {
+    // A new statement (or closing the panel) drops the previous suggestion request instead of letting it pile up.
+    this.suggestSub?.unsubscribe();
+    this.suggesting = false;
+    this.aiUnavailable = false;
+    this.importRows = [];
+    this.importPeriod = null;
+    this.importFileHash = '';
+    this.previousImport = null;
+    this.importMessage = '';
+    this.importError = '';
+  }
+
+  onStatementFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.resetImport();
+    this.importLoading = true;
+    this.transactionService.previewStatement(file).subscribe({
+      next: (preview) => {
+        this.importLoading = false;
+        this.importPeriod = preview.period;
+        this.importFileHash = preview.file_hash;
+        this.previousImport = preview.previous_import;
+        this.importRows = toImportRows(preview.rows, this.otherCategories);
+        this.requestSuggestions();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.importLoading = false;
+        this.importError = this.importErrorText(err);
+        this.cdr.markForCheck();
+      },
+    });
+    input.value = '';
+  }
+
+  /** Second step after the preview: the local AI proposes categories for rows the history could not resolve. */
+  private requestSuggestions(): void {
+    const pending = pendingForSuggestions(this.importRows).slice(0, 100);
+    if (!pending.length) return;
+
+    this.suggesting = true;
+    this.suggestSub = this.transactionService
+      .suggestCategories(pending.map((r) => ({ description: r.description, type: r.type })))
+      .subscribe({
+        next: (res) => {
+          this.suggesting = false;
+          if (res.available) {
+            this.importRows = applySuggestions(
+              this.importRows,
+              pending.map((r) => r.id),
+              res.suggestions,
+            );
+            // Judged by what the model answered: rows the user already categorised (or ticked with an "Other"
+            // category) are not overwritten, so an empty table of AI badges does not mean the AI failed.
+            this.aiUnavailable = !hasUsableSuggestions(res.suggestions);
+          } else {
+            this.aiUnavailable = true;
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.suggesting = false;
+          this.aiUnavailable = true;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  get allIncluded(): boolean {
+    return allIncludable(this.importRows);
+  }
+
+  /** "Other Income" / "Other Expenses": what a ticked row without a category of its own falls back to. */
+  private get otherCategories(): OtherCategories {
+    const find = (name: string) => this.categories.find((c) => c.name === name)?.id ?? null;
+    return { income: find('Other Income'), expense: find('Other Expenses') };
+  }
+
+  /** The checkbox is a plain `[checked]` binding, so re-sync it when the model refuses the change. */
+  toggleAllIncluded(input: HTMLInputElement): void {
+    this.importRows = setAllSelected(this.importRows, input.checked, this.otherCategories);
+    input.checked = this.allIncluded;
+  }
+
+  /** Opens the note field and puts the cursor in it. */
+  openNote(row: ImportRow): void {
+    row.noteOpen = true;
+    setTimeout(() => document.getElementById(`import-note-${row.id}`)?.focus());
+  }
+
+  toggleImportRow(id: number, input: HTMLInputElement): void {
+    this.importRows = this.importRows.map((r) =>
+      r.id === id ? setSelected(r, input.checked, this.otherCategories) : r,
+    );
+    input.checked = this.importRows.find((r) => r.id === id)?.selected ?? false;
+  }
+
+  setImportCategory(id: number, categoryId: number | null): void {
+    this.importRows = this.importRows.map((r) => (r.id === id ? withCategory(r, categoryId) : r));
+  }
+
+  importSelected(): void {
+    const rows = importableRows(this.importRows);
+    if (!rows.length) {
+      this.importError = this.translate.instant('transactions.import.nothingSelected');
+      return;
+    }
+
+    this.importing = true;
+    this.importError = '';
+    const statement =
+      this.importPeriod && this.importFileHash
+        ? { hash: this.importFileHash, from: this.importPeriod.from, to: this.importPeriod.to }
+        : undefined;
+    this.transactionService.importStatement(rows, statement).subscribe({
+      next: ({ imported }) => {
+        this.importing = false;
+        this.importRows = [];
+        this.importMessage = this.translate.instant('transactions.import.done', {
+          count: imported,
+        });
+        this.loadTransactions();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.importing = false;
+        this.importError = this.importErrorText(err);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private importErrorText(err?: {
+    code?: string;
+    message?: string;
+    errors?: Record<string, string[]>;
+  }): string {
+    const key = importErrorKey(err);
+    // Validation errors without a known code (wrong category, throttling) still carry the backend's message.
+    return key.endsWith('.generic') && err?.message ? err.message : this.translate.instant(key);
   }
 
   loadCategories(): void {

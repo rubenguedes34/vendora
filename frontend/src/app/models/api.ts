@@ -6,6 +6,7 @@ export interface ApiError {
   error?: {
     message?: string;
     error?: string;
+    code?: string;
     errors?: Record<string, string[]>;
   };
 }
@@ -13,6 +14,7 @@ export interface ApiError {
 /** A user-facing error produced by the services' error handlers. */
 export interface ApiErrorMessage {
   message?: string;
+  code?: string;
   errors?: Record<string, string[]>;
 }
 

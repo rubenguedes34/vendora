@@ -39,4 +39,7 @@ return [
     'last_admin_delete' => 'You cannot delete the last admin.',
     'user_deleted' => 'User deleted.',
     'email_needs_password' => 'Your current password is required to change your email.',
+    'import_unreadable_pdf' => 'This PDF could not be read.',
+    'import_unsupported_format' => 'This does not look like a supported bank statement.',
+    'import_balance_mismatch' => 'The statement could not be verified: the movements do not add up to its balances.',
 ];
