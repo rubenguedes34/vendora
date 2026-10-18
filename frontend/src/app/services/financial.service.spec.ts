@@ -18,15 +18,15 @@ describe('FinancialService', () => {
 
   afterEach(() => http.verify());
 
-  it('copyPreviousBudgets posts the target month and returns the result', () => {
+  it('copyPreviousBudgets posts to copy-previous and returns the result', () => {
     let result: unknown;
-    service.copyPreviousBudgets('2026-03').subscribe((r) => (result = r));
+    service.copyPreviousBudgets().subscribe((r) => (result = r));
 
     const req = http.expectOne({
       method: 'POST',
       url: `${environment.apiUrl}/budgets/copy-previous`,
     });
-    expect(req.request.body).toEqual({ month: '2026-03' });
+    expect(req.request.body).toEqual({});
     req.flush({ copied: 2, source_month: '2026-02' });
 
     expect(result).toEqual({ copied: 2, source_month: '2026-02' });

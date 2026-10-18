@@ -311,11 +311,10 @@ export class FinancialService {
       );
   }
 
-  copyPreviousBudgets(month: string): Observable<{ copied: number; source_month: string }> {
+  /** The server picks the month (the same one the categories endpoint lists budgets for). */
+  copyPreviousBudgets(): Observable<{ copied: number; source_month: string }> {
     return this.http
-      .post<{ copied: number; source_month: string }>(`${this.apiUrl}/budgets/copy-previous`, {
-        month,
-      })
+      .post<{ copied: number; source_month: string }>(`${this.apiUrl}/budgets/copy-previous`, {})
       .pipe(
         timeout(5000),
         catchError((error) => throwError(() => this.handleError(error))),
