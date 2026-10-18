@@ -614,7 +614,9 @@
               >
             </div>
             <div class="min-w-0">
-              <p class="font-medium text-gray-800 truncate">{{ transaction.description }}</p>
+              <p class="font-medium text-gray-800 break-words sm:truncate">
+                {{ transaction.description }}
+              </p>
               <p class="text-xs text-gray-400">
                 {{
                   transaction.transaction_date | date: 'mediumDate' : undefined : language.locale

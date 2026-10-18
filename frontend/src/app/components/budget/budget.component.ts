@@ -93,13 +93,17 @@ export class BudgetComponent implements OnInit {
     this.loadComparison();
   }
 
-  loadCategories(): void {
+  /** keepEdits: after a copy, don't discard limits typed on the page but not saved yet. */
+  loadCategories(keepEdits = false): void {
     this.financialService.getAllCategories().subscribe({
       next: (categories) => {
         this.incomeCategories = categories.filter((c) => c.type === 'income');
         this.expenseCategories = categories.filter((c) => c.type === 'expense');
         this.savingsCategories = categories.filter((c) => c.type === 'savings');
-        categories.forEach((c) => (this.categoryBudgets[c.id] = c.budgets?.[0]?.amount || 0));
+        categories.forEach((c) => {
+          const typed = this.categoryBudgets[c.id];
+          this.categoryBudgets[c.id] = keepEdits && typed > 0 ? typed : c.budgets?.[0]?.amount || 0;
+        });
       },
       error: (error) =>
         (this.errorMessage =
@@ -147,7 +151,7 @@ export class BudgetComponent implements OnInit {
     this.copyMessage = '';
     this.errorMessage = '';
 
-    this.financialService.copyPreviousBudgets(this.getCurrentMonth()).subscribe({
+    this.financialService.copyPreviousBudgets().subscribe({
       next: ({ copied }) => {
         this.isCopying = false;
         this.copyMessage = this.translate.instant(
@@ -156,7 +160,7 @@ export class BudgetComponent implements OnInit {
         );
         if (copied > 0) {
           this.financialService.clearCategoryCache();
-          this.loadCategories();
+          this.loadCategories(true);
           this.loadSummary();
         }
       },
