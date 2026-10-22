@@ -28,6 +28,11 @@ class CustomAuth
             return response()->json(['message' => __('messages.account_suspended')], 403);
         }
 
+        // Feeds the admin "active users" stat; hourly granularity avoids a write per request.
+        if (! $accessToken->last_used_at || $accessToken->last_used_at->lt(now()->subHour())) {
+            $accessToken->forceFill(['last_used_at' => now()])->save();
+        }
+
         $user->withAccessToken($accessToken);
 
         auth()->setUser($user);

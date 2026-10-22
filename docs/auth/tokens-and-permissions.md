@@ -47,6 +47,13 @@ Filament at `/admin` uses the web session, not the bearer token. The SPA bridges
 Every `/api/admin/*` route needs `access admin panel`; metrics also need `view metrics` and user management
 needs `manage users`.
 
+### Admin dashboard
+
+Widgets in `app/Filament/Widgets`: app-health stats (users, new this month, active 30d, blacklisted, premium,
+statement imports), users by role, and feature adoption (users with at least one
+transaction/budget/investment/recurrent/alert rule). No per-user money figures on purpose. "Active users" counts
+distinct users whose token `last_used_at` is within 30 days; `CustomAuth` refreshes it at most once an hour.
+
 ## Ownership
 
 Records are scoped to the authenticated user. `OwnedByUserPolicy` is registered for the user-owned models in
