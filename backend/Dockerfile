@@ -17,7 +17,8 @@ RUN composer install --no-interaction --prefer-dist --no-scripts --no-autoloader
 
 COPY . .
 RUN composer dump-autoload --optimize --no-scripts \
-    && php artisan package:discover --ansi
+    && php artisan package:discover --ansi \
+    && php artisan filament:assets --ansi
 
 RUN cp docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
