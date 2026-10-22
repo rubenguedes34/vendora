@@ -59,11 +59,20 @@ describe('statement import view model', () => {
       {
         date: '2026-09-02',
         description: 'COMPRA 1 LOJA',
+        source_description: 'COMPRA 1 LOJA',
         amount: 10,
         type: 'expense',
         category_id: 4,
       },
     ]);
+  });
+
+  it('keeps the bank text beside an edited description', () => {
+    const row = { ...toImportRows([preview()])[0], selected: true, category_id: 4 };
+    expect(importableRows([{ ...row, description: 'Almoço' }])[0]).toMatchObject({
+      description: 'Almoço',
+      source_description: 'COMPRA 1 LOJA',
+    });
   });
 
   it('filters categories by row type: income ↔ income, expense ↔ expense + savings', () => {
@@ -113,26 +122,21 @@ describe('statement import view model', () => {
     expect(pendingForSuggestions(rows).map((r) => r.id)).toEqual([0]);
   });
 
-  it('applies AI suggestions: category + ai flag (the user ticks), warnings kept, user choices never overwritten', () => {
+  it('applies AI suggestions: category + ai flag (the user ticks), user choices never overwritten', () => {
     const rows = toImportRows([preview(), preview(), preview()]);
     rows[2] = withCategory(rows[2], 9); // the user picked one while the AI was thinking
 
     const out = applySuggestions(
       rows,
       [0, 1, 2],
-      [
-        { category_id: 4, warning: null },
-        { category_id: null, warning: 'Unusual amount' },
-        { category_id: 5, warning: null },
-      ],
+      [{ category_id: 4 }, { category_id: null }, { category_id: 5 }],
     );
 
-    expect(out[0]).toMatchObject({ category_id: 4, selected: false, ai: true, warning: null }); // proposed, not ticked
+    expect(out[0]).toMatchObject({ category_id: 4, selected: false, ai: true }); // proposed, not ticked
     expect(out[1]).toMatchObject({
       category_id: null,
       selected: false,
       ai: false,
-      warning: 'Unusual amount',
     });
     expect(out[2]).toMatchObject({ category_id: 9, ai: false }); // untouched
   });
@@ -202,13 +206,8 @@ describe('statement import view model', () => {
 
   it('judges the AI by what it answered, not by what ended up in the table', () => {
     expect(hasUsableSuggestions([])).toBe(false);
-    expect(hasUsableSuggestions([{ category_id: null, warning: null }])).toBe(false);
-    expect(
-      hasUsableSuggestions([
-        { category_id: null, warning: null },
-        { category_id: 4, warning: null },
-      ]),
-    ).toBe(true);
+    expect(hasUsableSuggestions([{ category_id: null }])).toBe(false);
+    expect(hasUsableSuggestions([{ category_id: null }, { category_id: 4 }])).toBe(true);
   });
 
   it('starts every row on the "Other" category of its type, ticking only history suggestions', () => {
@@ -238,11 +237,7 @@ describe('statement import view model', () => {
     const out = applySuggestions(
       rows,
       [0, 1, 2],
-      [
-        { category_id: 4, warning: null },
-        { category_id: 5, warning: null },
-        { category_id: 6, warning: null },
-      ],
+      [{ category_id: 4 }, { category_id: 5 }, { category_id: 6 }],
     );
     expect(out[0]).toMatchObject({ category_id: 4, source: 'ai', ai: true });
     expect(out[1]).toMatchObject({ category_id: 3, source: 'history' });

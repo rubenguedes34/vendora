@@ -16,8 +16,9 @@ class ImportTransactionsRequest extends FormRequest
             'rows' => 'required|array|min:1|max:500',
             'rows.*.date' => 'required|date_format:Y-m-d',
             'rows.*.description' => 'required|string|max:255',
+            'rows.*.source_description' => 'nullable|string|max:255',
             'rows.*.notes' => 'nullable|string|max:1000',
-            'rows.*.amount' => 'required|numeric|min:0.01',
+            'rows.*.amount' => 'required|numeric|min:0.01|decimal:0,2',
             'rows.*.type' => 'required|in:income,expense',
             'rows.*.category_id' => 'required|exists:categories,id',
         ];

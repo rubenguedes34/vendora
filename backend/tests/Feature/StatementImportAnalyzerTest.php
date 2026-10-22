@@ -123,4 +123,17 @@ class StatementImportAnalyzerTest extends TestCase
         $this->assertSame($this->food->id, $known['suggested_category_id']);
         $this->assertNull($unknown['suggested_category_id']); // another user's history is never used
     }
+
+    public function test_a_renamed_transaction_is_still_found_as_duplicate_and_teaches_its_category_by_the_bank_text(): void
+    {
+        $this->user->transactions()->create([
+            'category_id' => $this->food->id, 'description' => 'Almoço com a equipa', 'source_description' => 'COMPRA 1 LOJA X',
+            'amount' => 10, 'type' => 'expense', 'transaction_date' => '2026-09-02',
+        ]);
+
+        [$row] = $this->analyze([$this->row('COMPRA 1 LOJA X')]);
+
+        $this->assertTrue($row['is_duplicate']);
+        $this->assertSame($this->food->id, $row['suggested_category_id']);
+    }
 }

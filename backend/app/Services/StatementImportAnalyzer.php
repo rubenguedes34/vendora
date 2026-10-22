@@ -94,9 +94,9 @@ class StatementImportAnalyzer
         $user->transactions()
             ->whereDate('transaction_date', '>=', min($dates))
             ->whereDate('transaction_date', '<=', max($dates))
-            ->get(['description', 'amount', 'type', 'transaction_date'])
+            ->get(['description', 'source_description', 'amount', 'type', 'transaction_date'])
             ->each(function ($t) use (&$counts): void {
-                $key = $this->key($t->transaction_date->format('Y-m-d'), (float) $t->amount, $t->type, $this->normalise($t->description));
+                $key = $this->key($t->transaction_date->format('Y-m-d'), (float) $t->amount, $t->type, $this->normalise($t->source_description ?? $t->description));
                 $counts[$key] = ($counts[$key] ?? 0) + 1;
             });
 
@@ -112,13 +112,15 @@ class StatementImportAnalyzer
         }
 
         $found = [];
+        // Match the bank's original text when it was kept, so a renamed movement still teaches its category.
         $user->transactions()
-            ->whereIn('description', $descriptions)
+            ->where(fn ($q) => $q->whereIn('source_description', $descriptions)
+                ->orWhere(fn ($q) => $q->whereNull('source_description')->whereIn('description', $descriptions)))
             ->orderByDesc('transaction_date')
             ->orderByDesc('id')
-            ->get(['description', 'type', 'category_id'])
+            ->get(['description', 'source_description', 'type', 'category_id'])
             ->each(function ($t) use (&$found): void {
-                $found[$t->type.'|'.$t->description] ??= $t->category_id;
+                $found[$t->type.'|'.($t->source_description ?? $t->description)] ??= $t->category_id;
             });
 
         return $found;

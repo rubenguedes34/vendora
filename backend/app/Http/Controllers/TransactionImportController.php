@@ -7,7 +7,10 @@ use App\Http\Requests\Transaction\ImportPreviewRequest;
 use App\Http\Requests\Transaction\ImportTransactionsRequest;
 use App\Http\Requests\Transaction\SuggestCategoriesRequest;
 use App\Models\Category;
+use App\Models\FinancialRecord;
+use App\Models\Transaction;
 use App\Services\BankStatementParser;
+use App\Services\FinancialCacheService;
 use App\Services\PdfTextExtractor;
 use App\Services\StatementCategorizer;
 use App\Services\StatementImportAnalyzer;
@@ -34,7 +37,7 @@ class TransactionImportController extends Controller
      *         )
      *     ),
      *
-     *     @OA\Response(response=200, description="period, reconciliation, rows (date, description, amount, type, is_transfer, is_duplicate, suggested_category_id), file_hash and previous_import ({imported_at, rows_imported} when the same file was imported before, else null)"),
+     *     @OA\Response(response=200, description="period, reconciliation, rows (date, description, amount, type, is_transfer, is_duplicate, suggested_category_id), other_categories ({income, expense} ids of the fallback categories, null if missing), file_hash and previous_import ({imported_at, rows_imported} when the same file was imported before, else null)"),
      *     @OA\Response(response=422, description="Unreadable or unsupported statement; body has a `code`")
      * )
      */
@@ -62,6 +65,7 @@ class TransactionImportController extends Controller
             'period' => ['from' => $statement->from, 'to' => $statement->to],
             'reconciliation' => ['opening' => $statement->opening, 'closing' => $statement->closing, 'ok' => true],
             'rows' => $analyzer->analyze($request->user(), $statement->rows),
+            'other_categories' => $this->otherCategories(),
             'file_hash' => $hash,
             'previous_import' => $previous ? ['imported_at' => $previous->created_at, 'rows_imported' => $previous->rows_imported] : null,
         ]);
@@ -121,16 +125,26 @@ class TransactionImportController extends Controller
                 ]);
             }
 
-            foreach ($rows as $row) {
-                $request->user()->transactions()->create([
-                    'category_id' => $row['category_id'],
-                    'description' => $row['description'],
-                    'notes' => $row['notes'] ?? null,
-                    'amount' => $row['amount'],
-                    'type' => $row['type'],
-                    'transaction_date' => $row['date'],
-                ]);
-            }
+            // Per-row model events would re-aggregate the month 500 times; sync each affected month once instead.
+            Transaction::withoutEvents(function () use ($request, $rows): void {
+                foreach ($rows as $row) {
+                    $request->user()->transactions()->create([
+                        'category_id' => $row['category_id'],
+                        'description' => $row['description'],
+                        'source_description' => $row['source_description'] ?? null,
+                        'notes' => $row['notes'] ?? null,
+                        'amount' => $row['amount'],
+                        'type' => $row['type'],
+                        'transaction_date' => $row['date'],
+                    ]);
+                }
+            });
+
+            // After commit, so a concurrent read cannot re-cache the pre-import totals.
+            DB::afterCommit(fn () => FinancialCacheService::clearForUser($request->user()));
+            collect($rows)->map(fn ($row) => substr($row['date'], 0, 7))->unique()->each(
+                fn (string $month) => FinancialRecord::syncFromTransactions($request->user(), (int) substr($month, 0, 4), (int) substr($month, 5, 2))
+            );
         });
 
         return response()->json(['imported' => count($rows)], 201);
@@ -156,14 +170,14 @@ class TransactionImportController extends Controller
      *         )
      *     ),
      *
-     *     @OA\Response(response=200, description="`available`, `busy` (another suggestion of the same user is still running) and `suggestions` (one {category_id, warning} per row, same order)")
+     *     @OA\Response(response=200, description="`available`, `busy` (another suggestion of the same user is still running) and `suggestions` (one {category_id} per row, same order)")
      * )
      */
     public function suggest(SuggestCategoriesRequest $request, StatementCategorizer $categorizer)
     {
         // One run per user: the local model handles a single request at a time. A second request (e.g. the same
         // statement chosen again while the first is still being answered) waits its turn instead of failing.
-        $lock = Cache::lock('statement-ai:'.$request->user()->id, 300);
+        $lock = Cache::lock('statement-ai:'.$request->user()->id, 600);
         try {
             $lock->block((int) config('ai.statement.lock_wait'));
         } catch (LockTimeoutException) {
@@ -181,5 +195,14 @@ class TransactionImportController extends Controller
             'busy' => false,
             'suggestions' => $suggestions === null ? [] : array_values($suggestions),
         ]);
+    }
+
+    /** Fallback categories for rows with no suggestion, looked up here so the SPA does not depend on their names. */
+    private function otherCategories(): array
+    {
+        return [
+            'income' => Category::where('name', 'Other Income')->where('type', 'income')->value('id'),
+            'expense' => Category::where('name', 'Other Expenses')->where('type', 'expense')->value('id'),
+        ];
     }
 }

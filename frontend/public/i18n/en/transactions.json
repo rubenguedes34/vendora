@@ -74,7 +74,6 @@
     "hint": "Choose the ActivoBank monthly statement (PDF). Nothing is saved until you confirm.",
     "reading": "Reading the statement…",
     "chooseCategory": "Choose a category",
-    "include": "Include",
     "alreadyExists": "Already exists",
     "transfer": "Transfer between your accounts",
     "importN": "Import {{count}} movements",
@@ -95,6 +94,9 @@
     "aiUnavailable": "The AI could not suggest categories this time; choose them by hand.",
     "alreadyImported": "This exact statement was already imported on {{date}} ({{count}} movements). Check before importing it again.",
     "includeAll": "Include all",
-    "addNote": "+ Note"
+    "addNote": "+ Note",
+    "aiBusy": "Another suggestion is still running; choose the categories by hand or upload the file again in a moment.",
+    "noMovements": "No movements were found in this statement.",
+    "includeRow": "Include this movement"
   }
 }

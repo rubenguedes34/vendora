@@ -74,7 +74,6 @@
     "hint": "Escolha o extrato mensal do ActivoBank (PDF). Nada é guardado até confirmar.",
     "reading": "A ler o extrato…",
     "chooseCategory": "Escolha uma categoria",
-    "include": "Incluir",
     "alreadyExists": "Já existe",
     "transfer": "Transferência entre as suas contas",
     "importN": "Importar {{count}} movimentos",
@@ -95,6 +94,9 @@
     "aiUnavailable": "A IA não conseguiu sugerir categorias desta vez; escolha-as à mão.",
     "alreadyImported": "Este mesmo extrato já foi importado em {{date}} ({{count}} movimentos). Confirme antes de o importar outra vez.",
     "includeAll": "Incluir todos",
-    "addNote": "+ Nota"
+    "addNote": "+ Nota",
+    "aiBusy": "Ainda há outra sugestão a decorrer; escolha as categorias à mão ou volte a carregar o ficheiro daqui a pouco.",
+    "noMovements": "Não foram encontrados movimentos neste extrato.",
+    "includeRow": "Incluir este movimento"
   }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\TokenService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class TransactionImportStoreTest extends TestCase
@@ -127,5 +128,37 @@ class TransactionImportStoreTest extends TestCase
         ], $this->headers())->assertStatus(422);
 
         $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function test_the_banks_original_text_is_kept_beside_an_edited_description(): void
+    {
+        $this->postJson('/api/transactions/import', ['rows' => [
+            $this->row(['description' => 'Almoço', 'source_description' => 'COMPRA 1 LOJA']),
+        ]], $this->headers())->assertStatus(201);
+
+        $this->assertDatabaseHas('transactions', ['description' => 'Almoço', 'source_description' => 'COMPRA 1 LOJA']);
+    }
+
+    public function test_amounts_with_more_than_two_decimals_are_rejected(): void
+    {
+        $this->postJson('/api/transactions/import', ['rows' => [$this->row(['amount' => 12.345])]], $this->headers())
+            ->assertStatus(422);
+    }
+
+    public function test_monthly_totals_are_right_across_months_and_the_cache_is_cleared(): void
+    {
+        Cache::put("health-score:{$this->admin->id}", 'stale');
+        Cache::put("net-worth:{$this->admin->id}", 'stale');
+
+        $this->postJson('/api/transactions/import', ['rows' => [
+            $this->row(['amount' => 10]),
+            $this->row(['amount' => 5, 'date' => '2026-09-20']),
+            $this->row(['amount' => 7, 'date' => '2026-10-01']),
+        ]], $this->headers())->assertStatus(201);
+
+        $this->assertSame(15.0, (float) $this->admin->financialRecords()->where('year', 2026)->where('month', 9)->value('monthly_expenses'));
+        $this->assertSame(7.0, (float) $this->admin->financialRecords()->where('year', 2026)->where('month', 10)->value('monthly_expenses'));
+        $this->assertFalse(Cache::has("health-score:{$this->admin->id}"));
+        $this->assertFalse(Cache::has("net-worth:{$this->admin->id}"));
     }
 }

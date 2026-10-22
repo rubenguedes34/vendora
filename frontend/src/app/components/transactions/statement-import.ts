@@ -10,8 +10,6 @@ export interface ImportRow extends StatementPreviewRow {
   source: 'history' | 'default' | 'ai' | 'user' | null;
   /** The category came from the AI suggestion (shown with a badge). */
   ai: boolean;
-  /** Optional advisory note from the AI second opinion. */
-  warning: string | null;
   /** The bank's text, kept so an emptied description falls back to it. */
   source_description: string;
   /** The user's own note for the transaction (optional). */
@@ -39,7 +37,6 @@ export function toImportRows(
       source: history !== null ? 'history' : categoryId !== null ? 'default' : null,
       selected: history !== null && !r.is_transfer && !r.is_duplicate,
       ai: false,
-      warning: null,
       source_description: r.description,
       notes: '',
       noteOpen: false,
@@ -73,6 +70,7 @@ export function importableRows(rows: ImportRow[]): StatementImportRow[] {
       return {
         date: r.date,
         description: r.description.trim() || r.source_description,
+        source_description: r.source_description,
         ...(notes ? { notes } : {}),
         amount: r.amount,
         type: r.type,
@@ -123,7 +121,7 @@ export function pendingForSuggestions(rows: ImportRow[]): ImportRow[] {
 export function applySuggestions(
   rows: ImportRow[],
   ids: number[],
-  suggestions: { category_id: number | null; warning: string | null }[],
+  suggestions: { category_id: number | null }[],
 ): ImportRow[] {
   const byId = new Map(ids.map((id, k) => [id, suggestions[k]]));
   return rows.map((row) => {
@@ -133,7 +131,6 @@ export function applySuggestions(
     const take = (row.category_id === null || row.source === 'default') && s.category_id !== null;
     return {
       ...row,
-      warning: s.warning,
       category_id: take ? s.category_id : row.category_id,
       source: take ? 'ai' : row.source,
       // Proposed, not ticked: the AI only suggests, the user confirms (one click with "Include all").
@@ -162,8 +159,6 @@ export function anySuggested(rows: ImportRow[]): boolean {
 }
 
 /** True when the model proposed at least one category, whatever the table looks like by now. */
-export function hasUsableSuggestions(
-  suggestions: { category_id: number | null; warning: string | null }[],
-): boolean {
+export function hasUsableSuggestions(suggestions: { category_id: number | null }[]): boolean {
   return suggestions.some((s) => s.category_id !== null);
 }

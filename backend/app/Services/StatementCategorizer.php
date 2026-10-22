@@ -14,12 +14,12 @@ class StatementCategorizer
 {
     private const CHUNK = 25;
 
-    /** @param  float  $budgetSeconds  no new chunk is started past this (the SPA gives up at 180 s) */
+    /** @param  float  $budgetSeconds  no new chunk is started past this (worst case 60 s lock wait + this + one more chunk stays under the SPA's 360 s) */
     public function __construct(private StatementAi $ai, private float $budgetSeconds = 150) {}
 
     /**
      * @param  array<int, array{description: string, type: string}>  $rows
-     * @return array<int, array{category_id: int|null, warning: string|null}>|null null when the AI is unavailable
+     * @return array<int, array{category_id: int|null}>|null null when the AI is unavailable
      */
     public function suggest(array $rows): ?array
     {
@@ -60,14 +60,14 @@ class StatementCategorizer
             foreach ($entries as $position => $entry) {
                 $categoryId = $this->valid($picked[$position + 1] ?? null, $entry['type'], $categories);
                 foreach ($entry['indexes'] as $index) {
-                    $result[$index] = ['category_id' => $categoryId, 'warning' => null];
+                    $result[$index] = ['category_id' => $categoryId];
                 }
             }
         }
 
         // Rows of chunks that were not asked (or failed) simply have no suggestion.
         foreach (array_keys($rows) as $index) {
-            $result[$index] ??= ['category_id' => null, 'warning' => null];
+            $result[$index] ??= ['category_id' => null];
         }
 
         ksort($result);

@@ -11,5 +11,6 @@
   "providerUnavailable": "Market data provider unavailable",
   "marketFailed": "Market data request failed",
   "notificationFailed": "Notification request failed",
-  "reportFailed": "Could not create the report. Please try again."
+  "reportFailed": "Could not create the report. Please try again.",
+  "tooManyRequests": "Too many requests. Please wait a moment and try again."
 }

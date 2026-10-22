@@ -41,5 +41,8 @@ return [
     'email_needs_password' => 'Your current password is required to change your email.',
     'import_unreadable_pdf' => 'This PDF could not be read.',
     'import_unsupported_format' => 'This does not look like a supported bank statement.',
-    'import_balance_mismatch' => 'The statement could not be verified: the movements do not add up to its balances.',
+    'import_balance_mismatch' => 'The statement could not be verified: the movements do not add up to its balances (statements with an overdraft are not supported yet).',
+    'category_type_mismatch' => 'The selected category cannot be used for an :type transaction.',
+    'type_income' => 'income',
+    'type_expense' => 'expense',
 ];

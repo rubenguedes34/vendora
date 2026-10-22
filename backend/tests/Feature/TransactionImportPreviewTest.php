@@ -98,6 +98,16 @@ class TransactionImportPreviewTest extends TestCase
             ->assertJsonPath('rows.1.suggested_category_id', $food->id);
     }
 
+    public function test_preview_returns_the_fallback_categories(): void
+    {
+        $this->bindExtractor($this->fixture());
+        $other = Category::create(['name' => 'Other Expenses', 'type' => 'expense']);
+
+        $this->post('/api/transactions/import/preview', ['file' => $this->pdf()], $this->headersFor('admin') + ['Accept' => 'application/json'])
+            ->assertJsonPath('other_categories.expense', $other->id)
+            ->assertJsonPath('other_categories.income', null);
+    }
+
     public function test_rejects_non_pdf_and_oversized_files(): void
     {
         $this->bindExtractor($this->fixture());

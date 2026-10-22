@@ -79,9 +79,9 @@ describe('TransactionService statement import', () => {
       url: `${environment.apiUrl}/transactions/import/suggest`,
     });
     expect(req.request.body).toEqual({ rows: [{ description: 'COMPRA 1', type: 'expense' }] });
-    req.flush({ available: true, suggestions: [{ category_id: 3, warning: null }] });
+    req.flush({ available: true, suggestions: [{ category_id: 3 }] });
 
-    expect(result).toEqual({ available: true, suggestions: [{ category_id: 3, warning: null }] });
+    expect(result).toEqual({ available: true, suggestions: [{ category_id: 3 }] });
   });
 
   it('importStatement also sends the statement fingerprint when given', () => {

@@ -2946,7 +2946,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "period, reconciliation, rows (date, description, amount, type, is_transfer, is_duplicate, suggested_category_id), file_hash and previous_import ({imported_at, rows_imported} when the same file was imported before, else null)"
+                        "description": "period, reconciliation, rows (date, description, amount, type, is_transfer, is_duplicate, suggested_category_id), other_categories ({income, expense} ids of the fallback categories, null if missing), file_hash and previous_import ({imported_at, rows_imported} when the same file was imported before, else null)"
                     },
                     "422": {
                         "description": "Unreadable or unsupported statement; body has a `code`"
@@ -3096,7 +3096,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "`available`, `busy` (another suggestion of the same user is still running) and `suggestions` (one {category_id, warning} per row, same order)"
+                        "description": "`available`, `busy` (another suggestion of the same user is still running) and `suggestions` (one {category_id} per row, same order)"
                     }
                 },
                 "security": [

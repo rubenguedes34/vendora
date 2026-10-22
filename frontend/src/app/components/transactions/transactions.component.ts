@@ -308,6 +308,11 @@ export class TransactionsComponent implements OnInit {
   importError = '';
   suggesting = false;
   aiUnavailable = false;
+  aiBusy = false;
+  importEmpty = false;
+  /** The catch-all category per type (ids from the preview): what a ticked row without a category falls back to. */
+  private previewOther: OtherCategories = { income: null, expense: null };
+  private previewSub?: Subscription;
   private suggestSub?: Subscription;
 
   importSort: { key: ImportSortKey; direction: 'asc' | 'desc' } = { key: 'date', direction: 'asc' };
@@ -321,6 +326,11 @@ export class TransactionsComponent implements OnInit {
       this.importSort.key === key
         ? { key, direction: this.importSort.direction === 'asc' ? 'desc' : 'asc' }
         : { key, direction: key === 'amount' ? 'desc' : 'asc' };
+  }
+
+  ariaSort(key: ImportSortKey): 'ascending' | 'descending' | 'none' {
+    if (this.importSort.key !== key) return 'none';
+    return this.importSort.direction === 'asc' ? 'ascending' : 'descending';
   }
 
   sortArrow(key: ImportSortKey): string {
@@ -353,9 +363,13 @@ export class TransactionsComponent implements OnInit {
 
   private resetImport(): void {
     // A new statement (or closing the panel) drops the previous suggestion request instead of letting it pile up.
+    this.previewSub?.unsubscribe();
     this.suggestSub?.unsubscribe();
+    this.importLoading = false;
     this.suggesting = false;
     this.aiUnavailable = false;
+    this.aiBusy = false;
+    this.importEmpty = false;
     this.importRows = [];
     this.importPeriod = null;
     this.importFileHash = '';
@@ -371,13 +385,15 @@ export class TransactionsComponent implements OnInit {
 
     this.resetImport();
     this.importLoading = true;
-    this.transactionService.previewStatement(file).subscribe({
+    this.previewSub = this.transactionService.previewStatement(file).subscribe({
       next: (preview) => {
         this.importLoading = false;
         this.importPeriod = preview.period;
         this.importFileHash = preview.file_hash;
         this.previousImport = preview.previous_import;
-        this.importRows = toImportRows(preview.rows, this.otherCategories);
+        this.previewOther = preview.other_categories;
+        this.importRows = toImportRows(preview.rows, this.previewOther);
+        this.importEmpty = preview.rows.length === 0;
         this.requestSuggestions();
         this.cdr.markForCheck();
       },
@@ -396,6 +412,7 @@ export class TransactionsComponent implements OnInit {
     if (!pending.length) return;
 
     this.suggesting = true;
+    this.suggestSub?.unsubscribe();
     this.suggestSub = this.transactionService
       .suggestCategories(pending.map((r) => ({ description: r.description, type: r.type })))
       .subscribe({
@@ -412,6 +429,7 @@ export class TransactionsComponent implements OnInit {
             this.aiUnavailable = !hasUsableSuggestions(res.suggestions);
           } else {
             this.aiUnavailable = true;
+            this.aiBusy = res.busy;
           }
           this.cdr.markForCheck();
         },
@@ -427,15 +445,9 @@ export class TransactionsComponent implements OnInit {
     return allIncludable(this.importRows);
   }
 
-  /** "Other Income" / "Other Expenses": what a ticked row without a category of its own falls back to. */
-  private get otherCategories(): OtherCategories {
-    const find = (name: string) => this.categories.find((c) => c.name === name)?.id ?? null;
-    return { income: find('Other Income'), expense: find('Other Expenses') };
-  }
-
   /** The checkbox is a plain `[checked]` binding, so re-sync it when the model refuses the change. */
   toggleAllIncluded(input: HTMLInputElement): void {
-    this.importRows = setAllSelected(this.importRows, input.checked, this.otherCategories);
+    this.importRows = setAllSelected(this.importRows, input.checked, this.previewOther);
     input.checked = this.allIncluded;
   }
 
@@ -447,7 +459,7 @@ export class TransactionsComponent implements OnInit {
 
   toggleImportRow(id: number, input: HTMLInputElement): void {
     this.importRows = this.importRows.map((r) =>
-      r.id === id ? setSelected(r, input.checked, this.otherCategories) : r,
+      r.id === id ? setSelected(r, input.checked, this.previewOther) : r,
     );
     input.checked = this.importRows.find((r) => r.id === id)?.selected ?? false;
   }
