@@ -1,12 +1,3 @@
-# Run the whole stack with: docker compose up --build
-#
-#   Frontend      http://localhost:4200
-#   Backend API   http://localhost:8000
-#   Admin panel   http://localhost:8000/admin
-#
-# Required: DB_PASSWORD and DB_ROOT_PASSWORD, in a .env file next to this one (see
-# .env.docker.example). There are no default passwords. Other settings are optional.
-
 services:
   database:
     image: mysql:8.4
