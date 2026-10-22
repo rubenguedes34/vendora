@@ -12,6 +12,7 @@ Update (or create) the matching file in the same change as the code.
 | Notifications, alert rules, when and how they are generated | [notifications/notifications.md](notifications/notifications.md) |
 | Tokens, blacklisting, roles and permissions, admin panel access | [auth/tokens-and-permissions.md](auth/tokens-and-permissions.md) |
 | The AI support chat, providers, FAQ fallback | [ai-support/support-chat.md](ai-support/support-chat.md) |
+| Log files per area, the admin Logs page, what must never be logged | [troubleshooting/logs.md](troubleshooting/logs.md) |
 
 Not covered here (read the code or `backend/CLAUDE.md` / `frontend/CLAUDE.md`): budgets, investments,
 recurrent transactions, tags, reports, market data, theming, i18n, PWA.

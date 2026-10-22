@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class MarketDataControllerTest extends TestCase
@@ -95,5 +97,40 @@ class MarketDataControllerTest extends TestCase
         $this->getJson('/api/market/quote', $this->authHeader())
             ->assertStatus(422)
             ->assertJsonValidationErrors(['symbol']);
+    }
+
+    public function test_search_provider_error_is_logged_on_market_channel(): void
+    {
+        config()->set('services.finnhub.key', 'secret-key');
+        Http::fake(['finnhub.io/*' => Http::response([], 500)]);
+        Log::shouldReceive('channel')->with('market')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('warning')->once()->withArgs(
+            fn ($msg, $ctx) => $msg === 'Market provider returned error'
+                && $ctx['status'] === 500
+                && ! str_contains(json_encode($ctx), 'secret-key')
+        );
+
+        $this->getJson('/api/market/search?q=apple', $this->authHeader())->assertStatus(502);
+    }
+
+    public function test_silent_sparkline_failure_is_logged_without_leaking_the_key(): void
+    {
+        config()->set('services.finnhub.key', 'secret-key');
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), '/stock/candle')) {
+                throw new ConnectionException('timeout for '.$request->url());
+            }
+
+            return Http::response(['c' => 100, 'pc' => 90, 'name' => 'Apple']);
+        });
+        Log::shouldReceive('channel')->with('market')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('warning')->once()->withArgs(
+            fn ($msg, $ctx) => $msg === 'Finnhub sparkline failed'
+                && $ctx['symbol'] === 'AAPL'
+                && ! str_contains(json_encode($ctx), 'secret-key')
+        );
+
+        $this->getJson('/api/market/quote?symbol=AAPL', $this->authHeader())
+            ->assertOk()->assertJsonPath('sparkline', []);
     }
 }

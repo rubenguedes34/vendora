@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -192,5 +194,34 @@ class AiChatControllerTest extends TestCase
         app()->setLocale('pt');
 
         $this->assertStringContainsString('European Portuguese', (new SupportAgent)->instructions());
+    }
+
+    public function test_successful_answer_is_logged_on_ai_channel_without_message_text(): void
+    {
+        config()->set('ai.support.provider', 'openai');
+        config()->set('ai.support.models', ['test-model']);
+        SupportAgent::fake(['PRIVATE-REPLY']);
+        Log::shouldReceive('channel')->with('ai')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('info')->once()->withArgs(
+            fn ($msg, $ctx) => $msg === 'AI chat answered'
+                && $ctx['model'] === 'test-model'
+                && $ctx['user_id'] === $this->user->id
+                && ! str_contains(json_encode($ctx), 'PRIVATE')
+        );
+
+        $this->postJson('/api/ai/chat', ['message' => 'PRIVATE-QUESTION'], $this->authHeader())->assertOk();
+    }
+
+    public function test_every_model_failing_is_logged_and_falls_back_to_faq(): void
+    {
+        config()->set('ai.support.provider', 'openai');
+        config()->set('ai.providers.openai.key', 'k');
+        config()->set('ai.support.models', ['m1']);
+        Http::fake(['*' => Http::response([], 500)]);
+        Log::shouldReceive('channel')->with('ai')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('warning')->once()->withArgs(fn ($msg, $ctx) => $msg === 'AI chat model failed' && $ctx['model'] === 'm1');
+        Log::shouldReceive('error')->once()->withArgs(fn ($msg, $ctx) => $msg === 'AI chat fell back to FAQ' && $ctx['models'] === 1);
+
+        $this->postJson('/api/ai/chat', ['message' => 'Hello'], $this->authHeader())->assertOk();
     }
 }

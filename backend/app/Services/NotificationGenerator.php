@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\RecurrentTransaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class NotificationGenerator
 {
@@ -40,6 +41,7 @@ class NotificationGenerator
                 // English title/body stay as the fallback; the SPA translates from data.i18n when present.
                 'data' => array_merge($data, ['key' => $key], $i18n ? ['i18n' => $i18n] : []),
             ]);
+            Log::info('Notification created', ['user_id' => $user->id, 'type' => $type, 'key' => $key]);
         }
     }
 

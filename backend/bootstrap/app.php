@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // No auth()->id() here: Laravel already adds userId, and a failing user lookup would hide the real exception.
+        $exceptions->context(fn () => ['route' => app()->runningInConsole() ? 'console' : request()->path()]);
     })
     ->create();

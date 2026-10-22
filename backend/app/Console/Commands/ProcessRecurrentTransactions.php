@@ -6,6 +6,8 @@ use App\Models\RecurrentTransaction;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProcessRecurrentTransactions extends Command
 {
@@ -33,6 +35,7 @@ class ProcessRecurrentTransactions extends Command
 
         $created = 0;
         $skipped = 0;
+        $failed = 0;
 
         foreach ($recurrents as $recurrent) {
             $day = (int) ($recurrent->day_of_month ?? 1);
@@ -55,20 +58,26 @@ class ProcessRecurrentTransactions extends Command
                 continue;
             }
 
-            Transaction::create([
-                'user_id' => $recurrent->user_id,
-                'category_id' => $recurrent->category_id,
-                'description' => $recurrent->description,
-                'amount' => $recurrent->amount,
-                'type' => $recurrent->type,
-                'transaction_date' => $transactionDate,
-            ]);
-
-            $created++;
+            // One broken rule must not abort the whole monthly run.
+            try {
+                DB::transaction(fn () => Transaction::create([
+                    'user_id' => $recurrent->user_id,
+                    'category_id' => $recurrent->category_id,
+                    'description' => $recurrent->description,
+                    'amount' => $recurrent->amount,
+                    'type' => $recurrent->type,
+                    'transaction_date' => $transactionDate,
+                ]));
+                $created++;
+            } catch (\Throwable $e) {
+                $failed++;
+                Log::channel('scheduler')->error('Recurrent rule failed', ['recurrent_id' => $recurrent->id, 'exception' => $e]);
+            }
         }
 
-        $this->info("Recurrent transactions processed for {$year}-{$month}: {$created} created, {$skipped} skipped (already existed).");
+        $this->info("Recurrent transactions processed for {$year}-{$month}: {$created} created, {$skipped} skipped (already existed), {$failed} failed.");
+        Log::channel('scheduler')->info('Recurrent transactions processed', ['month' => $monthParam, 'created' => $created, 'skipped' => $skipped, 'failed' => $failed]);
 
-        return self::SUCCESS;
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 }
