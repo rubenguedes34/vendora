@@ -19,6 +19,7 @@ class RoleSeeder extends Seeder
             'use ai support',
             'view health score',
             'export reports',
+            'import statements',
         ];
 
         foreach ($permissions as $permission) {

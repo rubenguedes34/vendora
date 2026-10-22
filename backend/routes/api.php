@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionImportController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -36,6 +37,9 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/categories-by-type/{type}', [CategoryController::class, 'byType']);
 
     // Transactions
+    Route::post('/transactions/import/preview', [TransactionImportController::class, 'preview'])->middleware(['permission:import statements', 'throttle:import']);
+    Route::post('/transactions/import/suggest', [TransactionImportController::class, 'suggest'])->middleware(['permission:import statements', 'throttle:import']);
+    Route::post('/transactions/import', [TransactionImportController::class, 'store'])->middleware(['permission:import statements', 'throttle:import']);
     Route::get('/transactions/expenses-by-category', [TransactionController::class, 'expensesByCategory']);
     Route::get('/transactions/export', [TransactionController::class, 'export']);
     Route::get('/transactions/{id}/attachment', [TransactionController::class, 'serveAttachment']);

@@ -39,7 +39,7 @@ class Category extends Model
 
         if (! in_array($categoryType, $allowed, true)) {
             throw ValidationException::withMessages([
-                'category_id' => ["The selected category cannot be used for an {$transactionType} transaction."],
+                'category_id' => [__('messages.category_type_mismatch', ['type' => __('messages.type_'.$transactionType)])],
             ]);
         }
     }

@@ -11,5 +11,6 @@
   "providerUnavailable": "Fornecedor de dados de mercado indisponível",
   "marketFailed": "O pedido de dados de mercado falhou",
   "notificationFailed": "O pedido de notificações falhou",
-  "reportFailed": "Não foi possível criar o relatório. Tente novamente."
+  "reportFailed": "Não foi possível criar o relatório. Tente novamente.",
+  "tooManyRequests": "Demasiados pedidos. Aguarde um momento e tente novamente."
 }

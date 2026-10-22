@@ -67,5 +67,36 @@
   "deleteFailed": "Failed to delete transaction",
   "confirmDeleteAttachment": "Delete this attachment?",
   "deleteAttachmentFailed": "Failed to delete attachment",
-  "createTagFailed": "Failed to create tag"
+  "createTagFailed": "Failed to create tag",
+  "import": {
+    "button": "Import statement",
+    "title": "Import a bank statement",
+    "hint": "Choose the ActivoBank monthly statement (PDF). Nothing is saved until you confirm.",
+    "reading": "Reading the statement…",
+    "chooseCategory": "Choose a category",
+    "alreadyExists": "Already exists",
+    "transfer": "Transfer between your accounts",
+    "importN": "Import {{count}} movements",
+    "importing": "Importing…",
+    "done": "Imported {{count}} movements.",
+    "nothingSelected": "Tick at least one movement that has a category.",
+    "period": "Statement period: {{from}} to {{to}}",
+    "errors": {
+      "unreadable_pdf": "This PDF could not be read.",
+      "unsupported_format": "This does not look like a supported bank statement.",
+      "balance_mismatch": "The statement could not be verified: the movements do not add up to its balances.",
+      "generic": "Something went wrong while importing the statement.",
+      "invalidFile": "The file was rejected. Use a PDF within the allowed size."
+    },
+    "amountColumn": "Amount",
+    "aiWorking": "The local AI is suggesting categories…",
+    "aiBadge": "AI suggestion",
+    "aiUnavailable": "The AI could not suggest categories this time; choose them by hand.",
+    "alreadyImported": "This exact statement was already imported on {{date}} ({{count}} movements). Check before importing it again.",
+    "includeAll": "Include all",
+    "addNote": "+ Note",
+    "aiBusy": "Another suggestion is still running; choose the categories by hand or upload the file again in a moment.",
+    "noMovements": "No movements were found in this statement.",
+    "includeRow": "Include this movement"
+  }
 }

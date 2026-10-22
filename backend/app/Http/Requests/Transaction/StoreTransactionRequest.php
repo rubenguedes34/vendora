@@ -21,7 +21,7 @@ class StoreTransactionRequest extends FormRequest
                 'integer',
                 Rule::exists('tags', 'id')->where('user_id', $this->user()->id),
             ],
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:'.config('vendora.max_upload_kb'),
         ];
     }
 }

@@ -29,6 +29,18 @@ return [
         'generate_title' => false,
     ],
 
+    /*
+    | Bank statement helper (category suggestions): local Ollama only. Own models/timeout so a slow CPU can be given
+    | more time and a single good model, without the chat's fallback to a smaller one (whose answers were unusable).
+    | Empty models = the support models; empty timeout = the support timeout.
+    */
+    'statement' => [
+        'models' => array_values(array_filter(array_map('trim', explode(',', (string) env('AI_STATEMENT_MODELS', ''))))),
+        'timeout' => (int) env('AI_STATEMENT_TIMEOUT', 0),
+        // Seconds a request waits for the user's previous suggestion to finish before answering "busy".
+        'lock_wait' => (int) env('AI_STATEMENT_LOCK_WAIT', 60),
+    ],
+
     'support' => [
         'provider' => env('AI_SUPPORT_PROVIDER'),
         // Comma-separated, tried in order; the next one is used when a model fails or times out.

@@ -67,5 +67,36 @@
   "deleteFailed": "Falha ao eliminar a transação",
   "confirmDeleteAttachment": "Eliminar este anexo?",
   "deleteAttachmentFailed": "Falha ao eliminar o anexo",
-  "createTagFailed": "Falha ao criar a etiqueta"
+  "createTagFailed": "Falha ao criar a etiqueta",
+  "import": {
+    "button": "Importar extrato",
+    "title": "Importar um extrato bancário",
+    "hint": "Escolha o extrato mensal do ActivoBank (PDF). Nada é guardado até confirmar.",
+    "reading": "A ler o extrato…",
+    "chooseCategory": "Escolha uma categoria",
+    "alreadyExists": "Já existe",
+    "transfer": "Transferência entre as suas contas",
+    "importN": "Importar {{count}} movimentos",
+    "importing": "A importar…",
+    "done": "Importados {{count}} movimentos.",
+    "nothingSelected": "Marque pelo menos um movimento que tenha categoria.",
+    "period": "Período do extrato: {{from}} a {{to}}",
+    "errors": {
+      "unreadable_pdf": "Não foi possível ler este PDF.",
+      "unsupported_format": "Este ficheiro não parece ser um extrato bancário suportado.",
+      "balance_mismatch": "Não foi possível validar o extrato: os movimentos não batem certo com os saldos.",
+      "generic": "Ocorreu um erro ao importar o extrato.",
+      "invalidFile": "O ficheiro foi rejeitado. Use um PDF dentro do tamanho permitido."
+    },
+    "amountColumn": "Valor",
+    "aiWorking": "A IA local está a sugerir categorias…",
+    "aiBadge": "Sugestão da IA",
+    "aiUnavailable": "A IA não conseguiu sugerir categorias desta vez; escolha-as à mão.",
+    "alreadyImported": "Este mesmo extrato já foi importado em {{date}} ({{count}} movimentos). Confirme antes de o importar outra vez.",
+    "includeAll": "Incluir todos",
+    "addNote": "+ Nota",
+    "aiBusy": "Ainda há outra sugestão a decorrer; escolha as categorias à mão ou volte a carregar o ficheiro daqui a pouco.",
+    "noMovements": "Não foram encontrados movimentos neste extrato.",
+    "includeRow": "Incluir este movimento"
+  }
 }

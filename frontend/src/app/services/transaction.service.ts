@@ -9,6 +9,39 @@ import { ApiError, ApiErrorMessage, MessageResponse } from '../models/api';
 
 export type TransactionPayload = Record<string, unknown>;
 
+export interface StatementPreviewRow {
+  date: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+  is_transfer: boolean;
+  is_duplicate: boolean;
+  suggested_category_id: number | null;
+}
+
+export interface StatementPreview {
+  period: { from: string; to: string };
+  reconciliation: { opening: number; closing: number; ok: boolean };
+  rows: StatementPreviewRow[];
+  other_categories: { income: number | null; expense: number | null };
+  file_hash: string;
+  previous_import: { imported_at: string; rows_imported: number } | null;
+}
+
+export interface StatementSuggestion {
+  category_id: number | null;
+}
+
+export interface StatementImportRow {
+  date: string;
+  description: string;
+  source_description?: string;
+  notes?: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category_id: number;
+}
+
 export interface Transaction {
   id: number;
   user_id: number;
@@ -61,6 +94,7 @@ export class TransactionService {
   private handleError(error: ApiError): ApiErrorMessage {
     if (error.status === 401)
       return { message: this.translate.instant('errors.sessionExpiredShort') };
+    if (error.status === 429) return { message: this.translate.instant('errors.tooManyRequests') };
     if (error.name === 'TimeoutError' || error.status === 0) {
       return { message: this.translate.instant('errors.backendUnreachable') };
     }
@@ -130,6 +164,45 @@ export class TransactionService {
       timeout(5000),
       catchError((err) => throwError(() => this.handleError(err))),
     );
+  }
+
+  previewStatement(file: File): Observable<StatementPreview> {
+    const data = new FormData();
+    data.append('file', file);
+    return this.http
+      .post<StatementPreview>(`${this.apiUrl}/transactions/import/preview`, data)
+      .pipe(
+        timeout(30000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
+  }
+
+  /** Local-AI category suggestions; only descriptions and types are sent. Slow on CPU, hence the long timeout. */
+  suggestCategories(
+    rows: { description: string; type: 'income' | 'expense' }[],
+  ): Observable<{ available: boolean; busy: boolean; suggestions: StatementSuggestion[] }> {
+    return this.http
+      .post<{
+        available: boolean;
+        busy: boolean;
+        suggestions: StatementSuggestion[];
+      }>(`${this.apiUrl}/transactions/import/suggest`, { rows })
+      .pipe(
+        timeout(360000), // 60 s lock wait + 150 s budget + one more model call (120 s), with margin
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
+  }
+
+  importStatement(
+    rows: StatementImportRow[],
+    statement?: { hash: string; from: string; to: string },
+  ): Observable<{ imported: number }> {
+    return this.http
+      .post<{ imported: number }>(`${this.apiUrl}/transactions/import`, { rows, statement })
+      .pipe(
+        timeout(30000),
+        catchError((err) => throwError(() => this.handleError(err))),
+      );
   }
 
   updateTransaction(id: number, data: TransactionPayload | FormData): Observable<Transaction> {

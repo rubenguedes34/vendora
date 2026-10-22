@@ -15,5 +15,7 @@
   "vacation": "Vacation",
   "generalSavings": "General Savings",
   "car": "Car",
-  "gbr": "GBR"
+  "gbr": "GBR",
+  "otherIncome": "Other Income",
+  "otherExpenses": "Other Expenses"
 }

@@ -19,6 +19,16 @@ if [ -z "$APP_KEY" ]; then
     export APP_KEY
 fi
 
+# PHP's own limits default to 2M upload / 128M memory, below what the API accepts. Derive them from MAX_UPLOAD_KB
+# (one knob) so a larger upload limit never fails inside PHP first; PHP_MEMORY_LIMIT covers parsing big PDFs.
+UPLOAD_KB="${MAX_UPLOAD_KB:-5120}"
+case "$UPLOAD_KB" in ''|*[!0-9]*) echo "MAX_UPLOAD_KB must be a number; using 5120."; UPLOAD_KB=5120 ;; esac
+{
+    echo "upload_max_filesize=$((UPLOAD_KB + 1024))K"
+    echo "post_max_size=$((UPLOAD_KB + 3072))K"
+    echo "memory_limit=${PHP_MEMORY_LIMIT:-256M}"
+} > "${PHP_INI_DIR:?PHP_INI_DIR is not set}/conf.d/zz-vendora.ini"
+
 php artisan storage:link --force >/dev/null 2>&1 || true
 
 echo "Running migrations..."
@@ -30,6 +40,9 @@ if [ "$USER_COUNT" = "0" ]; then
     echo "Empty database, seeding..."
     php artisan db:seed --force
 fi
+
+# New default categories (e.g. "Other Income") reach existing databases too; this only adds what is missing.
+php artisan db:seed --class=CategorySeeder --force
 
 # Make sure the configured account (e.g. your Google email) exists and is an
 # admin. Runs on every start; if the account is new, signing in with Google

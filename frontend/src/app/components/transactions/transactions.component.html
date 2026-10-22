@@ -19,6 +19,13 @@
         <h2 class="text-xl font-semibold">{{ 'transactions.title' | translate }}</h2>
         <div class="flex items-center gap-2">
           <button
+            *ngIf="canImportStatements"
+            (click)="toggleImport()"
+            class="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-medium shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+          >
+            {{ 'transactions.import.button' | translate }}
+          </button>
+          <button
             (click)="exportCsv()"
             class="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-medium shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
           >
@@ -47,6 +54,219 @@
   </header>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Statement import (admin only) -->
+    <div
+      *ngIf="importOpen && canImportStatements"
+      class="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 border border-gray-100"
+    >
+      <h2 class="text-lg font-semibold text-gray-800 mb-1">
+        {{ 'transactions.import.title' | translate }}
+      </h2>
+      <p class="text-sm text-gray-500 mb-4">{{ 'transactions.import.hint' | translate }}</p>
+
+      <label
+        class="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 shadow-sm cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors focus-within:ring-2 focus-within:ring-primary-400"
+        [class.opacity-50]="importLoading || importing"
+        [class.pointer-events-none]="importLoading || importing"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-4m0 0L8 8m4-4v12"
+          />
+        </svg>
+        {{ 'transactions.chooseFile' | translate }}
+        <input
+          type="file"
+          accept="application/pdf,.pdf"
+          class="sr-only"
+          (change)="onStatementFile($event)"
+          [disabled]="importLoading || importing"
+        />
+      </label>
+
+      <p *ngIf="importLoading" class="text-sm text-gray-500">
+        {{ 'transactions.import.reading' | translate }}
+      </p>
+      <p *ngIf="suggesting" class="text-sm text-gray-500 mb-2" role="status">
+        {{ 'transactions.import.aiWorking' | translate }}
+      </p>
+      <p *ngIf="aiUnavailable && importRows.length" class="text-xs text-gray-400 mb-2">
+        {{
+          (aiBusy ? 'transactions.import.aiBusy' : 'transactions.import.aiUnavailable') | translate
+        }}
+      </p>
+      <p *ngIf="importEmpty" class="text-sm text-gray-500 mb-3" role="status">
+        {{ 'transactions.import.noMovements' | translate }}
+      </p>
+      <p *ngIf="importError" class="text-sm text-red-600 mb-3" role="alert">{{ importError }}</p>
+      <p *ngIf="importMessage" class="text-sm text-green-700 mb-3" role="status">
+        {{ importMessage }}
+      </p>
+
+      <ng-container *ngIf="importRows.length">
+        <p
+          *ngIf="previousImport"
+          class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3"
+          role="alert"
+        >
+          {{
+            'transactions.import.alreadyImported'
+              | translate
+                : {
+                    date:
+                      (previousImport.imported_at
+                      | date: 'mediumDate' : undefined : language.locale),
+                    count: previousImport.rows_imported,
+                  }
+          }}
+        </p>
+        <p *ngIf="importPeriod" class="text-xs text-gray-400 mb-2">
+          {{
+            'transactions.import.period'
+              | translate
+                : {
+                    from: importPeriod.from | date: 'mediumDate' : undefined : language.locale,
+                    to: importPeriod.to | date: 'mediumDate' : undefined : language.locale,
+                  }
+          }}
+        </p>
+        <div class="overflow-x-auto -mx-4 sm:mx-0">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs text-gray-400">
+                <th class="px-2 py-1">
+                  <label class="inline-flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      [checked]="allIncluded"
+                      (change)="toggleAllIncluded($any($event.target))"
+                    />
+                    {{ 'transactions.import.includeAll' | translate }}
+                  </label>
+                </th>
+                <th class="px-2 py-1" [attr.aria-sort]="ariaSort('date')">
+                  <button type="button" (click)="sortImportBy('date')" class="font-medium">
+                    {{ 'transactions.date' | translate }} {{ sortArrow('date') }}
+                  </button>
+                </th>
+                <th class="px-2 py-1">{{ 'transactions.description' | translate }}</th>
+                <th class="px-2 py-1 text-right" [attr.aria-sort]="ariaSort('amount')">
+                  <button type="button" (click)="sortImportBy('amount')" class="font-medium">
+                    {{ 'transactions.import.amountColumn' | translate }} {{ sortArrow('amount') }}
+                  </button>
+                </th>
+                <th class="px-2 py-1">{{ 'transactions.category' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let row of visibleImportRows; trackBy: trackByRowId"
+                class="border-t border-gray-100"
+                [ngClass]="{
+                  'border-l-4 border-l-amber-400':
+                    row.category_id === null && !row.is_transfer && !row.is_duplicate,
+                  'opacity-60': row.is_transfer || row.is_duplicate,
+                }"
+              >
+                <td class="px-2 py-2">
+                  <input
+                    type="checkbox"
+                    [checked]="row.selected"
+                    [attr.aria-label]="'transactions.import.includeRow' | translate"
+                    (change)="toggleImportRow(row.id, $any($event.target))"
+                  />
+                </td>
+                <td class="px-2 py-2 whitespace-nowrap text-gray-600">
+                  {{ row.date | date: 'shortDate' : undefined : language.locale }}
+                </td>
+                <td class="px-2 py-2 text-gray-800">
+                  <input
+                    type="text"
+                    maxlength="255"
+                    [(ngModel)]="row.description"
+                    [ngModelOptions]="{ standalone: true }"
+                    [attr.aria-label]="'transactions.description' | translate"
+                    class="w-full min-w-[12rem] bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary-400 focus:outline-none py-0.5"
+                  />
+                  <button
+                    *ngIf="!row.noteOpen && !row.notes"
+                    type="button"
+                    (click)="openNote(row)"
+                    class="text-xs text-primary-600 hover:underline"
+                  >
+                    {{ 'transactions.import.addNote' | translate }}
+                  </button>
+                  <input
+                    *ngIf="row.noteOpen || row.notes"
+                    [id]="'import-note-' + row.id"
+                    type="text"
+                    maxlength="1000"
+                    [(ngModel)]="row.notes"
+                    [ngModelOptions]="{ standalone: true }"
+                    [placeholder]="'transactions.notesPlaceholder' | translate"
+                    [attr.aria-label]="'transactions.notes' | translate"
+                    class="mt-1 w-full text-xs italic bg-transparent border-b border-gray-200 focus:border-primary-400 focus:outline-none py-0.5"
+                  />
+                  <span
+                    *ngIf="row.is_duplicate"
+                    class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"
+                    >{{ 'transactions.import.alreadyExists' | translate }}</span
+                  >
+                  <span
+                    *ngIf="row.is_transfer"
+                    class="ml-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
+                    >{{ 'transactions.import.transfer' | translate }}</span
+                  >
+                </td>
+                <td
+                  class="px-2 py-2 text-right whitespace-nowrap font-semibold"
+                  [class.text-green-600]="row.type === 'income'"
+                  [class.text-red-600]="row.type === 'expense'"
+                >
+                  {{ row.type === 'income' ? '+' : '-' }}{{ row.amount | currencySymbol }}
+                </td>
+                <td class="px-2 py-2">
+                  <span
+                    *ngIf="row.ai"
+                    class="mb-1 inline-block text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700"
+                    >{{ 'transactions.import.aiBadge' | translate }}</span
+                  >
+                  <select
+                    [ngModel]="row.category_id"
+                    (ngModelChange)="setImportCategory(row.id, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                    [attr.aria-label]="'transactions.category' | translate"
+                    class="w-full min-w-[9rem] px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white"
+                  >
+                    <option [ngValue]="null">
+                      {{ 'transactions.import.chooseCategory' | translate }}
+                    </option>
+                    <option *ngFor="let c of categoriesFor(row.type)" [ngValue]="c.id">
+                      {{ c.name | categoryName }}
+                    </option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button
+          (click)="importSelected()"
+          [disabled]="importing || importSelectedCount === 0"
+          class="mt-4 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition-colors text-sm disabled:opacity-50"
+        >
+          {{
+            importing
+              ? ('transactions.import.importing' | translate)
+              : ('transactions.import.importN' | translate: { count: importSelectedCount })
+          }}
+        </button>
+      </ng-container>
+    </div>
+
     <!-- Add/Edit Form -->
     <div *ngIf="showForm" class="bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-100">
       <h2 class="text-lg font-semibold text-gray-800 mb-4">

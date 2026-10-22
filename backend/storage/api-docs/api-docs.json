@@ -100,6 +100,7 @@
                                         "enum": [
                                             "admin",
                                             "manager",
+                                            "premium",
                                             "user"
                                         ]
                                     }
@@ -346,6 +347,300 @@
                 ]
             }
         },
+        "/api/ai/chat": {
+            "post": {
+                "tags": [
+                    "AI Support"
+                ],
+                "summary": "Send a message to the support assistant",
+                "operationId": "f512201928ad463e5d4af06cd6301af2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "message"
+                                ],
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "maxLength": 2000
+                                    },
+                                    "conversation_id": {
+                                        "description": "Continue this conversation; omit to start a new one",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Assistant reply and the conversation it belongs to",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "conversation_id": {
+                                            "type": "string",
+                                            "format": "uuid",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation belongs to another user or does not exist"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ai/conversations": {
+            "get": {
+                "tags": [
+                    "AI Support"
+                ],
+                "summary": "List the user's 50 most recent support conversations",
+                "operationId": "b983d1ac8d52fc644ff485774acf75f3",
+                "responses": {
+                    "200": {
+                        "description": "Conversations (id, title, updated_at), newest first"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ai/conversations/{id}": {
+            "get": {
+                "tags": [
+                    "AI Support"
+                ],
+                "summary": "Get the messages of one of the user's conversations",
+                "operationId": "34c841f1261949cc1ce9aa7b36811db3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages as role (user|assistant) and text"
+                    },
+                    "404": {
+                        "description": "Not found or not owned by the user"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "AI Support"
+                ],
+                "summary": "Delete one of the user's conversations and its messages",
+                "operationId": "e1169c8d7495e0f985605a88ba7e22fe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversation deleted"
+                    },
+                    "404": {
+                        "description": "Not found or not owned by the user"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/alert-rules": {
+            "get": {
+                "tags": [
+                    "Alert rules"
+                ],
+                "summary": "List the user's alert rules",
+                "operationId": "bce3231e608032c8817ebe0a69916e21",
+                "responses": {
+                    "200": {
+                        "description": "Array of alert rules"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Alert rules"
+                ],
+                "summary": "Create an alert rule",
+                "operationId": "cf45e6ca31b92dfc73c90ab1fd44df10",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "threshold"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "category_limit",
+                                            "total_spend_limit"
+                                        ]
+                                    },
+                                    "category_id": {
+                                        "description": "Required for category_limit",
+                                        "type": "integer"
+                                    },
+                                    "threshold": {
+                                        "description": "Monthly spending that triggers the alert",
+                                        "type": "number"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Alert rule created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/alert-rules/{alert_rule}": {
+            "put": {
+                "tags": [
+                    "Alert rules"
+                ],
+                "summary": "Change an alert rule's limit or switch it on/off",
+                "operationId": "bb52afd36e2cd5bf50634fe3bcaf0c01",
+                "parameters": [
+                    {
+                        "name": "alert_rule",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "threshold": {
+                                        "type": "number"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Alert rule updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Alert rules"
+                ],
+                "summary": "Delete an alert rule",
+                "operationId": "c7e92e8f6973f8ab05b4fc0b088655d0",
+                "parameters": [
+                    {
+                        "name": "alert_rule",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Alert rule deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/register": {
             "post": {
                 "tags": [
@@ -464,6 +759,44 @@
                 "responses": {
                     "200": {
                         "description": "User object"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/locale": {
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Save the user's interface language",
+                "operationId": "d72903d1927e7532026cba19793e9aba",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "locale": {
+                                        "type": "string",
+                                        "enum": [
+                                            "en",
+                                            "pt"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Language saved"
                     }
                 },
                 "security": [
@@ -829,6 +1162,58 @@
                 ]
             }
         },
+        "/api/budgets/copy-previous": {
+            "post": {
+                "tags": [
+                    "Budgets"
+                ],
+                "summary": "Copy last month's budget limits into a month",
+                "description": "Only fills categories that have no budget (or 0) in the target month; never overwrites a limit the user already set.",
+                "operationId": "6fa230e98e87ed3061699ef528f581a1",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "month": {
+                                        "type": "string",
+                                        "example": "2025-07"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Number of budgets copied and the month they came from",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "copied": {
+                                            "type": "integer"
+                                        },
+                                        "source_month": {
+                                            "type": "string",
+                                            "example": "2025-06"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/budgets/summary/{month}": {
             "get": {
                 "tags": [
@@ -972,9 +1357,7 @@
                             "schema": {
                                 "required": [
                                     "year",
-                                    "month",
-                                    "monthly_income",
-                                    "monthly_expenses"
+                                    "month"
                                 ],
                                 "properties": {
                                     "year": {
@@ -983,10 +1366,16 @@
                                     "month": {
                                         "type": "integer"
                                     },
-                                    "monthly_income": {
+                                    "is_custom": {
+                                        "description": "Month uses its own base instead of the profile default",
+                                        "type": "boolean"
+                                    },
+                                    "base_income": {
+                                        "description": "Base income when is_custom is true",
                                         "type": "number"
                                     },
-                                    "monthly_expenses": {
+                                    "base_expenses": {
+                                        "description": "Base expenses when is_custom is true",
                                         "type": "number"
                                     },
                                     "savings_goal": {
@@ -1027,6 +1416,96 @@
                 "responses": {
                     "200": {
                         "description": "Current month record"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/available": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "What is left to spend in a month, with the end-of-month projection",
+                "operationId": "62ec5723f0c7683737cdfdb1475fc3a7",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-10"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "available, days_remaining, pending_income, pending_expenses, daily_avg_spend, projected_balance, daily_allowance"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/daily-balance": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Running balance per day for a month and the previous one",
+                "operationId": "61d02dc5a8b1753053a5b0c4021756a1",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-10"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "current and previous: one balance per day, null for days with nothing recorded yet"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/financial-records/month-comparison": {
+            "get": {
+                "tags": [
+                    "Financial Records"
+                ],
+                "summary": "Income, expenses and savings of a month against the previous month",
+                "operationId": "7e82ff54f62bf33bf69fbd640249d57e",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-10"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "current, previous and change_pct (null with nothing to compare), each with income, expenses, savings"
                     }
                 },
                 "security": [
@@ -1116,10 +1595,16 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "monthly_income": {
+                                    "is_custom": {
+                                        "description": "Month uses its own base instead of the profile default",
+                                        "type": "boolean"
+                                    },
+                                    "base_income": {
+                                        "description": "Base income when is_custom is true",
                                         "type": "number"
                                     },
-                                    "monthly_expenses": {
+                                    "base_expenses": {
+                                        "description": "Base expenses when is_custom is true",
                                         "type": "number"
                                     },
                                     "savings_goal": {
@@ -1912,6 +2397,48 @@
                 ]
             }
         },
+        "/api/reports/monthly": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Monthly report as a PDF: totals, comparison with the previous month, expenses by category and transactions",
+                "operationId": "a4217fefedf97ddb261ebb0e963a7e2f",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-10"
+                        }
+                    },
+                    {
+                        "name": "symbol",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "€"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF file",
+                        "content": {
+                            "application/pdf": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/setup": {
             "post": {
                 "tags": [
@@ -2389,6 +2916,195 @@
                     }
                 ]
             }
+        },
+        "/api/transactions/import/preview": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Read an ActivoBank statement PDF and preview its movements (nothing is saved)",
+                "description": "Admin only (permission: import statements). Debit/credit is derived from the running balance and the statement's opening/closing balances must reconcile.",
+                "operationId": "6568cc4ac5354577b5e8230310f60524",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "period, reconciliation, rows (date, description, amount, type, is_transfer, is_duplicate, suggested_category_id), other_categories ({income, expense} ids of the fallback categories, null if missing), file_hash and previous_import ({imported_at, rows_imported} when the same file was imported before, else null)"
+                    },
+                    "422": {
+                        "description": "Unreadable or unsupported statement; body has a `code`"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/import": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Create the confirmed rows of a statement preview as transactions",
+                "description": "Admin only (permission: import statements). All-or-nothing, 1-500 rows, duplicates are not filtered (the preview flags them).",
+                "operationId": "60ba4c7c9fae449201cee299ea14684a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rows"
+                                ],
+                                "properties": {
+                                    "statement": {
+                                        "description": "Optional: {hash, from, to} from the preview; stores a light import record",
+                                        "type": "object"
+                                    },
+                                    "rows": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "date",
+                                                "description",
+                                                "amount",
+                                                "type",
+                                                "category_id"
+                                            ],
+                                            "properties": {
+                                                "date": {
+                                                    "type": "string",
+                                                    "example": "2026-09-02"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "notes": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "amount": {
+                                                    "type": "number"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "income",
+                                                        "expense"
+                                                    ]
+                                                },
+                                                "category_id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Number of transactions created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "imported": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/import/suggest": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Ask the local AI model to suggest a category per statement row",
+                "description": "Admin only (permission: import statements). Only each row's description and type are sent to the model, which runs on local Ollama (never a cloud provider). The answer is advisory and checked against real categories. When no model is available the response is `available: false`, not an error.",
+                "operationId": "f4ac7f10f8e2e794496539a4b9eaa5ea",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rows"
+                                ],
+                                "properties": {
+                                    "rows": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "description",
+                                                "type"
+                                            ],
+                                            "properties": {
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "income",
+                                                        "expense"
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`available`, `busy` (another suggestion of the same user is still running) and `suggestions` (one {category_id} per row, same order)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -2447,6 +3163,18 @@
         {
             "name": "Transactions",
             "description": "Transaction management"
+        },
+        {
+            "name": "AI Support",
+            "description": "AI Support"
+        },
+        {
+            "name": "Alert rules",
+            "description": "Alert rules"
+        },
+        {
+            "name": "Reports",
+            "description": "Reports"
         }
     ]
 }

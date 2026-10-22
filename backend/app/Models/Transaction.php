@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $user_id
  * @property int $category_id
  * @property string $description
+ * @property string|null $source_description
  * @property string $amount
  * @property string $type
  * @property Carbon $transaction_date
@@ -29,12 +30,16 @@ class Transaction extends Model
         'user_id',
         'category_id',
         'description',
+        'source_description',
         'amount',
         'type',
         'transaction_date',
         'notes',
         'attachment_path',
     ];
+
+    /** Internal: the bank's text, used only to match later statements. */
+    protected $hidden = ['source_description'];
 
     /** @var array<array-key, mixed> */
     protected $casts = [

@@ -13,6 +13,10 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Policies\OwnedByUserPolicy;
 use App\Policies\UserPolicy;
+use App\Services\LaravelStatementAi;
+use App\Services\PdfTextExtractor;
+use App\Services\SmalotPdfTextExtractor;
+use App\Services\StatementAi;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(PdfTextExtractor::class, SmalotPdfTextExtractor::class);
+        $this->app->bind(StatementAi::class, LaravelStatementAi::class);
         //
     }
 
@@ -60,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(10)->by($key),
                 Limit::perDay(max(1, (int) config('ai.support.daily_limit', 100)))->by('day:'.$key),
             ];
+        });
+
+        RateLimiter::for('import', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
 
         RateLimiter::for('market', function (Request $request) {
