@@ -3,7 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\AdminStatsOverview;
+use App\Filament\Widgets\FeatureAdoptionChart;
 use App\Filament\Widgets\LatestUsersTable;
+use App\Filament\Widgets\RolesChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -41,6 +43,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 AdminStatsOverview::class,
+                RolesChart::class,
+                FeatureAdoptionChart::class,
                 LatestUsersTable::class,
             ])
             ->middleware([
