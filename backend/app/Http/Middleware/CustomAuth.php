@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\TokenService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CustomAuth
 {
@@ -19,12 +20,16 @@ class CustomAuth
         $accessToken = TokenService::find($token);
 
         if (! $accessToken) {
+            Log::channel('auth')->warning('Invalid or expired token', ['ip' => $request->ip(), 'path' => $request->path()]);
+
             return response()->json(['message' => __('messages.token_expired')], 401);
         }
 
         $user = $accessToken->tokenable;
 
         if ($user->isBlacklisted()) {
+            Log::channel('auth')->warning('Blacklisted account blocked', ['user_id' => $user->id, 'ip' => $request->ip()]);
+
             return response()->json(['message' => __('messages.account_suspended')], 403);
         }
 

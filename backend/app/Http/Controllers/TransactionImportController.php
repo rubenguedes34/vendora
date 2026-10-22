@@ -17,6 +17,7 @@ use App\Services\StatementImportAnalyzer;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class TransactionImportController extends Controller
@@ -51,6 +52,8 @@ class TransactionImportController extends Controller
             $statement = $parser->parse($extractor->extract($request->file('file')->getRealPath()));
         } catch (StatementParseException $e) {
             // Only the fixed code is returned; no statement text ever reaches the response or the logs.
+            Log::channel('import')->warning('Statement parse failed', ['code' => $e->getMessage(), 'user_id' => $request->user()->id]);
+
             return response()->json([
                 'message' => __('messages.import_'.$e->getMessage()),
                 'code' => $e->getMessage(),
@@ -147,6 +150,8 @@ class TransactionImportController extends Controller
             );
         });
 
+        Log::channel('import')->info('Statement imported', ['user_id' => $request->user()->id, 'imported' => count($rows)]);
+
         return response()->json(['imported' => count($rows)], 201);
     }
 
@@ -181,6 +186,8 @@ class TransactionImportController extends Controller
         try {
             $lock->block((int) config('ai.statement.lock_wait'));
         } catch (LockTimeoutException) {
+            Log::channel('import')->info('Statement AI busy', ['user_id' => $request->user()->id]);
+
             return response()->json(['available' => false, 'busy' => true, 'suggestions' => []]);
         }
 

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class RecurrentTransactionControllerTest extends TestCase
@@ -201,5 +203,49 @@ class RecurrentTransactionControllerTest extends TestCase
 
         $this->assertSame(1, $this->user->transactions()->where('description', 'Active rule')->count());
         $this->assertSame(0, $this->user->transactions()->where('description', 'Paused rule')->count());
+    }
+
+    public function test_process_command_logs_one_failing_rule_and_keeps_going(): void
+    {
+        foreach (['Bad', 'Good'] as $description) {
+            $this->user->recurrentTransactions()->create([
+                'description' => $description, 'amount' => 20, 'type' => $this->category->type,
+                'category_id' => $this->category->id, 'day_of_month' => 5,
+            ]);
+        }
+        Transaction::creating(function (Transaction $t): void {
+            if ($t->description === 'Bad') {
+                throw new \RuntimeException('boom');
+            }
+        });
+        Log::shouldReceive('channel')->with('scheduler')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('debug')->zeroOrMoreTimes();
+        Log::shouldReceive('error')->once()->withArgs(fn ($msg, $ctx) => $msg === 'Recurrent rule failed' && isset($ctx['recurrent_id']));
+        Log::shouldReceive('info')->once()->withArgs(
+            fn ($msg, $ctx) => $msg === 'Recurrent transactions processed' && $ctx['created'] === 1 && $ctx['failed'] === 1 && $ctx['month'] === '2025-07'
+        );
+
+        $this->artisan('recurrent:process', ['--month' => '2025-07'])->assertFailed();
+
+        $this->assertSame(1, $this->user->transactions()->where('description', 'Good')->count());
+    }
+
+    public function test_rule_whose_listener_fails_after_the_insert_leaves_no_half_saved_transaction(): void
+    {
+        $this->user->recurrentTransactions()->create([
+            'description' => 'Bad', 'amount' => 20, 'type' => $this->category->type,
+            'category_id' => $this->category->id, 'day_of_month' => 5,
+        ]);
+        Transaction::created(function (Transaction $t): void {
+            throw new \RuntimeException('listener failed after insert');
+        });
+        Log::shouldReceive('channel')->with('scheduler')->atLeast()->once()->andReturnSelf();
+        Log::shouldReceive('debug')->zeroOrMoreTimes();
+        Log::shouldReceive('error')->once();
+        Log::shouldReceive('info')->once();
+
+        $this->artisan('recurrent:process', ['--month' => '2025-07'])->assertFailed();
+
+        $this->assertSame(0, $this->user->transactions()->where('description', 'Bad')->count());
     }
 }

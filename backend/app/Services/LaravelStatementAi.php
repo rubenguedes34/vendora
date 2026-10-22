@@ -41,12 +41,12 @@ class LaravelStatementAi implements StatementAi
             try {
                 $reply = (string) (new StatementCategoryAgent($instructions))
                     ->prompt($prompt, provider: Lab::Ollama, model: $model, timeout: $timeout);
-                Log::info('Statement AI answered', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1), 'reply_chars' => strlen($reply)]);
+                Log::channel('ai')->info('Statement AI answered', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1), 'reply_chars' => strlen($reply)]);
 
                 return $reply;
             } catch (Throwable $e) {
                 // Only the model name and timing: the exception text could quote the prompt.
-                Log::warning('Statement AI model failed', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1)]);
+                Log::channel('ai')->warning('Statement AI model failed', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1)]);
             }
         }
 

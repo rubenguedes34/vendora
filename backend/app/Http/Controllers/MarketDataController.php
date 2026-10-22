@@ -8,6 +8,7 @@ use App\Http\Requests\Market\SearchRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MarketDataController extends Controller
 {
@@ -91,6 +92,8 @@ class MarketDataController extends Controller
             ]);
 
             if (! $res->ok()) {
+                $this->logProviderError('finnhub', 'search', $res->status());
+
                 return response()->json(['error' => 'Search failed'], 502);
             }
 
@@ -107,6 +110,8 @@ class MarketDataController extends Controller
 
             return response()->json($results);
         } catch (\Exception $e) {
+            $this->logFailure('Market search failed', $e);
+
             return response()->json(['error' => 'Search failed'], 500);
         }
     }
@@ -150,6 +155,8 @@ class MarketDataController extends Controller
             $data = $res->json();
 
             if (($data['s'] ?? '') !== 'ok') {
+                $this->logProviderError('finnhub', 'candle', $res->status(), ['symbol' => $symbol]);
+
                 return response()->json(['sparkline' => []]);
             }
 
@@ -157,11 +164,24 @@ class MarketDataController extends Controller
 
             return response()->json(['sparkline' => $closes]);
         } catch (\Exception $e) {
+            $this->logFailure('Market candle failed', $e, ['symbol' => $symbol]);
+
             return response()->json(['sparkline' => []]);
         }
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────
+
+    private function logProviderError(string $provider, string $endpoint, int $status, array $context = []): void
+    {
+        Log::channel('market')->warning('Market provider returned error', ['provider' => $provider, 'endpoint' => $endpoint, 'status' => $status] + $context);
+    }
+
+    /** Class only: HTTP exception messages quote the request URL, which carries the Finnhub token. */
+    private function logFailure(string $message, \Throwable $e, array $context = []): void
+    {
+        Log::channel('market')->warning($message, ['exception' => $e::class] + $context);
+    }
 
     private function quoteFromFinnhub(string $symbol): JsonResponse
     {
@@ -203,6 +223,8 @@ class MarketDataController extends Controller
                 'logo' => $profile['logo'] ?? null,
             ]);
         } catch (\Exception $e) {
+            $this->logFailure('Finnhub quote failed, falling back to Yahoo', $e, ['symbol' => $symbol]);
+
             return $this->quoteFromYahoo($symbol);
         }
     }
@@ -222,7 +244,9 @@ class MarketDataController extends Controller
             }
 
             return array_map(fn ($v) => round($v, 4), $res['c'] ?? []);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            $this->logFailure('Finnhub sparkline failed', $e, ['symbol' => $symbol]);
+
             return [];
         }
     }
@@ -237,6 +261,8 @@ class MarketDataController extends Controller
                 ]);
 
             if (! $response->ok()) {
+                $this->logProviderError('yahoo', 'chart', $response->status(), ['symbol' => $symbol]);
+
                 return response()->json(['error' => 'Symbol not found'], 404);
             }
 
@@ -271,6 +297,8 @@ class MarketDataController extends Controller
                 'logo' => null,
             ]);
         } catch (\Exception $e) {
+            $this->logFailure('Yahoo quote failed', $e, ['symbol' => $symbol]);
+
             return response()->json(['error' => 'Failed to fetch market data'], 500);
         }
     }
@@ -297,6 +325,8 @@ class MarketDataController extends Controller
             ]);
 
             if (! $res->ok()) {
+                $this->logProviderError('coingecko', 'coin', $res->status(), ['symbol' => $symbol]);
+
                 return response()->json(['error' => 'Crypto symbol not found'], 404);
             }
 
@@ -326,6 +356,8 @@ class MarketDataController extends Controller
                 'logo' => $coin['image']['small'] ?? null,
             ]);
         } catch (\Exception $e) {
+            $this->logFailure('CoinGecko quote failed', $e, ['symbol' => $symbol]);
+
             return response()->json(['error' => 'Failed to fetch crypto data'], 500);
         }
     }

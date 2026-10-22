@@ -86,7 +86,7 @@ class AuthController extends Controller
                 'token' => $token,
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Registration failed', ['exception' => $e]);
+            $this->logFailure('Registration failed', $e);
 
             return response()->json([
                 'message' => __('messages.register_failed'),
@@ -117,6 +117,8 @@ class AuthController extends Controller
     {
         try {
             if (! Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                Log::channel('auth')->warning('Login failed: bad credentials', ['ip' => $request->ip()]);
+
                 return response()->json([
                     'message' => __('messages.invalid_credentials'),
                 ], 401);
@@ -125,6 +127,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             if ($user->isBlacklisted()) {
+                Log::channel('auth')->warning('Blacklisted account blocked', ['user_id' => $user->id, 'ip' => $request->ip()]);
                 Auth::logout();
 
                 return response()->json(['message' => __('messages.account_suspended')], 403);
@@ -170,7 +173,7 @@ class AuthController extends Controller
                 'token' => $token,
             ]);
         } catch (\Exception $e) {
-            Log::error('Login failed', ['exception' => $e]);
+            $this->logFailure('Login failed', $e);
 
             return response()->json([
                 'message' => __('messages.login_failed'),
@@ -423,7 +426,7 @@ class AuthController extends Controller
 
             return redirect($frontendUrl.'/auth/callback?code='.urlencode($code));
         } catch (\Exception $e) {
-            Log::error('Google login failed', ['exception' => $e]);
+            $this->logFailure('Google login failed', $e);
             $frontendUrl = config('app.frontend_url');
 
             return redirect($frontendUrl.'/login?error='.urlencode('Google login failed. Please try again.'));
@@ -495,5 +498,11 @@ class AuthController extends Controller
             ],
             'token' => TokenService::issue($user),
         ]);
+    }
+
+    /** No exception message: a QueryException quotes the SQL bindings (emails, password hashes). */
+    private function logFailure(string $message, \Throwable $e): void
+    {
+        Log::channel('auth')->error($message, ['exception' => $e::class, 'code' => $e->getCode(), 'at' => basename($e->getFile()).':'.$e->getLine()]);
     }
 }

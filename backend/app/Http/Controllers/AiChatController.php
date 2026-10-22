@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Ai\Agents\SupportAgent;
 use App\Http\Requests\Ai\ChatRequest;
 use App\Models\Faq;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,13 +73,14 @@ class AiChatController extends Controller
         $faqs = $this->relevantFaqs($message, 3);
 
         if ($models === []) {
-            Log::warning('AI support has no models configured; set AI_SUPPORT_MODELS');
+            Log::channel('ai')->warning('AI support has no models configured; set AI_SUPPORT_MODELS');
         }
 
         // A local model can outlast PHP's default 30 s request limit (cold start loads it into RAM).
         set_time_limit($timeout * max(count($models), 1) + 15);
 
         foreach ($models as $model) {
+            $started = microtime(true);
             try {
                 $agent = new SupportAgent($faqs);
                 $agent = $conversationId !== null
@@ -92,14 +94,18 @@ class AiChatController extends Controller
                     timeout: $timeout,
                 );
 
+                Log::channel('ai')->info('AI chat answered', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1), 'user_id' => $user->id]);
+
                 return response()->json([
                     'message' => (string) $response,
                     'conversation_id' => $response->conversationId ?? $conversationId,
                 ]);
             } catch (Throwable $e) {
-                Log::warning('AI chat model failed', ['model' => $model, 'error' => $e->getMessage()]);
+                Log::channel('ai')->warning('AI chat model failed', ['model' => $model, 'seconds' => round(microtime(true) - $started, 1), 'exception' => $e::class, 'status' => $e instanceof RequestException ? $e->response->status() : null]);
             }
         }
+
+        Log::channel('ai')->error('AI chat fell back to FAQ', ['models' => count($models), 'user_id' => $user->id]);
 
         return response()->json([
             'message' => $this->localResponse($message),

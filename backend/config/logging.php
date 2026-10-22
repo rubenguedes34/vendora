@@ -5,7 +5,25 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
+$areas = ['auth', 'import', 'ai', 'market', 'scheduler'];
+$areaChannels = [];
+foreach ($areas as $area) {
+    $areaChannels[$area] = [
+        'driver' => 'daily',
+        'path' => storage_path("logs/{$area}.log"),
+        'level' => env('LOG_LEVEL', 'debug'),
+        'days' => env('LOG_DAILY_DAYS', 14),
+        'replace_placeholders' => true,
+    ];
+}
+
 return [
+
+    // Folder the admin Logs page reads from.
+    'reader_path' => storage_path('logs'),
+
+    // Tabs of the admin Logs page; any other *.log file (laravel.log) falls under the "app" tab.
+    'areas' => $areas,
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +69,8 @@ return [
     */
 
     'channels' => [
+
+        ...$areaChannels,
 
         'stack' => [
             'driver' => 'stack',
