@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\ExchangeGoogleCodeRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateLocaleRequest;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
@@ -63,6 +66,8 @@ class AuthController extends Controller
             $user->assignRole('user');
 
             DefaultCategories::ensure();
+
+            $user->sendEmailVerificationNotification();
 
             $token = TokenService::issue($user);
 
@@ -255,7 +260,8 @@ class AuthController extends Controller
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="email", type="string", format="email"),
      *             @OA\Property(property="monthly_income", type="number"),
-     *             @OA\Property(property="monthly_expenses", type="number")
+     *             @OA\Property(property="monthly_expenses", type="number"),
+     *             @OA\Property(property="email_notifications", type="boolean")
      *         )
      *     ),
      *
@@ -274,12 +280,21 @@ class AuthController extends Controller
             ]);
         }
 
+        $emailChanged = $request->email !== $user->email;
+
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'monthly_income' => $request->monthly_income,
             'monthly_expenses' => $request->monthly_expenses,
+            'email_notifications' => $request->boolean('email_notifications', $user->email_notifications),
         ]);
+
+        // A new address has to be confirmed again.
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
+            $user->sendEmailVerificationNotification();
+        }
 
         return response()->json([
             'message' => __('messages.profile_updated'),
@@ -321,6 +336,118 @@ class AuthController extends Controller
         TokenService::revokeAll($user, $user->currentAccessToken());
 
         return response()->json(['message' => __('messages.password_updated')]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/forgot-password",
+     *     tags={"Auth"},
+     *     summary="Email a password reset link",
+     *
+     *     @OA\RequestBody(required=true,
+     *
+     *         @OA\JsonContent(required={"email"},
+     *
+     *             @OA\Property(property="email", type="string", format="email")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Always the same answer, so it does not reveal which emails exist")
+     * )
+     */
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        Password::sendResetLink($request->only('email'));
+
+        return response()->json(['message' => __('messages.password_reset_sent')]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/reset-password",
+     *     tags={"Auth"},
+     *     summary="Set a new password with an emailed reset token",
+     *
+     *     @OA\RequestBody(required=true,
+     *
+     *         @OA\JsonContent(required={"token","email","password","password_confirmation"},
+     *
+     *             @OA\Property(property="token", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="password", type="string", minLength=8),
+     *             @OA\Property(property="password_confirmation", type="string")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Password reset"),
+     *     @OA\Response(response=422, description="Invalid or expired token")
+     * )
+     */
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill(['password' => $password])->save();
+                // A reset usually means the old password may be compromised: sign out everywhere.
+                TokenService::revokeAll($user);
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => __('messages.password_reset_invalid')], 422);
+        }
+
+        return response()->json(['message' => __('messages.password_reset_done')]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/email/verify/{id}/{hash}",
+     *     tags={"Auth"},
+     *     summary="Confirm an email address (signed link from the verification email)",
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="hash", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=302, description="Redirects to the SPA login page"),
+     *     @OA\Response(response=403, description="Invalid or expired signature")
+     * )
+     */
+    public function verifyEmail(Request $request, int $id, string $hash)
+    {
+        $user = User::findOrFail($id);
+
+        abort_unless(hash_equals(sha1($user->getEmailForVerification()), $hash), 403);
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return redirect(config('app.frontend_url').'/login?verified=1');
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/email/resend",
+     *     tags={"Auth"},
+     *     summary="Send the verification email again",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(response=200, description="Sent, or already verified")
+     * )
+     */
+    public function resendVerification(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => __('messages.already_verified')]);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => __('messages.verification_sent')]);
     }
 
     /**

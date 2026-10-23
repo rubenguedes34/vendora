@@ -31,5 +31,10 @@
   "profileUpdated": "Perfil atualizado com sucesso.",
   "profileFailed": "Não foi possível atualizar o perfil. Tente novamente.",
   "passwordUpdated": "Palavra-passe atualizada com sucesso.",
-  "passwordFailed": "Não foi possível atualizar a palavra-passe. Verifique a palavra-passe atual."
+  "passwordFailed": "Não foi possível atualizar a palavra-passe. Verifique a palavra-passe atual.",
+  "emailNotifications": "Notificações por email",
+  "emailNotificationsHint": "Recebe emails com alertas de orçamento e gastos, pagamentos a vencer e relatórios mensais.",
+  "emailNotVerified": "O teu email ainda não está confirmado.",
+  "resendVerification": "Reenviar email",
+  "verificationSent": "Email de confirmação enviado. Vê a tua caixa de entrada."
 }

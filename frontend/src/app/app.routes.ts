@@ -53,6 +53,22 @@ export const routes: Routes = [
   { path: '', canActivate: [homeGuard], component: LoginComponent },
   { path: 'login', canActivate: [guestGuard], component: LoginComponent },
   { path: 'register', canActivate: [guestGuard], component: RegisterComponent },
+  {
+    path: 'forgot-password',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./components/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  {
+    // No guestGuard: the emailed link must also work in a browser that is already signed in.
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./components/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+  },
   { path: 'auth/callback', component: AuthCallbackComponent },
   {
     path: 'setup',

@@ -17,8 +17,11 @@ use App\Services\LaravelStatementAi;
 use App\Services\PdfTextExtractor;
 use App\Services\SmalotPdfTextExtractor;
 use App\Services\StatementAi;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -53,6 +56,24 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy($model, OwnedByUserPolicy::class);
         }
         Gate::policy(User::class, UserPolicy::class);
+
+        // Account emails: the reset link opens the SPA page, and both carry the app's own localized copy.
+        ResetPassword::createUrlUsing(fn ($user, string $token) => rtrim(config('app.frontend_url'), '/')
+            .'/reset-password?token='.$token.'&email='.urlencode($user->getEmailForPasswordReset()));
+        ResetPassword::toMailUsing(fn ($user, string $token) => (new MailMessage)
+            ->subject(__('mail.reset.subject'))
+            ->greeting(__('mail.greeting', ['name' => $user->name]))
+            ->line(__('mail.reset.line'))
+            ->action(__('mail.reset.action'), rtrim(config('app.frontend_url'), '/').'/reset-password?token='.$token.'&email='.urlencode($user->getEmailForPasswordReset()))
+            ->line(__('mail.reset.expires', ['count' => config('auth.passwords.users.expire')]))
+            ->salutation(__('mail.footer_account')));
+        VerifyEmail::toMailUsing(fn ($user, string $url) => (new MailMessage)
+            ->subject(__('mail.verify.subject'))
+            ->greeting(__('mail.greeting', ['name' => $user->name]))
+            ->line(__('mail.verify.line'))
+            ->action(__('mail.verify.action'), $url)
+            ->line(__('mail.verify.ignore'))
+            ->salutation(__('mail.footer_account')));
 
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());

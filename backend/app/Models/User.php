@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\EmailGate;
 use Carbon\Carbon;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,7 +27,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $blacklisted_at
  * @property float $savings
  */
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
@@ -41,6 +44,7 @@ class User extends Authenticatable implements FilamentUser
         'monthly_expenses',
         'google_id',
         'locale',
+        'email_notifications',
     ];
 
     /**
@@ -114,6 +118,7 @@ class User extends Authenticatable implements FilamentUser
         'email_verified_at' => 'datetime',
         'blacklisted_at' => 'datetime',
         'password' => 'hashed',
+        'email_notifications' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -130,6 +135,17 @@ class User extends Authenticatable implements FilamentUser
                 FinancialRecord::syncDefaultMonths($user);
             }
         });
+    }
+
+    // Account emails go through EmailGate so the admin master switch covers them; they ignore the user's opt-out.
+    public function sendPasswordResetNotification($token): void
+    {
+        EmailGate::send($this, new ResetPassword($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        EmailGate::send($this, new VerifyEmail);
     }
 
     public function isBlacklisted(): bool

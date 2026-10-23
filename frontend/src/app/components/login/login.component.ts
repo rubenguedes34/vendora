@@ -149,6 +149,14 @@ import { environment } from '../../../environments/environment';
               </p>
             </div>
 
+            <div class="mb-5 -mt-3 text-right">
+              <a
+                routerLink="/forgot-password"
+                class="text-sm font-semibold text-primary-600 hover:text-primary-800 hover:underline"
+                >{{ 'auth.forgotPassword' | translate }}</a
+              >
+            </div>
+
             <button
               type="submit"
               [disabled]="loginForm.invalid || isLoading"
@@ -194,6 +202,13 @@ import { environment } from '../../../environments/environment';
           </button>
 
           <div
+            *ngIf="verified"
+            class="mt-5 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm text-center"
+          >
+            {{ 'auth.emailVerified' | translate }}
+          </div>
+
+          <div
             *ngIf="errorMessage"
             class="mt-5 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm text-center"
           >
@@ -217,6 +232,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  verified = false;
 
   constructor(
     private fb: FormBuilder,
@@ -233,6 +249,7 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.verified = this.route.snapshot.queryParams['verified'] === '1';
     const error = this.route.snapshot.queryParams['error'];
     if (error) {
       this.errorMessage = error;

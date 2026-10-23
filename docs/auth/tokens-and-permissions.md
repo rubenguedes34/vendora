@@ -47,6 +47,9 @@ Filament at `/admin` uses the web session, not the bearer token. The SPA bridges
 Every `/api/admin/*` route needs `access admin panel`; metrics also need `view metrics` and user management
 needs `manage users`.
 
+Resources: users, roles, permissions, categories, investments, FAQs. Pages: Logs, Email settings
+([emails](../notifications/emails.md)). Budgets and transactions are intentionally not in the panel.
+
 ### Admin dashboard
 
 Widgets in `app/Filament/Widgets`: app-health stats (users, new this month, active 30d, blacklisted, premium,

@@ -6,6 +6,8 @@ use App\Models\AlertRule;
 use App\Models\Budget;
 use App\Models\RecurrentTransaction;
 use App\Models\User;
+use App\Notifications\AppAlertMail;
+use App\Support\EmailGate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -42,6 +44,11 @@ class NotificationGenerator
                 'data' => array_merge($data, ['key' => $key], $i18n ? ['i18n' => $i18n] : []),
             ]);
             Log::info('Notification created', ['user_id' => $user->id, 'type' => $type, 'key' => $key]);
+
+            // Only types listed in EmailGate::TYPES are emailed, and only the first time (addOnce dedupes).
+            if (isset(EmailGate::TYPES[$type]) && $i18n) {
+                EmailGate::send($user, new AppAlertMail($i18n['key'], $i18n['params'] ?? []), $type);
+            }
         }
     }
 
@@ -183,8 +190,10 @@ class NotificationGenerator
 
     private function generateMonthlyReport(User $user): void
     {
-        $month = Carbon::now()->format('F Y');
-        $key = 'monthly-report-'.Carbon::now()->format('Y-m');
+        // The report is for the month that just ended, so the notification (and its email) never describes a month in progress.
+        $last = Carbon::now()->subMonthNoOverflow();
+        $month = $last->format('F Y');
+        $key = 'monthly-report-'.$last->format('Y-m');
 
         $this->addOnce(
             $user,
@@ -193,7 +202,7 @@ class NotificationGenerator
             'Monthly report ready',
             "Your financial summary for {$month} is ready to view.",
             ['month' => $month],
-            ['key' => 'monthly_report_ready', 'params' => ['month' => Carbon::now()->format('Y-m')]]
+            ['key' => 'monthly_report_ready', 'params' => ['month' => $last->format('Y-m')]]
         );
     }
 

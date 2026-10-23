@@ -31,5 +31,10 @@
   "profileUpdated": "Profile updated successfully.",
   "profileFailed": "Failed to update profile. Please try again.",
   "passwordUpdated": "Password updated successfully.",
-  "passwordFailed": "Failed to update password. Check your current password."
+  "passwordFailed": "Failed to update password. Check your current password.",
+  "emailNotifications": "Email notifications",
+  "emailNotificationsHint": "Get emails for budget and spending alerts, due payments and monthly reports.",
+  "emailNotVerified": "Your email is not verified yet.",
+  "resendVerification": "Resend email",
+  "verificationSent": "Verification email sent. Check your inbox."
 }

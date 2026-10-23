@@ -80,7 +80,7 @@ class NotificationControllerTest extends TestCase
         $this->assertNotNull($report);
         $this->assertSame('Monthly report ready', $report['title']);
         $this->assertSame('monthly_report_ready', $report['data']['i18n']['key']);
-        $this->assertSame(now()->format('Y-m'), $report['data']['i18n']['params']['month']);
+        $this->assertSame(now()->subMonthNoOverflow()->format('Y-m'), $report['data']['i18n']['params']['month']);
     }
 
     public function test_deleted_notification_is_not_generated_again(): void

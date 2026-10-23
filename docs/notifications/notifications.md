@@ -2,11 +2,15 @@
 
 ## When they are generated
 
-There is **no scheduler** for notifications. `NotificationController::generateIfStale` runs
-`NotificationGenerator::generateFor($user)` on `GET /notifications` and `/notifications/unread-count` (the
-sidebar badge polls it), at most once every 10 minutes
-per user (cache key `notifications:generated:{id}`). The only scheduled job is `recurrent:process`
-(1st of the month, `routes/console.php`).
+Two triggers, both calling `NotificationGenerator::generateFor($user)`:
+
+- `NotificationController::generateIfStale` on `GET /notifications` and `/notifications/unread-count` (the
+  sidebar badge polls it), at most once every 10 minutes per user (cache key `notifications:generated:{id}`).
+- The `notifications:generate` command, daily at 08:00 for every non-blacklisted user, so users who never open
+  the app still get their emails (see [emails.md](emails.md)).
+
+The other scheduled job is `recurrent:process` (1st of the month). Both are in `routes/console.php`; under Docker
+the `scheduler` service runs them.
 
 ## What gets generated (`app/Services/NotificationGenerator.php`)
 
@@ -16,7 +20,7 @@ per user (cache key `notifications:generated:{id}`). The only scheduled job is `
 | `budget_exceeded` | spent > budget limit (removes the "almost" one for the same budget/month) |
 | `alert_rule_triggered` | an active `AlertRule` (category limit or total spend limit) reached |
 | `recurring_due` | an active recurrent transaction reached its due day this month |
-| `monthly_report_ready` | once per month |
+| `monthly_report_ready` | once per month, about the **previous** month (key `monthly-report-{Y-m of last month}`) |
 | `savings_goal_completed` | saved >= 20% of the default monthly income |
 | `investment_reached_target` | portfolio value >= 110% of initial amounts |
 

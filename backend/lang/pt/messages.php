@@ -45,4 +45,9 @@ return [
     'category_type_mismatch' => 'A categoria escolhida não pode ser usada numa transação de :type.',
     'type_income' => 'receita',
     'type_expense' => 'despesa',
+    'password_reset_sent' => 'Se esse email estiver registado, o link de reposição vai a caminho.',
+    'password_reset_done' => 'A tua palavra-passe foi reposta.',
+    'password_reset_invalid' => 'Este link de reposição é inválido ou expirou.',
+    'verification_sent' => 'Email de verificação enviado.',
+    'already_verified' => 'O teu email já está verificado.',
 ];

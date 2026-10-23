@@ -70,6 +70,23 @@
           {{ profileError }}
         </div>
 
+        <div
+          *ngIf="user && user.email_verified_at === null"
+          class="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm flex flex-wrap items-center justify-between gap-2"
+        >
+          <span>{{
+            (verificationSent ? 'account.verificationSent' : 'account.emailNotVerified') | translate
+          }}</span>
+          <button
+            *ngIf="!verificationSent"
+            type="button"
+            (click)="resendVerification()"
+            class="font-semibold underline hover:text-amber-900"
+          >
+            {{ 'account.resendVerification' | translate }}
+          </button>
+        </div>
+
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -147,6 +164,20 @@
               />
             </div>
           </div>
+
+          <label class="flex items-start gap-3 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              formControlName="email_notifications"
+              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-400"
+            />
+            <span>
+              <span class="font-medium">{{ 'account.emailNotifications' | translate }}</span>
+              <span class="block text-gray-500">{{
+                'account.emailNotificationsHint' | translate
+              }}</span>
+            </span>
+          </label>
 
           <div class="flex justify-end">
             <button

@@ -49,6 +49,8 @@ export class AccountComponent implements OnInit {
   profileError = '';
   savingProfile = false;
 
+  verificationSent = false;
+
   passwordSuccess = '';
   passwordError = '';
   savingPassword = false;
@@ -67,6 +69,12 @@ export class AccountComponent implements OnInit {
     this.user = this.authService.getUserValue();
     this.updateInitials();
 
+    // The stored user comes from login and lacks fields such as email_verified_at; refresh it once.
+    this.authService.getUser().subscribe({
+      next: (u) => this.authService.setUser({ ...this.authService.getUserValue(), ...u }),
+      error: () => {},
+    });
+
     this.authService
       .getUserObservable()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -77,6 +85,7 @@ export class AccountComponent implements OnInit {
           this.profileForm.patchValue({
             name: u.name,
             email: u.email,
+            email_notifications: u.email_notifications ?? true,
             monthly_income: u.monthly_income ?? '',
             monthly_expenses: u.monthly_expenses ?? '',
           });
@@ -86,6 +95,7 @@ export class AccountComponent implements OnInit {
     this.profileForm = this.fb.group({
       name: [this.user?.name || '', Validators.required],
       email: [this.user?.email || '', [Validators.required, Validators.email]],
+      email_notifications: [this.user?.email_notifications ?? true],
       monthly_income: [this.user?.monthly_income ?? ''],
       monthly_expenses: [this.user?.monthly_expenses ?? ''],
       current_password: [''],
@@ -141,7 +151,12 @@ export class AccountComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savingProfile = false;
-          this.authService.setUser({ ...this.user, ...profile });
+          // The server clears the verification when the email changes.
+          this.authService.setUser({
+            ...this.user,
+            ...profile,
+            ...(this.emailChanged ? { email_verified_at: null } : {}),
+          });
           this.profileForm.patchValue({ current_password: '' });
           this.profileSuccess = this.translate.instant('account.profileUpdated');
           setTimeout(() => (this.profileSuccess = ''), 4000);
@@ -155,6 +170,14 @@ export class AccountComponent implements OnInit {
           setTimeout(() => (this.profileError = ''), 5000);
         },
       });
+  }
+
+  resendVerification(): void {
+    this.authService.resendVerification().subscribe({
+      next: () => (this.verificationSent = true),
+      error: (err: ApiError) =>
+        (this.profileError = err?.message || this.translate.instant('account.profileFailed')),
+    });
   }
 
   changePassword(): void {

@@ -45,4 +45,9 @@ return [
     'category_type_mismatch' => 'The selected category cannot be used for an :type transaction.',
     'type_income' => 'income',
     'type_expense' => 'expense',
+    'password_reset_sent' => 'If that email is registered, a reset link is on its way.',
+    'password_reset_done' => 'Your password has been reset.',
+    'password_reset_invalid' => 'This reset link is invalid or has expired.',
+    'verification_sent' => 'Verification email sent.',
+    'already_verified' => 'Your email is already verified.',
 ];

@@ -12,3 +12,9 @@ Schedule::command('recurrent:process')
     ->monthlyOn(1, '00:00')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Notifications (and their emails) are otherwise only generated when a user opens the app.
+Schedule::command('notifications:generate')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->runInBackground();

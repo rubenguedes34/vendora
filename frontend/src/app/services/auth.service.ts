@@ -22,6 +22,8 @@ export interface User {
   current_month?: number;
   needs_setup?: boolean;
   locale?: 'en' | 'pt';
+  email_verified_at?: string | null;
+  email_notifications?: boolean;
 }
 
 interface AuthResponse {
@@ -76,6 +78,32 @@ export class AuthService {
         }
         return throwError(() => this.handleError(error));
       }),
+    );
+  }
+
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/forgot-password`, { email }).pipe(
+      timeout(10000),
+      catchError((error) => throwError(() => this.handleError(error))),
+    );
+  }
+
+  resetPassword(data: {
+    token: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+  }): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/reset-password`, data).pipe(
+      timeout(10000),
+      catchError((error) => throwError(() => this.handleError(error))),
+    );
+  }
+
+  resendVerification(): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/email/resend`, {}).pipe(
+      timeout(10000),
+      catchError((error) => throwError(() => this.handleError(error))),
     );
   }
 

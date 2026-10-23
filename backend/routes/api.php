@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:10,1'])->name('verification.verify');
 Route::post('/auth/google/exchange', [AuthController::class, 'exchangeGoogleCode'])->middleware('throttle:10,1');
 Route::post('/setup', [SetupController::class, 'store'])->middleware('throttle:10,1');
 
@@ -30,6 +33,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     Route::put('/user/locale', [AuthController::class, 'updateLocale']);
+    Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:3,1');
     Route::put('/user/password', [AuthController::class, 'updatePassword']);
 
     // Categories

@@ -2,10 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\BudgetResource;
 use App\Filament\Resources\CategoryResource;
 use App\Filament\Resources\InvestmentResource;
-use App\Filament\Resources\TransactionResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Widgets\LatestUsersTable;
@@ -42,7 +40,7 @@ class FilamentResourceAccessTest extends TestCase
     {
         $this->actingAs($this->userWithRole('manager', ['access admin panel', 'view metrics']));
 
-        foreach ([CategoryResource::class, BudgetResource::class, InvestmentResource::class, TransactionResource::class] as $resource) {
+        foreach ([CategoryResource::class, InvestmentResource::class] as $resource) {
             $this->assertFalse($resource::canAccess(), $resource);
         }
     }
@@ -51,7 +49,7 @@ class FilamentResourceAccessTest extends TestCase
     {
         $this->actingAs($this->userWithRole('admin', ['access admin panel', 'view metrics', 'manage users']));
 
-        foreach ([CategoryResource::class, BudgetResource::class, InvestmentResource::class, TransactionResource::class] as $resource) {
+        foreach ([CategoryResource::class, InvestmentResource::class] as $resource) {
             $this->assertTrue($resource::canAccess(), $resource);
         }
     }

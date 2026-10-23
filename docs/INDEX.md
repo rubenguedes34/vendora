@@ -10,6 +10,7 @@ Update (or create) the matching file in the same change as the code.
 | How the health score is calculated and its caching | [finance/health-score.md](finance/health-score.md) |
 | Importing a bank statement PDF into transactions | [transactions/statement-import.md](transactions/statement-import.md) |
 | Notifications, alert rules, when and how they are generated | [notifications/notifications.md](notifications/notifications.md) |
+| Emails: which ones, the admin on/off switches, scheduler, templates | [notifications/emails.md](notifications/emails.md) |
 | Tokens, blacklisting, roles and permissions, admin panel access | [auth/tokens-and-permissions.md](auth/tokens-and-permissions.md) |
 | The AI support chat, providers, FAQ fallback | [ai-support/support-chat.md](ai-support/support-chat.md) |
 | Log files per area, the admin Logs page, what must never be logged | [troubleshooting/logs.md](troubleshooting/logs.md) |
