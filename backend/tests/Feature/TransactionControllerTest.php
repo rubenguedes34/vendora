@@ -128,6 +128,38 @@ class TransactionControllerTest extends TestCase
         $this->assertDatabaseMissing('transactions', ['id' => $tx->id]);
     }
 
+    public function test_destroy_month_deletes_only_that_months_transactions_of_the_user(): void
+    {
+        $make = fn (User $u, string $date) => $u->transactions()->create([
+            'category_id' => $this->category->id,
+            'description' => 'tx',
+            'amount' => 10,
+            'type' => 'expense',
+            'transaction_date' => $date,
+        ]);
+        $first = $make($this->user, '2025-07-01');
+        $last = $make($this->user, '2025-07-31');
+        $june = $make($this->user, '2025-06-30');
+        $august = $make($this->user, '2025-08-01');
+        $others = $make(User::factory()->create(), '2025-07-15');
+
+        $this->deleteJson('/api/transactions/month/2025-07', [], $this->authHeader())
+            ->assertStatus(200)
+            ->assertJson(['count' => 2]);
+
+        $this->assertDatabaseMissing('transactions', ['id' => $first->id]);
+        $this->assertDatabaseMissing('transactions', ['id' => $last->id]);
+        $this->assertDatabaseHas('transactions', ['id' => $june->id]);
+        $this->assertDatabaseHas('transactions', ['id' => $august->id]);
+        $this->assertDatabaseHas('transactions', ['id' => $others->id]);
+    }
+
+    public function test_destroy_month_rejects_invalid_month(): void
+    {
+        $this->deleteJson('/api/transactions/month/2025-13', [], $this->authHeader())
+            ->assertStatus(404);
+    }
+
     public function test_cannot_access_another_users_transaction(): void
     {
         $other = User::factory()->create();

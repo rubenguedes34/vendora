@@ -9,6 +9,7 @@ return [
     'tag_deleted' => 'Tag deleted',
     'budget_deleted' => 'Budget deleted',
     'transaction_deleted' => 'Transaction deleted',
+    'transactions_deleted' => 'Transactions deleted',
     'attachment_not_found' => 'Attachment not found',
     'no_attachment' => 'No attachment to delete',
     'attachment_deleted' => 'Attachment deleted',

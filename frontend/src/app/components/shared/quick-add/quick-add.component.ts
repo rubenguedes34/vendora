@@ -28,11 +28,19 @@ const INVESTMENT_TYPES = [
   'Other',
 ];
 
+import { DatePickerComponent } from '../date-picker/date-picker.component';
+
 @Component({
   selector: 'app-quick-add',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, CategoryNamePipe],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslatePipe,
+    CategoryNamePipe,
+    DatePickerComponent,
+  ],
   templateUrl: './quick-add.component.html',
 })
 export class QuickAddComponent implements OnInit, OnDestroy {

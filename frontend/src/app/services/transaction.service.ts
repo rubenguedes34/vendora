@@ -239,6 +239,13 @@ export class TransactionService {
       );
   }
 
+  deleteMonth(month: string): Observable<MessageResponse> {
+    return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/month/${month}`).pipe(
+      timeout(15000),
+      catchError((err) => throwError(() => this.handleError(err))),
+    );
+  }
+
   deleteTransaction(id: number): Observable<MessageResponse> {
     return this.http.delete<MessageResponse>(`${this.apiUrl}/transactions/${id}`).pipe(
       timeout(5000),

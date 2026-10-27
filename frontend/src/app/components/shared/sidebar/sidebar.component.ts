@@ -129,12 +129,12 @@ import { PwaService } from '../../../services/pwa.service';
         </a>
 
         <a
-          routerLink="/budgets"
+          routerLink="/transactions"
           (click)="mobileOpen = false"
           class="flex items-center mx-3 my-0.5 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
-          [class.bg-primary-50]="isActive('/budgets')"
-          [class.text-primary-700]="isActive('/budgets')"
-          [class.text-gray-600]="!isActive('/budgets')"
+          [class.bg-primary-50]="isActive('/transactions')"
+          [class.text-primary-700]="isActive('/transactions')"
+          [class.text-gray-600]="!isActive('/transactions')"
         >
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -144,7 +144,7 @@ import { PwaService } from '../../../services/pwa.service';
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
             />
           </svg>
-          <span class="font-medium">{{ 'nav.budget' | translate }}</span>
+          <span class="font-medium">{{ 'nav.transactions' | translate }}</span>
         </a>
 
         <a
@@ -377,7 +377,7 @@ export class SidebarComponent implements OnInit {
   }
 
   isActive(path: string): boolean {
-    return this.router.url === path;
+    return this.router.url.split('?')[0] === path;
   }
 
   openAdmin(): void {

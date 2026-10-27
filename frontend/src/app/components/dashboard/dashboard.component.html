@@ -423,7 +423,8 @@
       <!-- Quick Actions (top) -->
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-6">
         <a
-          routerLink="/budgets"
+          routerLink="/transactions"
+          [queryParams]="{ tab: 'setup' }"
           class="flex items-center gap-2 sm:gap-3 bg-white border border-gray-100 text-gray-800 px-3 sm:px-4 py-3 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm font-semibold group"
         >
           <span

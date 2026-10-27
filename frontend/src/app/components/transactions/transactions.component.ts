@@ -26,11 +26,13 @@ import { TagService, Tag } from '../../services/tag.service';
 import { FinancialService, Category } from '../../services/financial.service';
 import { AuthService } from '../../services/auth.service';
 import { CurrencyService } from '../../services/currency.service';
+import { DatePickerComponent } from '../shared/date-picker/date-picker.component';
+import { MonthPickerComponent } from '../shared/month-picker/month-picker.component';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { ApiError } from '../../models/api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { CategoryNamePipe } from '../../pipes/category-name.pipe';
+import { CategoryNamePipe, sortByCategoryName } from '../../pipes/category-name.pipe';
 import { LanguageService } from '../../services/language.service';
 import {
   ImportRow,
@@ -59,6 +61,8 @@ import {
     FormsModule,
     ReactiveFormsModule,
     SidebarComponent,
+    MonthPickerComponent,
+    DatePickerComponent,
     CurrencySymbolPipe,
     CategoryNamePipe,
     TranslatePipe,
@@ -89,6 +93,7 @@ export class TransactionsComponent implements OnInit {
   filterNotesSearch = '';
   filterType = '';
   filterCategoryId: number | undefined;
+  filterMonth = new Date().toISOString().slice(0, 7); // YYYY-MM, '' = all months
   filterDateFrom = '';
   filterDateTo = '';
   filterAmountMin: number | undefined;
@@ -179,6 +184,7 @@ export class TransactionsComponent implements OnInit {
         filterNotesSearch: this.filterNotesSearch,
         filterType: this.filterType,
         filterCategoryId: this.filterCategoryId,
+        filterMonth: this.filterMonth,
         filterDateFrom: this.filterDateFrom,
         filterDateTo: this.filterDateTo,
         filterAmountMin: this.filterAmountMin,
@@ -200,6 +206,7 @@ export class TransactionsComponent implements OnInit {
       this.filterNotesSearch = f.filterNotesSearch ?? '';
       this.filterType = f.filterType ?? '';
       this.filterCategoryId = f.filterCategoryId ? +f.filterCategoryId : undefined;
+      this.filterMonth = f.filterMonth ?? '';
       this.filterDateFrom = f.filterDateFrom ?? '';
       this.filterDateTo = f.filterDateTo ?? '';
       this.filterAmountMin = f.filterAmountMin != null ? +f.filterAmountMin : undefined;
@@ -225,9 +232,28 @@ export class TransactionsComponent implements OnInit {
     if (field === 'category_id') this.filterCategoryId = value ? +value : undefined;
     if (field === 'date_from') this.filterDateFrom = value;
     if (field === 'date_to') this.filterDateTo = value;
+    if (field === 'date_from' || field === 'date_to') this.filterMonth = '';
     this.currentPage = 1;
     this.saveFilters();
     this.loadTransactions();
+  }
+
+  onMonthChange(month: string): void {
+    this.filterMonth = month;
+    this.currentPage = 1;
+    this.saveFilters();
+    this.loadTransactions();
+  }
+
+  deleteMonth(): void {
+    const month = this.filterMonth;
+    if (!month || !confirm(this.translate.instant('transactions.confirmDeleteMonth', { month })))
+      return;
+    this.transactionService.deleteMonth(month).subscribe({
+      next: () => this.loadTransactions(),
+      error: (error) =>
+        (this.errorMessage = error.message || this.translate.instant('transactions.deleteFailed')),
+    });
   }
 
   onNotesSearchInput(event: Event): void {
@@ -515,8 +541,13 @@ export class TransactionsComponent implements OnInit {
       this.financialService.getCategoriesByType('expense').pipe(catchError(() => of([]))),
       this.financialService.getCategoriesByType('savings').pipe(catchError(() => of([]))),
     ]).subscribe(([income, expense, savings]) => {
-      this.categories = [...income, ...expense, ...savings];
+      this.categories = sortByCategoryName([...income, ...expense, ...savings], this.translate);
     });
+  }
+
+  private monthEnd(month: string): string {
+    const [y, m] = month.split('-').map(Number);
+    return `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`;
   }
 
   loadTransactions(): void {
@@ -528,8 +559,10 @@ export class TransactionsComponent implements OnInit {
           notes_search: this.filterNotesSearch || undefined,
           type: this.filterType || undefined,
           category_id: this.filterCategoryId,
-          date_from: this.filterDateFrom || undefined,
-          date_to: this.filterDateTo || undefined,
+          date_from: this.filterMonth ? `${this.filterMonth}-01` : this.filterDateFrom || undefined,
+          date_to: this.filterMonth
+            ? this.monthEnd(this.filterMonth)
+            : this.filterDateTo || undefined,
           amount_min: this.filterAmountMin,
           amount_max: this.filterAmountMax,
           tag_ids: this.filterTagIds.length ? this.filterTagIds : undefined,

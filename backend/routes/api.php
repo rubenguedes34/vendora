@@ -46,6 +46,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::post('/transactions/import', [TransactionImportController::class, 'store'])->middleware(['permission:import statements', 'throttle:import']);
     Route::get('/transactions/expenses-by-category', [TransactionController::class, 'expensesByCategory']);
     Route::get('/transactions/export', [TransactionController::class, 'export']);
+    Route::delete('/transactions/month/{month}', [TransactionController::class, 'destroyMonth'])->where('month', '\d{4}-(0[1-9]|1[0-2])');
     Route::get('/transactions/{id}/attachment', [TransactionController::class, 'serveAttachment']);
     Route::delete('/transactions/{id}/attachment', [TransactionController::class, 'deleteAttachment']);
     Route::apiResource('transactions', TransactionController::class);

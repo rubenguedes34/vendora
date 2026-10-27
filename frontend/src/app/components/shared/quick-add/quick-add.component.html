@@ -201,11 +201,10 @@
           {{ selectIcon(c.icon) }} {{ c.name | categoryName }}
         </option>
       </select>
-      <input
+      <app-date-picker
         formControlName="transaction_date"
-        type="date"
-        [attr.aria-label]="'common.quickAdd.date' | translate"
-        class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+        [ariaLabel]="'common.quickAdd.date' | translate"
+        triggerClass="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm"
       />
     </div>
     <p
@@ -278,11 +277,10 @@
         <option value="">{{ 'common.quickAdd.assetType' | translate }}</option>
         <option *ngFor="let t of investmentTypes" [value]="t">{{ typeLabel(t) }}</option>
       </select>
-      <input
+      <app-date-picker
         formControlName="purchase_date"
-        type="date"
-        [attr.aria-label]="'common.quickAdd.purchaseDate' | translate"
-        class="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+        [ariaLabel]="'common.quickAdd.purchaseDate' | translate"
+        triggerClass="w-full min-w-0 px-3 py-3 bg-gray-50 rounded-xl text-sm"
       />
     </div>
 

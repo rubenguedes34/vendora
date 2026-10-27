@@ -14,11 +14,12 @@ import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { FinancialService, Category } from '../../services/financial.service';
 import { CurrencyService } from '../../services/currency.service';
+import { MonthPickerComponent } from '../shared/month-picker/month-picker.component';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
 import { CurrencySymbolPipe } from '../../pipes/currency-symbol.pipe';
 import { environment } from '../../../environments/environment';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { CategoryNamePipe } from '../../pipes/category-name.pipe';
+import { CategoryNamePipe, sortByCategoryName } from '../../pipes/category-name.pipe';
 
 interface RecurrentTransaction {
   id?: number;
@@ -39,6 +40,7 @@ interface RecurrentTransaction {
     FormsModule,
     ReactiveFormsModule,
     SidebarComponent,
+    MonthPickerComponent,
     CurrencySymbolPipe,
     CategoryNamePipe,
     TranslatePipe,
@@ -96,7 +98,7 @@ export class RecurrentTransactionsComponent implements OnInit {
       this.financialService.getCategoriesByType('expense').pipe(catchError(() => of([]))),
       this.financialService.getCategoriesByType('savings').pipe(catchError(() => of([]))),
     ]).subscribe(([income, expense, savings]) => {
-      this.categories = [...income, ...expense, ...savings];
+      this.categories = sortByCategoryName([...income, ...expense, ...savings], this.translate);
     });
   }
 

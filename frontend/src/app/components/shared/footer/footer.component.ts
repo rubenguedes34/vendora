@@ -39,7 +39,8 @@ import { TranslatePipe } from '@ngx-translate/core';
               </li>
               <li>
                 <a
-                  routerLink="/budgets"
+                  routerLink="/transactions"
+                  [queryParams]="{ tab: 'setup' }"
                   class="inline-block py-2 lg:py-0 hover:text-primary-400 transition-colors"
                   >{{ 'common.footer.budgets' | translate }}</a
                 >

@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CategoryNamePipe } from '../../pipes/category-name.pipe';
 import { AuthService } from '../../services/auth.service';
@@ -38,7 +38,7 @@ import { ApiError } from '../../models/api';
 export class BudgetComponent implements OnInit {
   Math = Math;
   user: User | null = null;
-  activeTab: 'setup' | 'transactions' | 'recurrent' = 'setup';
+  activeTab: 'setup' | 'transactions' | 'recurrent' = 'transactions';
   activeSection: 'income' | 'expenses' | 'savings' = 'income';
 
   sections: { key: 'income' | 'expenses' | 'savings' }[] = [
@@ -76,6 +76,7 @@ export class BudgetComponent implements OnInit {
     private authService: AuthService,
     private financialService: FinancialService,
     private router: Router,
+    private route: ActivatedRoute,
     public currencyService: CurrencyService,
     private translate: TranslateService,
   ) {}
@@ -86,6 +87,9 @@ export class BudgetComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'setup' || tab === 'transactions' || tab === 'recurrent') this.activeTab = tab;
 
     this.loadCategories();
     this.loadSummary();

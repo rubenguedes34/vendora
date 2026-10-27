@@ -85,16 +85,9 @@ export const routes: Routes = [
     path: 'transactions',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./components/transactions/transactions.component').then(
-        (m) => m.TransactionsComponent,
-      ),
-  },
-  {
-    path: 'budgets',
-    canActivate: [authGuard],
-    loadComponent: () =>
       import('./components/budget/budget.component').then((m) => m.BudgetComponent),
   },
+  { path: 'budgets', redirectTo: '/transactions?tab=setup', pathMatch: 'full' },
   {
     path: 'investments',
     canActivate: [authGuard],

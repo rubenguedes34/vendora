@@ -313,10 +313,9 @@
             <label class="block text-gray-700 text-sm font-semibold mb-1.5">{{
               'transactions.date' | translate
             }}</label>
-            <input
-              type="date"
+            <app-date-picker
               formControlName="transaction_date"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+              triggerClass="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
             />
           </div>
           <div class="md:col-span-2">
@@ -608,6 +607,19 @@
           >
             {{ 'transactions.clear' | translate }}
           </button>
+          <app-month-picker
+            [month]="filterMonth"
+            (monthChange)="onMonthChange($event)"
+            [allowAll]="true"
+          />
+          <button
+            *ngIf="filterMonth && totalItems > 0"
+            type="button"
+            (click)="deleteMonth()"
+            class="text-xs text-red-600 hover:text-red-800 font-medium transition-colors"
+          >
+            {{ 'transactions.deleteMonth' | translate }}
+          </button>
           <span class="text-xs text-gray-400 whitespace-nowrap">{{
             (totalItems !== 1 ? 'transactions.resultMany' : 'transactions.resultOne')
               | translate: { count: totalItems }
@@ -685,11 +697,11 @@
             <label class="block text-xs font-medium text-gray-500 mb-1">{{
               'transactions.dateFrom' | translate
             }}</label>
-            <input
-              type="date"
-              [value]="filterDateFrom"
-              (change)="onFilterChange('date_from', $any($event.target).value)"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+            <app-date-picker
+              [ngModel]="filterDateFrom"
+              (ngModelChange)="onFilterChange('date_from', $event)"
+              [clearable]="true"
+              triggerClass="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"
             />
           </div>
 
@@ -698,11 +710,11 @@
             <label class="block text-xs font-medium text-gray-500 mb-1">{{
               'transactions.dateTo' | translate
             }}</label>
-            <input
-              type="date"
-              [value]="filterDateTo"
-              (change)="onFilterChange('date_to', $any($event.target).value)"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+            <app-date-picker
+              [ngModel]="filterDateTo"
+              (ngModelChange)="onFilterChange('date_to', $event)"
+              [clearable]="true"
+              triggerClass="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"
             />
           </div>
 

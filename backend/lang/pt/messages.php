@@ -9,6 +9,7 @@ return [
     'tag_deleted' => 'Etiqueta eliminada',
     'budget_deleted' => 'Orçamento eliminado',
     'transaction_deleted' => 'Transação eliminada',
+    'transactions_deleted' => 'Transações eliminadas',
     'attachment_not_found' => 'Anexo não encontrado',
     'no_attachment' => 'Não há anexo para eliminar',
     'attachment_deleted' => 'Anexo eliminado',

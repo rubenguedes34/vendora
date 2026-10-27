@@ -18,6 +18,8 @@ class DefaultCategories
         ['name' => 'Food',            'type' => 'expense', 'icon' => '🍔', 'color' => '#EF4444'],
         ['name' => 'Transport',       'type' => 'expense', 'icon' => '🚗', 'color' => '#3B82F6'],
         ['name' => 'Rent',            'type' => 'expense', 'icon' => '🏠', 'color' => '#8B5CF6'],
+        ['name' => 'Home',            'type' => 'expense', 'icon' => '🏡', 'color' => '#0EA5E9'],
+        ['name' => 'Credit',          'type' => 'expense', 'icon' => '💳', 'color' => '#F43F5E'],
         ['name' => 'Entertainment',   'type' => 'expense', 'icon' => '🎬', 'color' => '#EC4899'],
         ['name' => 'Shopping',        'type' => 'expense', 'icon' => '🛍️', 'color' => '#F59E0B'],
         ['name' => 'Bills',           'type' => 'expense', 'icon' => '📄', 'color' => '#6366F1'],

@@ -199,6 +199,38 @@ class TransactionController extends Controller
     }
 
     /**
+     * @OA\Delete(
+     *     path="/api/transactions/month/{month}",
+     *     tags={"Transactions"},
+     *     summary="Delete all of the user's transactions in a month",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="month", in="path", required=true, @OA\Schema(type="string", example="2025-07")),
+     *
+     *     @OA\Response(response=200, description="Transactions deleted")
+     * )
+     */
+    public function destroyMonth(Request $request, string $month)
+    {
+        $start = Carbon::createFromFormat('Y-m-d', $month.'-01');
+
+        // Per model, so attachments are removed and the deleted hook refreshes the month's records.
+        $transactions = $request->user()->transactions()
+            ->whereDate('transaction_date', '>=', $start->toDateString())
+            ->whereDate('transaction_date', '<=', $start->copy()->endOfMonth()->toDateString())
+            ->get();
+
+        foreach ($transactions as $transaction) {
+            if ($transaction->attachment_path) {
+                Storage::delete($transaction->attachment_path);
+            }
+            $transaction->delete();
+        }
+
+        return response()->json(['message' => __('messages.transactions_deleted'), 'count' => $transactions->count()]);
+    }
+
+    /**
      * @OA\Get(
      *     path="/api/transactions/{id}/attachment",
      *     tags={"Transactions"},
