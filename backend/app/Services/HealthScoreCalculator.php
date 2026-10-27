@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -177,33 +178,44 @@ class HealthScoreCalculator
 
         $categories = [];
         $categories[] = $this->category('Savings rate', 'savings_rate', $savingsRate * 100, [
-            [30, 100, 'Excellent — keep saving at this pace.'],
-            [20, 80, 'Good, but aim for 30% to build wealth faster.'],
-            [10, 60, 'Moderate. Try to reduce discretionary spending.'],
-            [0, 40, 'Low savings rate. Build an emergency fund first.'],
-            [-1000, 0, 'Negative savings. Review your budget immediately.'],
+            [30, 100, 'Saving {value}% of income. Excellent, keep this pace.'],
+            [20, 80, 'Saving {value}% of income. Good, but aim for 30% to build wealth faster.'],
+            [10, 60, 'Saving {value}% of income. Moderate; try to reduce discretionary spending.'],
+            [0, 40, 'Saving only {value}% of income. Build an emergency fund first.'],
+            [-1000, 0, 'Spending {value}% more than you earn this month. Review your budget immediately.'],
         ]);
 
         $emergencyMonths = $monthlyExpenses > 0 ? $cash / $monthlyExpenses : 0;
         $categories[] = $this->category('Emergency fund', 'emergency_fund', min($emergencyMonths, 12), [
-            [6, 100, 'You have 6+ months of expenses saved.'],
-            [3, 80, 'Solid cushion. Target 6 months for extra security.'],
-            [1, 50, 'Minimum cushion. Prioritize building reserves.'],
-            [0, 0, 'No emergency fund. Set aside cash before investing.'],
+            [6, 100, 'You have {value} months of expenses saved.'],
+            [3, 80, '{value} months of expenses saved. Solid cushion; target 6 months for extra security.'],
+            [1, 50, '{value} months of expenses saved. Minimum cushion; prioritize building reserves.'],
+            [0, 0, '{value} months of expenses saved. Set aside cash before investing.'],
         ], 'months');
 
         $expenseByCategory = $maps['expense_by_category_month'][$month] ?? [];
         $categories[] = $this->calculateBudgetAdherence($budgets, $expenseByCategory);
-        $categories[] = $this->category('Debt ratio', 'debt_ratio', 0, [
-            [0, 100, 'No recorded debt — great position.'],
-        ], '', 'Debt data is not tracked yet; add debt accounts to refine this score.');
+        // Debt is the month's spending in the Credit category over income. Lower is better, so the
+        // thresholds work on the negated percentage and the real percentage is put back afterwards.
+        $creditId = $this->creditCategoryId();
+        $credit = $creditId ? (float) ($expenseByCategory[$creditId] ?? 0) : 0.0;
+        $debtPct = $income > 0 ? $credit / $income * 100 : ($credit > 0 ? 100 : 0);
+        $debt = $this->category('Debt ratio', 'debt_ratio', -$debtPct, [
+            [0, 100, 'No credit payments this month. Great position.'],
+            [-10, 90, 'Credit payments are {value}% of income. Healthy level.'],
+            [-25, 60, '{value}% of income goes to credit. Keep an eye on it.'],
+            [-40, 30, '{value}% of income goes to credit. High; pay it down first.'],
+            [-100000, 0, '{value}% of income goes to credit. Very high; prioritize paying it off.'],
+        ]);
+        $debt['value'] = round($debtPct, 1);
+        $categories[] = $debt;
 
         $investmentRate = $income > 0 ? $investmentValue / $income : 0;
         $categories[] = $this->category('Investment rate', 'investment_rate', $investmentRate * 100, [
-            [50, 100, 'Excellent investment rate.'],
-            [30, 80, 'Strong focus on growing assets.'],
-            [10, 60, 'Moderate. Consider increasing contributions.'],
-            [0, 30, 'Low investment rate. Small regular contributions help.'],
+            [50, 100, 'Investments equal {value}% of monthly income. Excellent.'],
+            [30, 80, 'Investments equal {value}% of monthly income. Strong focus on growing assets.'],
+            [10, 60, 'Investments equal {value}% of monthly income. Moderate; consider increasing contributions.'],
+            [0, 30, 'Investments equal only {value}% of monthly income. Small regular contributions help.'],
         ]);
 
         $categories[] = $this->calculateIncomeStability($asOf, $maps['income_by_month']);
@@ -224,6 +236,14 @@ class HealthScoreCalculator
             'categories' => $categories,
             'weights' => $this->weights,
         ];
+    }
+
+    private int|false|null $creditCategoryId = null;
+
+    /** The shared Credit expense category; false when it does not exist yet. */
+    private function creditCategoryId(): int|false
+    {
+        return $this->creditCategoryId ??= Category::where('name', 'Credit')->where('type', 'expense')->value('id') ?? false;
     }
 
     private function calculateBudgetAdherence(Collection $budgets, array $expenseByCategory): array
@@ -257,8 +277,8 @@ class HealthScoreCalculator
 
         $score = $total > 0 ? (int) round((($total - $bad) / $total) * 100) : 100;
         $suggestion = $score === 100
-            ? 'All budgets on track this month.'
-            : ($bad.' budget'.($bad !== 1 ? 's' : '').' exceeded. Review overspending categories.');
+            ? "All {$total} budgets on track this month."
+            : ("{$bad} of {$total} budget".($total !== 1 ? 's' : '').' exceeded. Review overspending categories.');
 
         return [
             'name' => 'Budget adherence',
@@ -269,7 +289,7 @@ class HealthScoreCalculator
             'unit' => '%',
             'suggestion' => $suggestion,
             'suggestion_key' => $score === 100 ? 'budget_adherence_ok' : 'budget_adherence_exceeded',
-            'suggestion_params' => ['count' => $bad],
+            'suggestion_params' => ['count' => $bad, 'total' => $total],
             'description' => 'Percent of monthly budgets not exceeded',
         ];
     }
@@ -304,8 +324,8 @@ class HealthScoreCalculator
 
         $score = $cv < 0.1 ? 100 : ($cv < 0.3 ? 80 : ($cv < 0.6 ? 50 : 20));
         $suggestion = $score >= 80
-            ? 'Income is stable month to month.'
-            : 'Income varies significantly. Build a larger emergency fund to smooth gaps.';
+            ? 'Income varies only '.round($cv * 100, 1).'% month to month. Stable.'
+            : 'Income varies '.round($cv * 100, 1).'% month to month. Build a larger emergency fund to smooth gaps.';
 
         return [
             'name' => 'Income stability',
@@ -316,7 +336,7 @@ class HealthScoreCalculator
             'unit' => '%',
             'suggestion' => $suggestion,
             'suggestion_key' => $score >= 80 ? 'income_stability_stable' : 'income_stability_variable',
-            'suggestion_params' => [],
+            'suggestion_params' => ['value' => round($cv * 100, 1)],
             'description' => 'Income variability (lower is better)',
         ];
     }
@@ -337,6 +357,8 @@ class HealthScoreCalculator
             }
         }
 
+        $shown = round(abs($value), 1);
+
         return [
             'name' => $name,
             'key' => $key,
@@ -344,9 +366,9 @@ class HealthScoreCalculator
             'score' => $score,
             'value' => round($value, 1),
             'unit' => $unit,
-            'suggestion' => $suggestion,
+            'suggestion' => str_replace('{value}', (string) $shown, $suggestion),
             'suggestion_key' => $suggestionKey,
-            'suggestion_params' => [],
+            'suggestion_params' => ['value' => $shown],
             'description' => '',
         ];
     }

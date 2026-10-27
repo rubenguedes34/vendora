@@ -675,64 +675,6 @@
         </div>
       </div>
 
-      <!-- This month vs last month, day by day -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
-          <h3 class="text-base font-semibold text-gray-800">
-            {{ 'dashboard.daily.title' | translate }}
-          </h3>
-          <p class="text-xs text-gray-500 mt-0.5 mb-4">
-            {{ 'dashboard.daily.subtitle' | translate }}
-          </p>
-          <div style="height: 240px">
-            <canvas #dailyBalanceChart></canvas>
-          </div>
-        </div>
-        <div class="bg-white p-6 rounded-2xl border border-gray-200">
-          <h3 class="text-base font-semibold text-gray-800">
-            {{ 'dashboard.compare.title' | translate }}
-          </h3>
-          <p class="text-xs text-gray-500 mt-0.5 mb-4">
-            {{ 'dashboard.compare.subtitle' | translate }}
-          </p>
-          <div *ngIf="comparison as c" class="space-y-3 text-xs sm:text-sm">
-            <div
-              class="grid grid-cols-[4.5rem_1fr_1fr_3rem] sm:grid-cols-4 gap-1 sm:gap-2 text-xs text-gray-400"
-            >
-              <span></span>
-              <span class="text-right">{{ 'dashboard.compare.now' | translate }}</span>
-              <span class="text-right">{{ 'dashboard.compare.before' | translate }}</span>
-              <span></span>
-            </div>
-            <div
-              *ngFor="let row of comparisonRows"
-              class="grid grid-cols-[4.5rem_1fr_1fr_3rem] sm:grid-cols-4 gap-1 sm:gap-2 items-center"
-            >
-              <span class="text-gray-600">{{ row.label | translate }}</span>
-              <span class="text-right font-semibold text-gray-900 tabular-nums">{{
-                c.current[row.key] | currencySymbol
-              }}</span>
-              <span class="text-right text-gray-500 tabular-nums">{{
-                c.previous[row.key] | currencySymbol
-              }}</span>
-              <span
-                *ngIf="deltaPct(row.key) as d"
-                class="justify-self-end text-xs font-semibold px-2 py-0.5 rounded-full"
-                [class.bg-green-100]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
-                [class.text-green-700]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
-                [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
-                [class.text-red-700]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
-              >
-                {{ d.pct >= 0 ? '+' : '−' }}{{ fmtNum(d.pct < 0 ? -d.pct : d.pct, 0) }}%
-              </span>
-            </div>
-          </div>
-          <p *ngIf="!comparison" class="text-sm text-gray-300 py-6 text-center">
-            {{ 'dashboard.compare.none' | translate }}
-          </p>
-        </div>
-      </div>
-
       <!-- Month base: the profile default unless this month is customised -->
       <div class="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3 mb-6 text-sm">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -822,46 +764,49 @@
         <p *ngIf="baseError" class="text-red-500 text-xs mt-2">{{ baseError }}</p>
       </div>
 
-      <!-- Monthly Balance Breakdown -->
-      <div class="bg-white rounded-2xl border border-gray-200 mb-6 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-50">
+      <!-- This month vs last month, day by day -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
           <h3 class="text-base font-semibold text-gray-800">
-            {{ 'dashboard.monthly.title' | translate }}
+            {{ 'dashboard.daily.title' | translate }}
           </h3>
-          <p class="text-xs text-gray-400">
-            {{ 'dashboard.monthly.subtitle' | translate: { year: overviewYear } }}
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">
+            {{ 'dashboard.daily.subtitle' | translate }}
           </p>
+          <div style="height: 240px">
+            <canvas #dailyBalanceChart></canvas>
+          </div>
         </div>
-        <div *ngIf="yearToDate as y" class="px-6 pt-6">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            {{
-              'dashboard.monthly.soFar'
-                | translate
-                  : {
-                      year: overviewYear,
-                      month: monthShort(overviewMonth),
-                      previous: overviewYear - 1,
-                    }
-            }}
+        <div class="bg-white p-6 rounded-2xl border border-gray-200">
+          <h3 class="text-base font-semibold text-gray-800">
+            {{ 'dashboard.compare.title' | translate }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5 mb-4">
+            {{ 'dashboard.compare.subtitle' | translate }}
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div *ngIf="comparison as c" class="space-y-3 text-xs sm:text-sm">
+            <div
+              class="grid grid-cols-[4.5rem_1fr_1fr_3rem] sm:grid-cols-4 gap-1 sm:gap-2 text-xs text-gray-400"
+            >
+              <span></span>
+              <span class="text-right">{{ 'dashboard.compare.now' | translate }}</span>
+              <span class="text-right">{{ 'dashboard.compare.before' | translate }}</span>
+              <span></span>
+            </div>
             <div
               *ngFor="let row of comparisonRows"
-              class="rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-2"
+              class="grid grid-cols-[4.5rem_1fr_1fr_3rem] sm:grid-cols-4 gap-1 sm:gap-2 items-center"
             >
-              <div class="min-w-0">
-                <p class="text-xs text-gray-500">{{ row.label | translate }}</p>
-                <p class="text-sm font-semibold text-gray-900 tabular-nums">
-                  {{ y.current[row.key] | currencySymbol }}
-                </p>
-                <p class="text-xs text-gray-400 tabular-nums">
-                  {{ y.previous[row.key] | currencySymbol }}
-                  {{ 'dashboard.monthly.lastYear' | translate }}
-                </p>
-              </div>
+              <span class="text-gray-600">{{ row.label | translate }}</span>
+              <span class="text-right font-semibold text-gray-900 tabular-nums">{{
+                c.current[row.key] | currencySymbol
+              }}</span>
+              <span class="text-right text-gray-500 tabular-nums">{{
+                c.previous[row.key] | currencySymbol
+              }}</span>
               <span
-                *ngIf="pctOf(y, row.key) as d"
-                class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+                *ngIf="deltaPct(row.key) as d"
+                class="justify-self-end text-xs font-semibold px-2 py-0.5 rounded-full"
                 [class.bg-green-100]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
                 [class.text-green-700]="d.pct >= 0 === row.goodWhenUp || d.pct === 0"
                 [class.bg-red-100]="!(d.pct >= 0 === row.goodWhenUp || d.pct === 0)"
@@ -871,69 +816,16 @@
               </span>
             </div>
           </div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-          <!-- Month list -->
-          <div class="space-y-2">
-            <div
-              *ngFor="let m of monthBreakdown"
-              class="flex items-center justify-between p-3 rounded-lg transition-colors"
-              [class.bg-primary-50]="m.month === overviewMonth"
-              [class.border]="m.month === overviewMonth"
-              [class.border-primary-200]="m.month === overviewMonth"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <div
-                  class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-bold shrink-0"
-                >
-                  {{ monthShort(m.month) }}
-                </div>
-                <div class="min-w-0">
-                  <p class="text-sm font-medium text-gray-800 truncate">
-                    {{ monthNames[m.month - 1] }}
-                  </p>
-                  <p class="text-xs text-gray-500">
-                    {{ 'dashboard.balance' | translate }}
-                    <span
-                      [class.text-green-600]="m.balance >= 0"
-                      [class.text-red-600]="m.balance < 0"
-                    >
-                      {{ m.balance | currencySymbol }}
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <div class="text-right shrink-0">
-                <p class="text-xs text-gray-400">
-                  {{ 'dashboard.monthly.in' | translate }}
-                  <span class="font-semibold text-gray-700">{{ m.income | currencySymbol }}</span>
-                </p>
-                <p class="text-xs text-gray-400">
-                  {{ 'dashboard.monthly.out' | translate }}
-                  <span class="font-semibold text-gray-700">{{ m.expenses | currencySymbol }}</span>
-                </p>
-              </div>
-            </div>
-            <div *ngIf="monthBreakdown.length === 0" class="text-gray-300 text-center py-8 text-sm">
-              {{ 'dashboard.monthly.none' | translate }}
-            </div>
-          </div>
-          <!-- Balance trend chart -->
-          <div class="flex flex-col">
-            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              {{ 'dashboard.monthly.trend' | translate }}
-            </h4>
-            <div style="height: 220px">
-              <canvas #monthlyBalanceChart></canvas>
-            </div>
-          </div>
+          <p *ngIf="!comparison" class="text-sm text-gray-300 py-6 text-center">
+            {{ 'dashboard.compare.none' | translate }}
+          </p>
         </div>
       </div>
 
       <!-- Charts row -->
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-        <!-- Bar chart: Income vs Expenses (spans 3 cols) -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-3">
+      <div class="grid grid-cols-1 gap-6 mb-6">
+        <!-- Bar chart: Income vs Expenses -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-semibold text-gray-800">
@@ -962,39 +854,6 @@
             {{ 'dashboard.yearly.none' | translate }}
           </div>
           <canvas #incomeExpenseChart style="max-height: 220px"></canvas>
-        </div>
-
-        <!-- Doughnut: monthly overview (spans 2 cols) -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 lg:col-span-2">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-semibold text-gray-800">
-              {{ 'dashboard.snapshot.title' | translate }}
-            </h3>
-            <span class="text-xs font-medium text-gray-600"
-              >{{ monthShort(overviewMonth) }} {{ overviewYear }}</span
-            >
-          </div>
-          <div class="relative flex items-center justify-center" style="height: 170px">
-            <canvas #categoryChart></canvas>
-            <div class="absolute text-center pointer-events-none">
-              <p class="text-xs text-gray-400">{{ 'dashboard.snapshot.total' | translate }}</p>
-              <p class="text-lg font-bold text-gray-700">{{ overviewIncome | currencySymbol }}</p>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
-            <div class="bg-primary-50 rounded-lg p-2">
-              <p class="text-gray-600">{{ 'dashboard.income' | translate }}</p>
-              <p class="font-bold text-primary-600">{{ overviewIncome | currencySymbol }}</p>
-            </div>
-            <div class="bg-red-50 rounded-lg p-2">
-              <p class="text-gray-600">{{ 'dashboard.expenses' | translate }}</p>
-              <p class="font-bold text-red-700">{{ overviewExpenses | currencySymbol }}</p>
-            </div>
-            <div class="bg-indigo-50 rounded-lg p-2">
-              <p class="text-gray-600">{{ 'dashboard.snapshot.saved' | translate }}</p>
-              <p class="font-bold text-indigo-700">{{ overviewSavings | currencySymbol }}</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1092,10 +951,16 @@
           *ngFor="let t of recentTransactions"
           class="flex items-center gap-3 py-3 border-t border-gray-100 first:border-0 text-sm"
         >
-          <span
-            class="w-9 h-9 rounded-xl bg-primary-50 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0"
-          >
-            {{ (t.category?.name || t.description).charAt(0).toUpperCase() }}
+          <span class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+            <img
+              *ngIf="isImageIcon(t.category?.icon); else recentIcon"
+              [src]="t.category?.icon"
+              [alt]="t.category?.name | categoryName"
+              class="w-5 h-5 object-contain"
+            />
+            <ng-template #recentIcon
+              ><span class="text-base">{{ t.category?.icon || '💳' }}</span></ng-template
+            >
           </span>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-800 truncate">{{ t.description }}</p>

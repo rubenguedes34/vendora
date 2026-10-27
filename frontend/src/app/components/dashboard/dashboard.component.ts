@@ -128,6 +128,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   monthBreakdown: { month: number; income: number; expenses: number; balance: number }[] = [];
   recentTransactions: Transaction[] = [];
 
+  isImageIcon(icon?: string): boolean {
+    return Boolean(icon?.startsWith('http://') || icon?.startsWith('https://'));
+  }
+
   userInitials = '';
 
   get overviewBalance(): number {
@@ -155,15 +159,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef;
-  @ViewChild('categoryChart') categoryChart!: ElementRef;
   @ViewChild('categoryBreakdownChart') categoryBreakdownChart!: ElementRef;
-  @ViewChild('monthlyBalanceChart') monthlyBalanceChart!: ElementRef;
   @ViewChild('dailyBalanceChart') dailyBalanceChart!: ElementRef;
 
   private incomeExpenseChartInstance?: ChartInstance;
-  private categoryChartInstance?: ChartInstance;
   private categoryBreakdownChartInstance?: ChartInstance;
-  private monthlyBalanceChartInstance?: ChartInstance;
   private dailyBalanceChartInstance?: ChartInstance;
   dailyBalance: DailyBalance | null = null;
 
@@ -210,9 +210,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ) {
     this.destroyRef.onDestroy(() => {
       this.incomeExpenseChartInstance?.destroy();
-      this.categoryChartInstance?.destroy();
       this.categoryBreakdownChartInstance?.destroy();
-      this.monthlyBalanceChartInstance?.destroy();
       this.dailyBalanceChartInstance?.destroy();
     });
   }
@@ -353,7 +351,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.overviewIncome = parseFloat(String(record.monthly_income || 0));
     this.overviewExpenses = parseFloat(String(record.monthly_expenses || 0));
     this.overviewSavings = parseFloat(String(record.savings || 0));
-    this.updateOverviewChart();
   }
 
   // The backend owns the projection (it knows the recurrents still due); alerts are recomputed once it arrives.
@@ -865,7 +862,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.overviewIncome = 0;
             this.overviewExpenses = 0;
             this.overviewSavings = 0;
-            this.updateOverviewChart();
           }
           this.computeAlerts(
             this.overviewYear,
@@ -883,7 +879,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.overviewIncome = 0;
           this.overviewExpenses = 0;
           this.overviewSavings = 0;
-          this.updateOverviewChart();
           this.computeAlerts(this.overviewYear, this.overviewMonth, 0, 0, 0);
           this.updateChartsWithRealData();
           this.cdr.markForCheck();
@@ -911,19 +906,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       );
       this.incomeExpenseChartInstance.update();
     }
-    this.updateOverviewChart();
-    this.updateMonthlyBalanceChart();
-  }
-
-  updateOverviewChart(): void {
-    if (this.categoryChartInstance) {
-      this.categoryChartInstance.data.datasets[0].data = [
-        this.overviewIncome,
-        this.overviewExpenses,
-        Math.max(0, this.overviewSavings),
-      ];
-      this.categoryChartInstance.update();
-    }
   }
 
   private chartColors() {
@@ -936,20 +918,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // Chart.js bakes colours into options at creation, so a mode switch rebuilds the charts.
   private redrawChartsForMode(): void {
     this.initIncomeExpenseChart();
-    this.initCategoryChart();
     this.initCategoryBreakdownChart();
-    this.initMonthlyBalanceChart();
     this.initDailyBalanceChart();
-    this.updateOverviewChart();
     this.updateChartsWithRealData();
   }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.initIncomeExpenseChart();
-      this.initCategoryChart();
       this.initCategoryBreakdownChart();
-      this.initMonthlyBalanceChart();
       this.initDailyBalanceChart();
     }, 200);
   }
@@ -1034,46 +1011,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               font: { size: 11 },
               callback: (v: number | string) => symbol + v,
             },
-          },
-        },
-      },
-    });
-  }
-
-  initCategoryChart(): void {
-    if (!this.categoryChart?.nativeElement) return;
-    this.categoryChartInstance?.destroy();
-    const ctx = this.categoryChart.nativeElement.getContext('2d');
-    this.categoryChartInstance = new (chartConstructor())(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['income', 'expenses', 'savings'].map((k) =>
-          this.translate.instant(`dashboard.${k}`),
-        ),
-        datasets: [
-          {
-            data: [this.overviewIncome, this.overviewExpenses, Math.max(0, this.overviewSavings)],
-            backgroundColor: ['#2dd4bf', '#f87171', '#818cf8'],
-            borderColor: 'transparent',
-            borderWidth: 3,
-            hoverOffset: 6,
-            borderRadius: 4,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb',
-            bodyColor: '#d1d5db',
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: { label: (c: RadialTooltipItem) => ` ${c.label}: €${c.parsed.toFixed(2)}` },
           },
         },
       },
@@ -1214,78 +1151,5 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
       },
     });
-  }
-
-  initMonthlyBalanceChart(): void {
-    if (!this.monthlyBalanceChart?.nativeElement) return;
-    this.monthlyBalanceChartInstance?.destroy();
-    const ctx = this.monthlyBalanceChart.nativeElement.getContext('2d');
-    const symbol = this.currencyService.symbol;
-    const balanceLabel = this.translate.instant('dashboard.balance');
-    const data = this.monthBreakdown.map((m) => m.balance);
-    const colors = this.monthBreakdown.map((m) => (m.balance >= 0 ? '#10b981' : '#ef4444'));
-
-    this.monthlyBalanceChartInstance = new (chartConstructor())(ctx, {
-      type: 'bar',
-      data: {
-        labels: this.monthNames.map((m) => m.slice(0, 3)),
-        datasets: [
-          {
-            label: balanceLabel,
-            data,
-            backgroundColor: colors,
-            borderRadius: 6,
-            borderSkipped: false,
-            barPercentage: 0.6,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(17,24,39,0.85)',
-            titleColor: '#e5e7eb',
-            bodyColor: '#d1d5db',
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              label: (c: CartesianTooltipItem) =>
-                ` ${balanceLabel}: ${symbol}${c.parsed.y.toFixed(2)}`,
-            },
-          },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: this.chartColors().tick, font: { size: 11 } },
-          },
-          y: {
-            grid: { color: this.chartColors().grid },
-            ticks: {
-              color: this.chartColors().tick,
-              font: { size: 11 },
-              callback: (v: number | string) => symbol + v,
-            },
-          },
-        },
-      },
-    });
-  }
-
-  updateMonthlyBalanceChart(): void {
-    if (!this.monthlyBalanceChartInstance) {
-      this.initMonthlyBalanceChart();
-      return;
-    }
-    this.monthlyBalanceChartInstance.data.datasets[0].data = this.monthBreakdown.map(
-      (m) => m.balance,
-    );
-    this.monthlyBalanceChartInstance.data.datasets[0].backgroundColor = this.monthBreakdown.map(
-      (m) => (m.balance >= 0 ? '#10b981' : '#ef4444'),
-    );
-    this.monthlyBalanceChartInstance.update();
   }
 }
