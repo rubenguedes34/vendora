@@ -72,6 +72,16 @@ class AlertRuleControllerTest extends TestCase
         $this->assertDatabaseMissing('alert_rules', ['id' => $id]);
     }
 
+    public function test_rule_count_is_capped_per_user(): void
+    {
+        for ($i = 0; $i < 50; $i++) {
+            $this->user->alertRules()->create(['type' => 'total_spend_limit', 'threshold' => 10]);
+        }
+
+        $this->postJson('/api/alert-rules', ['type' => 'total_spend_limit', 'threshold' => 10], $this->authHeader())
+            ->assertStatus(422);
+    }
+
     public function test_validation_rejects_bad_rules(): void
     {
         $category = Category::create(['name' => 'Cat2', 'type' => 'expense']);
