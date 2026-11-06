@@ -30,6 +30,8 @@ the `scheduler` service runs them.
   ones**, so a notification the user deleted does not come back.
 - Keys are month-scoped (e.g. `budget-{id}-{Y-m}`); alert-rule keys also include the threshold, so raising a
   limit can alert again the same month.
+- Creation runs under a short cache lock per user/type/key (there is no unique index), so concurrent requests
+  cannot both create it; if the lock is taken the call is skipped.
 - Soft-deleted rows older than 60 days are purged, since their month-scoped key can no longer be generated.
 - Exception: `budget_almost_exceeded` is hard-deleted when superseded by `budget_exceeded`, so it can return
   if spending drops back below the limit.
@@ -38,7 +40,7 @@ the `scheduler` service runs them.
 
 `AlertRule`: `type` (`category_limit` | `total_spend_limit`), `category_id`, `threshold`, `is_active`. Monthly
 period and a single threshold only (marked `shortcut:` in the generator). CRUD at `/api/alert-rules`
-(`AlertRuleController`); frontend `AlertRulesComponent`.
+(`AlertRuleController`), at most 50 rules per user (422 beyond that); frontend `AlertRulesComponent`.
 
 ## i18n and money
 

@@ -22,6 +22,6 @@ class AvailableRequest extends FormRequest
     {
         return $this->filled('month')
             ? array_map('intval', explode('-', $this->month))
-            : [(int) date('Y'), (int) date('n')];
+            : [now()->year, now()->month];
     }
 }

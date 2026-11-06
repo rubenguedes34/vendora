@@ -62,8 +62,13 @@ export class ThemeService {
     document.documentElement.setAttribute('data-mode', dark ? 'dark' : 'light');
     this.dark$.next(dark);
     // Charts created after this point pick up readable default text colours.
-    const chart = (window as unknown as { Chart?: { defaults: { color: string } } }).Chart;
-    if (chart) chart.defaults.color = dark ? '#8b97b3' : '#666';
+    const chart = (
+      window as unknown as { Chart?: { defaults: { color: string; font: { family: string } } } }
+    ).Chart;
+    if (chart) {
+      chart.defaults.color = dark ? '#8b97b3' : '#666';
+      chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+    }
   }
 
   getSavedTheme(): string {

@@ -30,5 +30,6 @@ Routes (`permission:use ai support`): `POST /api/ai/chat` (`throttle:ai`), `GET 
 - Conversations come from `laravel/ai`'s `Conversation` store and are filtered by participant (the user);
   list returns the 50 most recent; deleting removes messages and the conversation in one transaction.
 - Daily limit per user: `config('ai.support.daily_limit')` (default 100) + 10/min, in the `ai` limiter.
+- One in-flight chat request per user: a cache lock (`ai-chat:{user id}`) makes a second parallel request get 429.
 
 Keep FAQs in sync with real features: the assistant only knows what the FAQs say.
