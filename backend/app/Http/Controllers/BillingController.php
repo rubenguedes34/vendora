@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Billing\CheckoutRequest;
+use App\Services\PremiumAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -71,6 +72,9 @@ class BillingController extends Controller
         $user = $request->user();
 
         if ($user->subscribed('default')) {
+            // Role out of step with the subscription (e.g. a missed webhook): fix it so the SPA can just enter.
+            PremiumAccess::sync($user);
+
             return response()->json(['message' => __('billing.already_subscribed')], 409);
         }
 

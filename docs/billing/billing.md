@@ -7,7 +7,7 @@ role is derived from the stored subscription. Card data never touches our server
 
 1. Free user opens `/investments` -> SPA `premiumGuard` calls `GET /api/billing`; not premium -> `/premium` (upsell).
    The backend enforces it anyway: `permission:view investments` answers 403.
-2. `POST /api/billing/checkout {plan: monthly|quarterly|semiannual}` -> Stripe Checkout URL (409 already subscribed, 503 plan not
+2. `POST /api/billing/checkout {plan: monthly|quarterly|semiannual}` -> Stripe Checkout URL (409 already subscribed: the role is re-synced and the SPA just opens Investments, no error, 503 plan not
    configured, 422 bad plan). Success returns to `/premium?checkout=success`, which **polls** `GET /api/billing`
    (2s, 15 tries) until the webhook has made the user premium, then opens Investments.
 3. **Only the webhook grants premium**, never the success redirect. `POST /api/stripe/webhook` (Cashier controller,

@@ -140,6 +140,11 @@ class BillingTest extends TestCase
 
         $this->webhook('customer.subscription.created', $user, 'active');
         $this->postJson('/api/billing/checkout', ['plan' => 'monthly'], $this->auth($user))->assertStatus(409);
+
+        // Role out of step with the subscription: the 409 path re-syncs it.
+        $user->syncRoles(['user']);
+        $this->postJson('/api/billing/checkout', ['plan' => 'monthly'], $this->auth($user))->assertStatus(409);
+        $this->assertTrue($user->fresh()->hasRole('premium'));
     }
 
     public function test_portal_needs_a_billing_account(): void

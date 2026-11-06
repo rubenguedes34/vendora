@@ -48,14 +48,16 @@ const POLL_MAX = 15;
               aria-hidden="true"
             >
               <span
-                class="absolute right-3 top-3 z-10 rounded-full bg-gray-900/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                class="absolute bottom-3 right-3 z-10 rounded-full bg-gray-900/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
               >
                 {{ 'billing.pitch.example' | translate }}
               </span>
               <div class="blur-sm select-none">
                 <div class="grid grid-cols-4 gap-2 mb-3">
                   @for (k of ['€10.000', '€12.400', '+€2.400', '+24%']; track k) {
-                    <div class="rounded-lg bg-primary-600/20 p-2 text-sm font-bold text-gray-900">
+                    <div
+                      class="rounded-lg bg-primary-600 opacity-20 p-2 text-sm font-bold text-gray-900"
+                    >
                       {{ k }}
                     </div>
                   }
@@ -68,7 +70,7 @@ const POLL_MAX = 15;
                       r="15.9"
                       fill="none"
                       stroke-width="6"
-                      class="stroke-primary-600/30"
+                      class="stroke-primary-600 opacity-30"
                     />
                     <circle
                       cx="18"
@@ -87,12 +89,15 @@ const POLL_MAX = 15;
                       stroke-width="6"
                       stroke-dasharray="20 100"
                       stroke-dashoffset="-55"
-                      class="stroke-primary-600/60"
+                      class="stroke-primary-600 opacity-60"
                     />
                   </svg>
                   <div class="flex flex-1 items-end gap-2 h-24">
                     @for (h of [30, 45, 38, 60, 52, 75, 68, 90]; track $index) {
-                      <div class="flex-1 rounded-t bg-primary-600/50" [style.height.%]="h"></div>
+                      <div
+                        class="flex-1 rounded-t bg-primary-600 opacity-50"
+                        [style.height.%]="h"
+                      ></div>
                     }
                   </div>
                 </div>
@@ -107,7 +112,7 @@ const POLL_MAX = 15;
                   </svg>
                   <div class="flex flex-col justify-center gap-2">
                     @for (w of [85, 55, 30]; track $index) {
-                      <div class="h-3 rounded bg-primary-600/50" [style.width.%]="w"></div>
+                      <div class="h-3 rounded bg-primary-600 opacity-50" [style.width.%]="w"></div>
                     }
                   </div>
                 </div>
@@ -262,6 +267,14 @@ export class PremiumComponent implements OnInit, OnDestroy {
       next: ({ url }) => window.location.assign(url),
       error: (e) => {
         this.busy.set(false);
+        if (e?.status === 409) {
+          // Already subscribed: not an error, just go in.
+          this.billing.getStatus().subscribe((st) => {
+            if (st.premium) this.router.navigateByUrl('/investments');
+            else this.status.set(st);
+          });
+          return;
+        }
         this.message.set(e?.status === 503 ? 'billing.unavailable' : 'billing.error');
       },
     });
