@@ -21,6 +21,7 @@ export const I18N_NAMESPACES = [
   'account',
   'categories',
   'errors',
+  'billing',
 ] as const;
 
 export class NamespacedTranslateLoader implements TranslateLoader {

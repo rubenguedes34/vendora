@@ -25,6 +25,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,7 +36,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(PdfTextExtractor::class, SmalotPdfTextExtractor::class);
         $this->app->bind(StatementAi::class, LaravelStatementAi::class);
-        //
+        // The webhook route is declared in routes/api.php with a mandatory-secret guard.
+        Cashier::ignoreRoutes();
     }
 
     /**
@@ -43,6 +45,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // A failed renewal is retried by Stripe for a few days; premium stays until Stripe gives up (subscription deleted).
+        Cashier::keepPastDueSubscriptionsActive();
+
         foreach ([
             AlertRule::class,
             Budget::class,

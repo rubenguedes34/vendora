@@ -26,8 +26,8 @@ The two web routes are not throttled.
 | --- | --- |
 | `admin` | all, including `manage users`, `import statements` |
 | `manager` | `access admin panel`, `view metrics` |
-| `user` | `view investments`, `use ai support`, `view health score` |
-| `premium` | `user` set + `export reports` |
+| `user` | `use ai support`, `view health score` (Investments is Premium-only, see [billing](../billing/billing.md)) |
+| `premium` | `user` set + `view investments`, `export reports` |
 
 The first user is made `admin` by the seeder. Gate features with `permission:<name>` middleware, never role names.
 The SPA only hides UI; the backend is the authority.
@@ -47,7 +47,7 @@ Filament at `/admin` uses the web session, not the bearer token. The SPA bridges
 Every `/api/admin/*` route needs `access admin panel`; metrics also need `view metrics` and user management
 needs `manage users`.
 
-Resources: users, roles, permissions, categories, investments, FAQs. Pages: Logs, Email settings
+Resources: users, roles, permissions, categories, investments, FAQs, subscriptions (read-only). Pages: Logs, Email settings
 ([emails](../notifications/emails.md)). Budgets and transactions are intentionally not in the panel.
 
 ### Admin dashboard

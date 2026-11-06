@@ -1,0 +1,51 @@
+{
+  "title": "Passa a Premium",
+  "subtitle": "Desbloqueia os Investimentos e acompanha o teu portfólio junto do orçamento.",
+  "monthly": "Mensal",
+  "subscribe": "Subscrever",
+  "per": {
+    "monthly": "/ mês",
+    "quarterly": "/ 3 meses",
+    "semiannual": "/ 6 meses"
+  },
+  "save": "poupa {{pct}}%",
+  "redirecting": "A redirecionar para o pagamento seguro...",
+  "confirming": "A confirmar o pagamento, demora alguns segundos...",
+  "confirmTimeout": "Pagamento recebido mas ainda não confirmado. Atualiza dentro de um minuto; não serás cobrado duas vezes.",
+  "cancelled": "Checkout cancelado. Não foste cobrado.",
+  "active": "És Premium",
+  "cancelsAt": "O teu plano termina a {{date}}.",
+  "pastDue": "O último pagamento falhou. Atualiza o cartão para manteres o Premium.",
+  "manage": "Gerir faturação",
+  "openInvestments": "Abrir Investimentos",
+  "unavailable": "Os planos não estão disponíveis neste momento.",
+  "error": "Algo correu mal. Tenta novamente.",
+  "pitch": {
+    "title": "Vê o teu dinheiro crescer",
+    "sub": "Tudo o que o Premium desbloqueia, num só plano.",
+    "locked": "Exclusivo Premium",
+    "example": "Exemplo"
+  },
+  "benefits": {
+    "roi": {
+      "title": "Ganhos e ROI num relance",
+      "text": "Vê quanto investiste, quanto vale hoje e quanto já ganhaste."
+    },
+    "breakdown": {
+      "title": "Gráficos do portfólio",
+      "text": "Distribuição por tipo de ativo e por conta."
+    },
+    "prices": {
+      "title": "Preços ao vivo",
+      "text": "Pesquisa ativos e o valor atualiza-se sozinho."
+    },
+    "exports": {
+      "title": "Exportar relatórios",
+      "text": "Leva os teus dados para onde precisares, quando quiseres."
+    }
+  },
+  "trust": "Cancelas quando quiseres · Pagamento seguro via Stripe",
+  "quarterly": "3 meses",
+  "semiannual": "6 meses",
+  "perMonth": "{{price}}/mês"
+}
