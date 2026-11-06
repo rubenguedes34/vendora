@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\AppAlertMail;
 use App\Support\EmailGate;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class NotificationGenerator
@@ -26,7 +27,15 @@ class NotificationGenerator
         $this->generateInvestmentTargetNotifications($user);
     }
 
+    // The check-then-create below has no unique index, so a short lock stops two concurrent requests from both creating it.
+    // If the lock is taken, another request is creating the same notification, so skipping is correct.
     private function addOnce(User $user, string $type, string $key, string $title, string $body, array $data = [], array $i18n = []): void
+    {
+        Cache::lock("notification:{$user->id}:{$type}:{$key}", 10)
+            ->get(fn () => $this->createOnce($user, $type, $key, $title, $body, $data, $i18n));
+    }
+
+    private function createOnce(User $user, string $type, string $key, string $title, string $body, array $data, array $i18n): void
     {
         // withTrashed: a notification the user deleted must not be generated again.
         $exists = $user->appNotifications()

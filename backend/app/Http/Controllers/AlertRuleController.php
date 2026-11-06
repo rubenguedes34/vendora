@@ -50,6 +50,10 @@ class AlertRuleController extends Controller
      */
     public function store(StoreAlertRuleRequest $request)
     {
+        if ($request->user()->alertRules()->count() >= 50) {
+            return response()->json(['message' => __('messages.alert_rule_limit')], 422);
+        }
+
         $rule = $request->user()->alertRules()->create($request->validated());
         $this->regenerate($request);
 
