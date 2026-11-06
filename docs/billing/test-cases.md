@@ -33,7 +33,7 @@ Price ids and `stripe listen`; not verified yet.
 
 ## Concerns
 
-1. **Display price vs charged price.** `BILLING_MONTHLY_PRICE` / `BILLING_YEARLY_DISCOUNT` only drive the page. Stripe
+1. **Display price vs charged price.** `BILLING_MONTHLY_PRICE` / `BILLING_QUARTERLY_DISCOUNT` / `BILLING_SEMIANNUAL_DISCOUNT` only drive the page. Stripe
    charges the amount of the Price. Change both together (or read the amount from Stripe and cache it).
 2. **Currency.** The shown price is EUR; the user may pick another display currency in the app.
 3. **`cancel_at_period_end` webhook needs the Stripe API.** Cashier fetches the item to compute the period end, so it

@@ -24,9 +24,9 @@ describe('BillingService', () => {
   });
 
   it('checkout posts the chosen plan', () => {
-    service.checkout('yearly').subscribe();
+    service.checkout('quarterly').subscribe();
     const req = http.expectOne({ method: 'POST', url: `${environment.apiUrl}/billing/checkout` });
-    expect(req.request.body).toEqual({ plan: 'yearly' });
+    expect(req.request.body).toEqual({ plan: 'quarterly' });
     req.flush({ url: 'https://checkout.stripe.com/x' });
   });
 

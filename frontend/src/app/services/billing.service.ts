@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type Plan = 'monthly' | 'yearly';
+export type Plan = 'monthly' | 'quarterly' | 'semiannual';
 
 export interface BillingStatus {
   premium: boolean;
@@ -11,7 +11,7 @@ export interface BillingStatus {
   cancels_at: string | null;
   has_customer: boolean;
   plans: Plan[];
-  pricing: { monthly: number; yearly: number; discount: number };
+  pricing: Record<Plan, { price: number; months: number; discount: number }>;
 }
 
 @Injectable({ providedIn: 'root' })

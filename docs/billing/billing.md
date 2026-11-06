@@ -7,7 +7,7 @@ role is derived from the stored subscription. Card data never touches our server
 
 1. Free user opens `/investments` -> SPA `premiumGuard` calls `GET /api/billing`; not premium -> `/premium` (upsell).
    The backend enforces it anyway: `permission:view investments` answers 403.
-2. `POST /api/billing/checkout {plan: monthly|yearly}` -> Stripe Checkout URL (409 already subscribed, 503 plan not
+2. `POST /api/billing/checkout {plan: monthly|quarterly|semiannual}` -> Stripe Checkout URL (409 already subscribed, 503 plan not
    configured, 422 bad plan). Success returns to `/premium?checkout=success`, which **polls** `GET /api/billing`
    (2s, 15 tries) until the webhook has made the user premium, then opens Investments.
 3. **Only the webhook grants premium**, never the success redirect. `POST /api/stripe/webhook` (Cashier controller,
@@ -23,7 +23,7 @@ role is derived from the stored subscription. Card data never touches our server
 ## Setup (Stripe test mode first)
 
 `.env` (never committed): `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`,
-`STRIPE_PRICE_YEARLY`. Shown prices: `BILLING_MONTHLY_PRICE` (default 10, EUR) and `BILLING_YEARLY_DISCOUNT` (default 10 %; yearly = monthly x 12 x (1 - discount)). Display only: Stripe charges the Price amount, so keep both in sync. Create two recurring Prices in the Stripe dashboard. Enable the Customer Portal and customer
+`STRIPE_PRICE_QUARTERLY`, `STRIPE_PRICE_SEMIANNUAL`. Plans: 1, 3 and 6 months (3 and 6 are monthly Prices with `interval_count` 3 / 6). Shown prices: `BILLING_MONTHLY_PRICE` (default 10, EUR), `BILLING_QUARTERLY_DISCOUNT` (default 10 %) and `BILLING_SEMIANNUAL_DISCOUNT` (default 15 %); plan price = monthly x months x (1 - discount), so 10 / 27 / 51 EUR. `GET /api/billing` returns `pricing.<plan> = {price, months, discount}`. Display only: Stripe charges the Price amount, so keep both in sync. Create three recurring Prices in Stripe. Enable the Customer Portal and customer
 emails/receipts in Stripe settings. Local webhook: `stripe listen --forward-to localhost:8000/api/stripe/webhook`
 (prints the `whsec_...`). Production: add the endpoint for `customer.subscription.*` events.
 

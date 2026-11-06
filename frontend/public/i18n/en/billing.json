@@ -2,9 +2,12 @@
   "title": "Go Premium",
   "subtitle": "Unlock Investments and track your portfolio next to your budget.",
   "monthly": "Monthly",
-  "yearly": "Yearly",
   "subscribe": "Subscribe",
-  "per": { "monthly": "/ month", "yearly": "/ year" },
+  "per": {
+    "monthly": "/ month",
+    "quarterly": "/ 3 months",
+    "semiannual": "/ 6 months"
+  },
   "save": "save {{pct}}%",
   "redirecting": "Redirecting to secure payment...",
   "confirming": "Confirming your payment, this takes a few seconds...",
@@ -16,5 +19,33 @@
   "manage": "Manage billing",
   "openInvestments": "Open Investments",
   "unavailable": "Plans are not available right now.",
-  "error": "Something went wrong. Please try again."
+  "error": "Something went wrong. Please try again.",
+  "pitch": {
+    "title": "Watch your money grow",
+    "sub": "Everything Premium unlocks, in a single plan.",
+    "locked": "Premium only",
+    "example": "Example"
+  },
+  "benefits": {
+    "roi": {
+      "title": "Gains and ROI at a glance",
+      "text": "See what you invested, what it is worth today and what you gained."
+    },
+    "breakdown": {
+      "title": "Portfolio charts",
+      "text": "Breakdown by asset type and by account."
+    },
+    "prices": {
+      "title": "Live prices",
+      "text": "Search assets and the value updates by itself."
+    },
+    "exports": {
+      "title": "Export reports",
+      "text": "Take your data wherever you need it, whenever you want."
+    }
+  },
+  "trust": "Cancel anytime · Secure payment via Stripe",
+  "quarterly": "3 months",
+  "semiannual": "6 months",
+  "perMonth": "{{price}}/mo"
 }

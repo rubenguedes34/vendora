@@ -25,7 +25,7 @@ class BillingTest extends TestCase
     {
         parent::setUp();
         $this->seed(RoleSeeder::class);
-        config(['cashier.webhook.secret' => self::SECRET, 'billing.plans.monthly' => 'price_m', 'billing.plans.yearly' => null, 'cashier.secret' => 'sk_test_x']);
+        config(['cashier.webhook.secret' => self::SECRET, 'billing.plans.monthly' => 'price_m', 'billing.plans.quarterly' => null, 'billing.plans.semiannual' => null, 'cashier.secret' => 'sk_test_x']);
     }
 
     private function user(string $role = 'user'): User
@@ -124,14 +124,15 @@ class BillingTest extends TestCase
     public function test_show_reports_status_and_plans(): void
     {
         $this->getJson('/api/billing', $this->auth($this->user()))
-            ->assertOk()->assertJsonPath('premium', false)->assertJsonPath('plans', ['monthly'])->assertJsonPath('pricing.monthly', 10)->assertJsonPath('pricing.yearly', 108)->assertJsonPath('pricing.discount', 10);
+            ->assertOk()->assertJsonPath('premium', false)->assertJsonPath('plans', ['monthly'])->assertJsonPath('pricing.monthly.price', 10)->assertJsonPath('pricing.quarterly', ['price' => 27, 'months' => 3, 'discount' => 10])->assertJsonPath('pricing.semiannual', ['price' => 51, 'months' => 6, 'discount' => 15]);
     }
 
     public function test_checkout_validates_plan_and_refuses_unconfigured_or_duplicate(): void
     {
         $user = $this->user();
         $this->postJson('/api/billing/checkout', ['plan' => 'weekly'], $this->auth($user))->assertStatus(422);
-        $this->postJson('/api/billing/checkout', ['plan' => 'yearly'], $this->auth($user))->assertStatus(503);
+        $this->postJson('/api/billing/checkout', ['plan' => 'quarterly'], $this->auth($user))->assertStatus(503);
+        $this->postJson('/api/billing/checkout', ['plan' => 'yearly'], $this->auth($user))->assertStatus(422);
 
         // Plan configured but no Stripe secret: 503, not a Stripe SDK 500.
         config(['cashier.secret' => null]);

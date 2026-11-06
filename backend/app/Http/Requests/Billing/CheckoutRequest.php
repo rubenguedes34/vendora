@@ -8,6 +8,6 @@ class CheckoutRequest extends FormRequest
 {
     public function rules(): array
     {
-        return ['plan' => 'required|string|in:monthly,yearly'];
+        return ['plan' => 'required|string|in:monthly,quarterly,semiannual'];
     }
 }

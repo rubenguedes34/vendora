@@ -33,16 +33,20 @@ class BillingController extends Controller
         ]);
     }
 
-    /** @return array{monthly: float, yearly: float, discount: int} */
+    /** @return array<string, array{price: float, months: int, discount: int}> */
     private function pricing(): array
     {
         $monthly = config('billing.display.monthly');
-        $discount = config('billing.display.yearly_discount');
+        $plan = fn (int $months, int $discount) => [
+            'price' => round($monthly * $months * (1 - $discount / 100), 2),
+            'months' => $months,
+            'discount' => $discount,
+        ];
 
         return [
-            'monthly' => $monthly,
-            'yearly' => round($monthly * 12 * (1 - $discount / 100), 2),
-            'discount' => $discount,
+            'monthly' => $plan(1, 0),
+            'quarterly' => $plan(3, config('billing.display.quarterly_discount')),
+            'semiannual' => $plan(6, config('billing.display.semiannual_discount')),
         ];
     }
 
@@ -55,7 +59,7 @@ class BillingController extends Controller
      *
      *     @OA\RequestBody(required=true, @OA\JsonContent(required={"plan"},
      *
-     *         @OA\Property(property="plan", type="string", enum={"monthly","yearly"}))),
+     *         @OA\Property(property="plan", type="string", enum={"monthly","quarterly","semiannual"}))),
      *
      *     @OA\Response(response=200, description="Checkout URL"),
      *     @OA\Response(response=409, description="Already subscribed"),
