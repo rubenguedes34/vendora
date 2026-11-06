@@ -32,6 +32,8 @@ return [
     'password_updated' => 'Password updated successfully.',
     'login_code_invalid' => 'Invalid or expired login code.',
     'alert_rule_deleted' => 'Alert rule deleted',
+    'alert_rule_limit' => 'Alert rule limit reached',
+    'ai_chat_busy' => 'A previous message is still being answered. Try again in a moment.',
     'investment_deleted' => 'Investment deleted',
     'last_admin_demote' => 'You cannot demote the last admin.',
     'role_updated' => 'Role updated.',

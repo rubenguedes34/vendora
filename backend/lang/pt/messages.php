@@ -32,6 +32,8 @@ return [
     'password_updated' => 'Palavra-passe atualizada com sucesso.',
     'login_code_invalid' => 'Código de início de sessão inválido ou expirado.',
     'alert_rule_deleted' => 'Regra de alerta eliminada',
+    'alert_rule_limit' => 'Limite de regras de alerta atingido',
+    'ai_chat_busy' => 'A mensagem anterior ainda está a ser respondida. Tenta novamente daqui a pouco.',
     'investment_deleted' => 'Investimento eliminado',
     'last_admin_demote' => 'Não pode despromover o último administrador.',
     'role_updated' => 'Função atualizada.',

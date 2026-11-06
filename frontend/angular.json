@@ -26,7 +26,8 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css"],
+            "scripts": ["node_modules/chart.js/dist/chart.umd.js"]
           },
           "configurations": {
             "production": {
@@ -49,6 +50,7 @@
                 }
               ],
               "outputHashing": "all",
+              "optimization": { "styles": { "inlineCritical": false } },
               "serviceWorker": "ngsw-config.json"
             },
             "docker": {
@@ -65,6 +67,7 @@
                 }
               ],
               "outputHashing": "all",
+              "optimization": { "styles": { "inlineCritical": false } },
               "serviceWorker": "ngsw-config.json"
             },
             "development": {

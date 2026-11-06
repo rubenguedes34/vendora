@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Ai\Agents\SupportAgent;
 use App\Http\Requests\Ai\ChatRequest;
 use App\Models\Faq;
+use App\Models\User;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Contracts\ConversationStore;
@@ -60,6 +62,22 @@ class AiChatController extends Controller
         }
 
         $user = $request->user();
+
+        // One AI call at a time per user, so parallel requests cannot multiply provider cost or worker time.
+        $lock = Cache::lock("ai-chat:{$user->id}", 150);
+        if (! $lock->get()) {
+            return response()->json(['message' => __('messages.ai_chat_busy')], 429);
+        }
+
+        try {
+            return $this->answer($request, $message, $provider, $user);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function answer(ChatRequest $request, string $message, Lab $provider, User $user): JsonResponse
+    {
         $conversationId = $request->input('conversation_id');
 
         if ($conversationId !== null && ! $this->userConversations($user)->whereKey($conversationId)->exists()) {

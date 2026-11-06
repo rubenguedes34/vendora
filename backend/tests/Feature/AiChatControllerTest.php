@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -64,6 +65,20 @@ class AiChatControllerTest extends TestCase
         $this->assertSame(25, $limits[86400]->maxAttempts);
         $this->assertSame((string) $this->user->id, (string) $limits[60]->key);
         $this->assertNotSame($limits[60]->key, $limits[86400]->key);
+    }
+
+    public function test_chat_allows_one_in_flight_request_per_user(): void
+    {
+        config()->set('ai.support.provider', 'ollama');
+        config()->set('ai.support.models', []);
+
+        $lock = Cache::lock("ai-chat:{$this->user->id}", 30);
+        $this->assertTrue($lock->get());
+
+        $this->postJson('/api/ai/chat', ['message' => 'hi'], $this->authHeader())->assertStatus(429);
+
+        $lock->release();
+        $this->postJson('/api/ai/chat', ['message' => 'hi'], $this->authHeader())->assertStatus(200);
     }
 
     public function test_faq_endpoint_returns_application_faqs(): void
