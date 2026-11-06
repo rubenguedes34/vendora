@@ -18,3 +18,9 @@ Schedule::command('notifications:generate')
     ->dailyAt('08:00')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Safety net for webhooks Stripe could not deliver.
+Schedule::command('billing:sync')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->runInBackground();

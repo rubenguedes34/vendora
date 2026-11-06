@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { AuthService, User } from './services/auth.service';
+import { BillingService } from './services/billing.service';
 
 const userNeedsSetup = (user: User | null): boolean => {
   if (!user) return false;
@@ -49,6 +51,17 @@ const setupGuard = () => {
   return userNeedsSetup(user) ? true : router.parseUrl('/dashboard');
 };
 
+// Investments is Premium-only. The backend enforces it (403); this just sends free users to the upsell page.
+const premiumGuard = () => {
+  const router = inject(Router);
+  return inject(BillingService)
+    .getStatus()
+    .pipe(
+      map((s) => s.premium || router.parseUrl('/premium')),
+      catchError(() => of(router.parseUrl('/premium'))),
+    );
+};
+
 export const routes: Routes = [
   { path: '', canActivate: [homeGuard], component: LoginComponent },
   { path: 'login', canActivate: [guestGuard], component: LoginComponent },
@@ -89,8 +102,14 @@ export const routes: Routes = [
   },
   { path: 'budgets', redirectTo: '/transactions?tab=setup', pathMatch: 'full' },
   {
-    path: 'investments',
+    path: 'premium',
     canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/premium/premium.component').then((m) => m.PremiumComponent),
+  },
+  {
+    path: 'investments',
+    canActivate: [authGuard, premiumGuard],
     loadComponent: () =>
       import('./components/investments/investments.component').then((m) => m.InvestmentsComponent),
   },

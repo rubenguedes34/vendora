@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\AlertRuleController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FinancialRecordController;
@@ -16,7 +17,9 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionImportController;
+use App\Http\Middleware\RequireStripeWebhookSecret;
 use Illuminate\Support\Facades\Route;
+use Laravel\Cashier\Http\Controllers\WebhookController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -26,6 +29,8 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:10,1'])->name('verification.verify');
 Route::post('/auth/google/exchange', [AuthController::class, 'exchangeGoogleCode'])->middleware('throttle:10,1');
 Route::post('/setup', [SetupController::class, 'store'])->middleware('throttle:10,1');
+// Stripe calls this; Cashier verifies the signature, the middleware refuses to run without a secret.
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])->middleware(RequireStripeWebhookSecret::class);
 
 // Protected routes - using custom auth middleware
 Route::middleware('auth.custom')->group(function () {
@@ -70,6 +75,11 @@ Route::middleware('auth.custom')->group(function () {
 
     // Investments
     Route::apiResource('investments', InvestmentController::class)->middleware('permission:view investments');
+
+    // Billing (Stripe)
+    Route::get('/billing', [BillingController::class, 'show']);
+    Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1');
+    Route::post('/billing/portal', [BillingController::class, 'portal'])->middleware('throttle:10,1');
 
     // Reports
     Route::get('/reports/monthly', [ReportController::class, 'monthly'])->middleware('permission:export reports');

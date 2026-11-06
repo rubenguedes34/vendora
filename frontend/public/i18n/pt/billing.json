@@ -1,0 +1,20 @@
+{
+  "title": "Passa a Premium",
+  "subtitle": "Desbloqueia os Investimentos e acompanha o teu portfólio junto do orçamento.",
+  "monthly": "Mensal",
+  "yearly": "Anual",
+  "subscribe": "Subscrever",
+  "per": { "monthly": "/ mês", "yearly": "/ ano" },
+  "save": "poupa {{pct}}%",
+  "redirecting": "A redirecionar para o pagamento seguro...",
+  "confirming": "A confirmar o pagamento, demora alguns segundos...",
+  "confirmTimeout": "Pagamento recebido mas ainda não confirmado. Atualiza dentro de um minuto; não serás cobrado duas vezes.",
+  "cancelled": "Checkout cancelado. Não foste cobrado.",
+  "active": "És Premium",
+  "cancelsAt": "O teu plano termina a {{date}}.",
+  "pastDue": "O último pagamento falhou. Atualiza o cartão para manteres o Premium.",
+  "manage": "Gerir faturação",
+  "openInvestments": "Abrir Investimentos",
+  "unavailable": "Os planos não estão disponíveis neste momento.",
+  "error": "Algo correu mal. Tenta novamente."
+}

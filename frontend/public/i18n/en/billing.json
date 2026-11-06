@@ -1,0 +1,20 @@
+{
+  "title": "Go Premium",
+  "subtitle": "Unlock Investments and track your portfolio next to your budget.",
+  "monthly": "Monthly",
+  "yearly": "Yearly",
+  "subscribe": "Subscribe",
+  "per": { "monthly": "/ month", "yearly": "/ year" },
+  "save": "save {{pct}}%",
+  "redirecting": "Redirecting to secure payment...",
+  "confirming": "Confirming your payment, this takes a few seconds...",
+  "confirmTimeout": "Payment received but not confirmed yet. Refresh in a minute; you will not be charged twice.",
+  "cancelled": "Checkout cancelled. You have not been charged.",
+  "active": "You are Premium",
+  "cancelsAt": "Your plan ends on {{date}}.",
+  "pastDue": "Your last payment failed. Update your card to keep Premium.",
+  "manage": "Manage billing",
+  "openInvestments": "Open Investments",
+  "unavailable": "Plans are not available right now.",
+  "error": "Something went wrong. Please try again."
+}

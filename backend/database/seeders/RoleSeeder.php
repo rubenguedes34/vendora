@@ -37,7 +37,6 @@ class RoleSeeder extends Seeder
         /** @var Role $userRole */
         $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $userRole->syncPermissions([
-            'view investments',
             'use ai support',
             'view health score',
         ]);
